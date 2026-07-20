@@ -1,67 +1,123 @@
 # Arrowspace Latent Diffusion (ALD-SC)
 
 **ArrowSpace Latent Diffusion with Spectral Chart Conditioning** — a
-spectrally conditioned latent diffusion model where a frozen ArrowSpace
-graph-wiring prior defines a low-dimensional semantic manifold, a standard
-spatial VAE latent carries local image detail, and the diffusion process
-operates only on the spatial latent while the spectral chart provides
-topology-aware global conditioning.
+spectral latent diffusion model in which decoding is performed on the
+feature-space manifold defined by a frozen ArrowSpace graph Laplacian
+$L_F$ and its associated energy-dispersion network $\lambda^{\mathrm{ED}}$.
 
-The architecture is deliberately simple: it reuses ESDM's frozen-prior
-principle without replicating its full wave-recurrence and entropy-clock
-machinery. It is developed alongside
-[`entropic-semantic-diffusion`](https://github.com/tuned-org-uk/entropic-semantic-diffusion)
-and follows the pedagogy of
-[`arrowspace-diffusion-from-scratch`](https://github.com/tuned-org-uk/arrowspace-diffusion-from-scratch).
+The model builds on the theoretical framework of the
+[Entropic Semantic Diffusion Model (ESDM)](https://github.com/tuned-org-uk/entropic-semantic-diffusion)
+while keeping the implementation minimal: the full vibrational machinery
+(wave recurrence, density matrices, entropic pump) is deferred. What is
+retained is the central geometric contract — a frozen ArrowSpace prior
+defines the valid semantic subspace, and the decoder reconstructs along
+the graph's smooth directions rather than through unconstrained
+convolutions.
 
-> **Hypothesis:** a frozen ArrowSpace spectral chart improves latent-image
-> decoding and control at fixed latent capacity. The central falsifiable claim
-> is that conditioning on feature-graph energy dispersion yields better
-> global semantic coherence under compression — not merely better FID.
+> **Central claim:** decoding on the feature-space manifold
+> $(L_F, \lambda^{\mathrm{ED}})$ yields better global semantic coherence
+> under compression than decoding on an unconstrained ambient latent.
 
 ---
 
-## The 2.5-D latent
+## The research programme
 
-Each image encodes to two coupled objects:
+The basic point of this research programme is to design **decoding using
+three structures**, all computed from the training corpus via the
+[ArrowSpace library](https://github.com/tuned-org-uk/pyarrowspace):
 
-- **z** — a standard spatial VAE latent that carries local image detail.
-- **A** — an F-channel semantic feature field over the latent plane, from
-  which a compact spectral chart `c_spec` is derived via the frozen prior.
+1. **The item-space** — the spatial latent $z$ carrying local image detail.
+2. **The feature-space graph Laplacian** $L_F$ — its eigenvectors $U_q$
+   define the smooth semantic subspace; its eigenvalues $\nu_k$ define
+   entropy exchange rates.
+3. **The dispersion network** $\lambda^{\mathrm{ED}}$ — ArrowSpace's
+   per-feature energy-dispersion distribution
+   ([arXiv:2606.21535](https://arxiv.org/abs/2606.21535)). Not a
+   diagnostic, but a constructive representation of how semantic structure
+   is distributed over the feature graph.
 
-The ArrowSpace prior is built **once** from a corpus of feature embeddings
-and never updated during training:
+**Decoding uses $L_F$ and $\lambda^{\mathrm{ED}}$ as constructive elements
+of the decoding operator**, not merely as conditioning signals. The
+`WaveReconstructionBlock` propagates information along $U_q$ directions,
+gated by dispersion-derived weights — the graph-theoretic analogue of the
+VAE reparameterization trick.
 
-| Symbol | Shape | Description |
-|---|---|---|
-| `L_F` | (F, F) | Feature-space graph Laplacian |
-| `U_q` | (F, q) | Leading q eigenvectors (smooth modes) |
-| `eigvals_q` | (q,) | Corresponding eigenvalues |
-| `lambdas_ed` | (F,) | Energy-dispersion distribution per feature node |
-| `lambdas_chart` | (q,) | λ_ED projected onto the chart |
+The Barontini entropic clock governs *when* reconstruction effort is
+allocated: the sampler terminates intrinsically when
+$\sum_k \nu_k \bar\alpha_k(t) < \varepsilon$, and the
+`ClockGatedGraphDecoder` modulates decoding tempo by $\bar\alpha_k(t)$.
 
-The spectral conditioner turns the per-image feature field into a compact
-conditioning vector `c_spec` of shape `(3*q,)` = `[ẽ, λ_chart, ν]`, which
-enters the DiT denoiser via AdaLN and the decoder via spectral gates.
+See [`docs/00.md`](docs/00.md) § "The research programme" and
+[`AGENTS.md`](AGENTS.md) §1.1 for the full design statement.
+
+---
+
+## Architecture
 
 ```text
-                          Frozen ArrowSpace prior
-               ┌────────────────────────────────────┐
-               │ L_F, U_q, Λ_q, λ_ED                │
-               └────────────────────────────────────┘
-                               │
- image x ── Encoder ──► spatial latent z ──► Latent DiT ──► ẑ
-               │                    │                     │
-               ▼                    │                     ▼
-         feature field A             └──── spectral tokens ─┐
-               │                                             │
-               ▼                                             ▼
-    project: A U_q U_q^T                          topology-conditioned
-               │                                  VAE decoder
-               ▼                                             │
-    chart coordinates + band energy                           ▼
-          s, e ──► c_spec ───────────────────────────────► image x̂
+                         Frozen ArrowSpace prior
+              ┌──────────────────────────────────────┐
+              │ L_F, U_q, Λ_q, λ_ED  (from ArrowSpace)│
+              └──────────────────────────────────────┘
+                              │
+ image x ── Encoder ──► (z, A) ──► c_spec ──► Latent DiT ──► ẑ
+              │         │  │                      │                │
+              │         │  └─ project: A U_q U_q^T                 │
+              │         │                                           │
+              │         └─ DualSpaceMatrix M_N (2.5-D target)      │
+              │                                                     │
+              │              SpectralSchedule (Barontini clock)     │
+              │                     │                               ▼
+              └────────────── GraphDecoder ◄── ClockGated tempo ──► x̂
+                              (WaveReconstructionBlock:
+                               project → gate → lift along U_q)
 ```
+
+### The 2.5-D latent
+
+Each image encodes to:
+- **z** — spatial VAE latent (local detail, what the DiT denoises)
+- **A** — feature field projected onto $U_q$ (global semantic structure)
+- **c_spec** $\in \mathbb{R}^{3q}$ — `[ẽ, λ_chart, ν]` (conditioning vector)
+
+The 2.5-D encoding target is the **DualSpaceMatrix**
+$M_N = \alpha\|VV^\top\|_F - \beta\|V L_F V^\top\|_F$, which fuses
+item-space geometry with feature-space topology.
+
+### The graph-structured decoder
+
+The `WaveReconstructionBlock` at each resolution:
+1. Pool feature activations → $A$
+2. Project to chart: $\hat{H} = A \cdot U_q$ (decode along smooth directions)
+3. Gate by dispersion: $g = \sigma(W \cdot c_{\mathrm{spec}})$ (energy allocation)
+4. Lift back: $A' = (\hat{H} \odot g) \cdot U_q^\top$ (reconstruct in feature space)
+5. Residual conv update
+
+The `ClockGatedGraphDecoder` modulates gate strength by
+$\bar\alpha_k(t)$: early in denoising (high noise) gates are weak; late
+(low noise) gates are strong.
+
+---
+
+## What is implemented
+
+| Component | File | Description |
+|-----------|------|-------------|
+| ArrowSpace adapter | `wire_graph.py` | $L_F$ + $\lambda^{\mathrm{ED}}$ via pyarrowspace or kNN fallback |
+| Frozen prior | `arrow_prior.py`, `build_prior.py` | $L_F$, $U_q$, $\Pi_q$, $c_{\mathrm{spec}}$ as buffers (zero `nn.Parameter`) |
+| 2.5-D encoding target | `dual_space.py` | $M_N = \alpha\|VV^\top\|_F - \beta\|V L_F V^\top\|_F$ |
+| Spectral VAE | `vae.py` | Dual-head encoder (spatial + feature), legacy single-gate decoder |
+| DiT denoiser | `dit.py` | Patchify + AdaLN + CFG dropout on $c_{\mathrm{spec}}$ |
+| Schedules | `schedule.py` | Cosine + linear, v-prediction (`add_noise`, `v_target`) |
+| Graph decoder | `graph_decoder.py` | `WaveReconstructionBlock`, `GraphDecoder`, `ClockGatedGraphDecoder` |
+| Entropic clock | `spectral_schedule.py` | $\tau_k(t)$, $\bar\alpha_k(t)$, heat-death stopping criterion |
+| Samplers | `sampling.py` | DDIM + Euler with spectral stopping criterion |
+| Losses | `losses.py` | $L_{\mathrm{diff}}$ + $L_{\mathrm{rec}}$ + $L_{\mathrm{chart}}$ + $L_{\mathrm{smooth}}$ + $L_{\mathrm{kl}}$ |
+| Training | `trainer.py` | `train_vae()` + `train_diffusion()` (yields loss dicts) |
+| Data | `data.py` | `ImageFolderDataset`, `ToyImageDataset`, `build_dataloader()` |
+| CLI | `scripts/sample.py` | End-to-end image generation |
+
+**107 unit tests**, all on CPU. `uv run pytest tests/ -v`.
 
 ---
 
@@ -69,14 +125,18 @@ enters the DiT denoiser via AdaLN and the decoder via spectral gates.
 
 | Phase | Scope | State |
 |---|---|---|
-| Phase 1 | Spectral VAE (`arrow_prior`, `build_prior`, `vae`, `losses`, `trainer`) | in progress |
-| Phase 2 | Latent diffusion (`dit`, `schedule`, `sampling`) | scaffolded — `dit.py` shipped (v0.0.1) |
-| Phase 3 | Joint fine-tuning with spectral losses | planned |
-| Phase 4 | Advanced ESDM concepts (entropy clock, wave recurrence) | future |
+| Phase 1 | Spectral VAE + DiT + sampling (image generation) | ✅ Complete |
+| Phase 2 | Paper honesty pass + entropic clock in samplers | ✅ Complete |
+| Phase 3 | Graph-structured decoding (research contribution) | ✅ Complete |
+| Phase 4 | Real-data experiments + metrics + wave recurrence | Tracked in issues |
 
-See [`AGENTS.md`](AGENTS.md) §7 for the full phase checklist and
-[issue #1](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/1)
-for the notebook-driven roadmap to image generation.
+### Open issues (limitations)
+
+- [#9](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/9) — Real-data experiments: CIFAR-10 with DINO/SigLIP embeddings
+- [#10](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/10) — Full second-order wave recurrence in WaveReconstructionBlock
+- [#11](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/11) — Entropic training schedule (not just inference stopping)
+- [#12](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/12) — Quantitative metrics: FID, PSNR, SSIM, LPIPS, spectral diagnostics
+- [#8](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/8) — *(stretch)* Joint fine-tuning & controllable editing
 
 ---
 
@@ -94,21 +154,32 @@ uv sync
 ## Usage
 
 ```bash
-# Run the test suite (CPU; no GPU required for boilerplate tests)
+# Run the test suite (CPU; 107 tests)
 uv run pytest tests/ -v
 
 # Lint and format
 uv run ruff check src/ tests/ scripts/
 uv run ruff format src/ tests/ scripts/
 
-# Scripts (landed incrementally per the roadmap)
-uv run python scripts/train_vae.py      # Phase 1 entry point
-uv run python scripts/train_diffusion.py  # Phase 2 entry point
-uv run python scripts/sample.py         # image generation
+# Generate an image
+uv run python scripts/sample.py --out results/sample.png
+
+# With options
+uv run python scripts/sample.py --steps 50 --seed 3407 --epochs 20 --out results/sample.png
 ```
 
-Notebooks live under `notebooks/` and import library code from `src/ald_sc/`
-(configured via `tool.pytest.ini_options.pythonpath` and an editable install).
+### Notebooks
+
+| # | Notebook | Description |
+|---|----------|-------------|
+| 01 | `01_noise_schedule.ipynb` | Cosine/linear schedules, v-prediction, forward corruption |
+| 02 | `02_arrow_prior.ipynb` | Frozen ArrowSpace prior, eigenvalues, projector, c_spec |
+| 03 | `03_spectral_vae.ipynb` | VAE training, reconstruction, band-energy comparison |
+| 04 | `04_dit_conditioning.ipynb` | DiT velocity prediction, c_spec sensitivity, CFG dropout |
+| 05 | `05_train_diffusion.ipynb` | Latent diffusion training, v-prediction loss |
+| 06 | `06_sampling.ipynb` | DDIM sampling, with-vs-without c_spec ablation |
+| 07 | `07_spectral_schedule.ipynb` | Per-mode entropic schedule, heat-death criterion |
+| 08 | `08_graph_decoder.ipynb` | Graph decoder vs clock-gated decoder at different times |
 
 ---
 
@@ -116,77 +187,70 @@ Notebooks live under `notebooks/` and import library code from `src/ald_sc/`
 
 ```
 arrowspace-latent-diffusion/
-├── pyproject.toml              # uv / hatchling project config
-├── AGENTS.md                   # contributor guide (read this first)
-├── configs/
-│   ├── vae_base.yaml           # Phase 1 config
-│   └── diffusion_base.yaml     # Phase 2 config
+├── pyproject.toml                # uv / hatchling project config
+├── AGENTS.md                     # contributor guide (read this first)
 ├── docs/
-│   ├── 00.md                   # design document — Arrow-LDM
-│   └── 01.md                   # design document — ALD-SC (ESDM transfer)
-├── notebooks/                  # numbered milestones (see roadmap)
+│   ├── 00.md                     # design document — the research programme
+│   ├── 01.md                     # design document — ESDM transfer
+│   └── paper/
+│       └── ald-sc.tex            # the paper
+├── notebooks/                    # 01–08 (numbered milestones)
 ├── scripts/
-│   ├── build_arrow_prior.py    # build frozen prior from embeddings
-│   ├── train_vae.py            # Phase 1 training entry point
-│   ├── train_diffusion.py      # Phase 2 training entry point
-│   └── sample.py               # inference / image generation
+│   └── sample.py                 # CLI image generation
 ├── src/ald_sc/
 │   ├── __init__.py
-│   ├── arrow_prior.py          # ArrowSpacePrior: frozen spectral prior
-│   ├── build_prior.py          # build_arrow_prior() from corpus embeddings
-│   ├── data.py                 # ImageFolderDataset, build_dataloader()
-│   ├── dit.py                  # MinimalDiT: patchify + AdaLN transformer
-│   ├── losses.py               # ALDSCLoss: diff + rec + chart + smooth
-│   ├── sampling.py             # sample_euler(), sample_ddim()
-│   ├── schedule.py             # CosineSchedule, LinearSchedule
-│   ├── trainer.py              # train_vae(), train_diffusion()
-│   └── vae.py                  # SpectralVAE: dual-head encoder + topology decoder
-└── tests/
+│   ├── arrow_prior.py            # ArrowSpacePrior: frozen spectral prior
+│   ├── build_prior.py            # build_arrow_prior() from corpus embeddings
+│   ├── data.py                   # ImageFolderDataset, ToyImageDataset
+│   ├── dit.py                    # MinimalDiT: patchify + AdaLN + CFG
+│   ├── dual_space.py             # DualSpaceMatrix M_N (2.5-D encoding target)
+│   ├── graph_decoder.py          # WaveReconstructionBlock, GraphDecoder,
+│   │                             #   ClockGatedGraphDecoder
+│   ├── losses.py                 # ALDSCLoss: diff + rec + chart + smooth + kl
+│   ├── sampling.py               # sample_euler(), sample_ddim() + spectral stopping
+│   ├── schedule.py               # CosineSchedule, LinearSchedule (v-prediction)
+│   ├── spectral_schedule.py      # Per-mode τ_k, ᾱ_k, heat-death criterion
+│   ├── trainer.py                # train_vae(), train_diffusion()
+│   ├── vae.py                    # SpectralVAE: dual-head encoder
+│   └── wire_graph.py             # ArrowSpace adapter: L_F + λ_ED
+└── tests/                        # 13 test files, 107 tests
 ```
-
----
-
-## Roadmap
-
-The project is built one notebook at a time, each a vertical slice with TDD'd
-modules + tests. Tracked in
-[issue #1](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/1):
-
-1. Noise schedule & forward corruption — [#2](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/2)
-2. Frozen ArrowSpace prior & spectral chart — [#3](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/3)
-3. Spectral VAE (encode/decode with topology) — [#4](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/4)
-4. DiT denoiser & `c_spec` conditioning — [#5](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/5)
-5. Latent diffusion training (Phase 2) — [#6](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/6)
-6. Sampling & image generation (ship) — [#7](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/7)
-7. *(stretch)* Joint fine-tuning & controllable editing (Phase 3) — [#8](https://github.com/tuned-org-uk/arrowspace-latent-diffusion/issues/8)
 
 ---
 
 ## Design constraints
 
-- **Frozen prior.** `L_F`, `U_q` are buffers, never parameters. The graph
+- **Frozen prior.** $L_F$, $U_q$ are buffers, never parameters. The graph
   defines the valid semantic geometry; learning happens on top of it.
-- **Diffusion runs on `z` only.** No second diffusion process over the
-  spectral chart `s` in v1.
+- **Decoding on the feature-space manifold.** $L_F$ defines reconstruction
+  paths (via $U_q$); $\lambda^{\mathrm{ED}}$ defines energy allocation. Not
+  conditioning bolted on top — the graph structures *are* the decoding
+  operator.
+- **Diffusion runs on $z$ only.** No second diffusion process over the
+  spectral chart $s$.
 - **Corpus-level prior, not per-image.** Do not construct a new graph per
   image.
-- **Simple and clean.** Reuse ESDM concepts (frozen prior, projection,
-  heat-kernel weights) rather than reimplementing the full vibrational system.
+- **Barontini clock governs when, not how much.** The entropic clock
+  provides an intrinsic stopping criterion and decoder tempo modulation,
+  not a per-mode noise schedule (ν_k cancels in external time).
 
-See [`AGENTS.md`](AGENTS.md) §6 for the full "what ALD-SC is / is not" and
-§11 for per-file responsibilities.
+See [`AGENTS.md`](AGENTS.md) §1.1 and §6 for the full design constraints.
 
 ---
 
 ## References
 
 - Design documents: [`docs/00.md`](docs/00.md), [`docs/01.md`](docs/01.md)
+- Paper: [`docs/paper/ald-sc.tex`](docs/paper/ald-sc.tex)
 - [Diffusion as spectral-geometric projection](https://www.tuned.org.uk/posts/021_diffusion_as_spectral_geometric_projection/) — theoretical background
+- [`entropic-semantic-diffusion`](https://github.com/tuned-org-uk/entropic-semantic-diffusion) — predecessor (full entropic clock)
 - [`arrowspace-diffusion-from-scratch`](https://github.com/tuned-org-uk/arrowspace-diffusion-from-scratch) — pedagogical template
-- [`entropic-semantic-diffusion`](https://github.com/tuned-org-uk/entropic-semantic-diffusion) — source of the frozen-prior concept
-- [Chenyang Yuan — Diffusion models from scratch](https://chenyang.co/diffusion.html) (ICML 2024)
-- [ArrowSpace — Spectral Search for Embeddings](https://doi.org/10.21105/joss.09002)
+- [`pyarrowspace`](https://github.com/tuned-org-uk/pyarrowspace) — ArrowSpace library (Rust bindings)
+- [Energy Dispersion Networks](https://arxiv.org/abs/2606.21535) — dispersion network concept
+- [ArrowSpace — Spectral Search for Embeddings](https://doi.org/10.21105/joss.09002) (JOSS)
 - Rombach et al., *High-Resolution Image Synthesis with Latent Diffusion Models* (CVPR 2022)
+- Barontini, *Testing the problem of time with cold atoms* (PRL 2026)
+- Stancevic et al., *Entropic Time Schedulers for Generative Diffusion Models* (arXiv 2025)
 
 ## License
 
