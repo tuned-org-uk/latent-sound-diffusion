@@ -3,6 +3,11 @@
 Provides Euler and DDIM-style deterministic samplers that turn noise into
 a latent, which can then be decoded through the frozen VAE to produce an image.
 
+When a ``SpectralSchedule`` is provided, the sampler uses the Barontini-inspired
+heat-death stopping criterion: sampling terminates when
+``Σ ν_k · ᾱ_k(t) < ε``, rather than at a fixed step count. The number of
+effective sampling steps is therefore data-dependent and spectrally determined.
+
 This module must not add training logic (per AGENTS.md §11).
 """
 
@@ -14,11 +19,12 @@ import torch
 from torch import Tensor, nn
 
 from ald_sc.schedule import CosineSchedule
+from ald_sc.spectral_schedule import SpectralSchedule
 
 __all__ = ["sample_euler", "sample_ddim", "sample_ddim_steps"]
 
 
-def _pairwise(iterable: list[Tensor]) -> Iterator[tuple[Tensor, Tensor]]:
+def _pairwise(iterable: list[int]) -> Iterator[tuple[int, int]]:
     it = iter(iterable)
     try:
         prev = next(it)
@@ -38,7 +44,9 @@ def sample_euler(
     steps: int = 50,
     seed: int = 3407,
     device: torch.device = torch.device("cpu"),
-) -> Tensor:
+    spectral_schedule: SpectralSchedule | None = None,
+    return_steps: bool = False,
+) -> Tensor | tuple[Tensor, int]:
     """Euler sampler for latent diffusion.
 
     Starts from pure noise at t=T and steps backward to t=0.
@@ -53,14 +61,19 @@ def sample_euler(
         Spectral conditioning vector.
     batch_size : int
     steps : int
-        Number of sampling steps.
+        Maximum number of sampling steps.
     seed : int
     device : torch.device
+    spectral_schedule : SpectralSchedule, optional
+        If provided, sampling stops early when the heat-death criterion
+        ``Σ ν_k · ᾱ_k(t) < ε`` is met.
+    return_steps : bool
+        If True, return (z, steps_used).
 
     Returns
     -------
     Tensor (B, latent_channels, latent_size, latent_size)
-        Denoised latent z_0.
+        Denoised latent z_0. If return_steps, returns (z, steps_used).
     """
     gen = torch.Generator(device=device).manual_seed(seed)
     model = model.to(device).eval()
@@ -69,7 +82,6 @@ def sample_euler(
 
     sigmas = schedule.sample_sigmas(steps).to(device)
 
-    # Infer latent shape from the model
     latent_channels = getattr(model, "latent_channels", 4)
     latent_size = getattr(model, "latent_size", 32)
 
@@ -82,7 +94,13 @@ def sample_euler(
         generator=gen,
     )
 
+    steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
+        if spectral_schedule is not None:
+            t_frac = sig / schedule.num_steps
+            if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
+                break
+        steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
         v = model(x, t, c_spec=c_spec)
 
@@ -92,15 +110,13 @@ def sample_euler(
         sqrt_1mab_prev = (1 - ab_prev).sqrt()
         sqrt_ab = ab.sqrt()
 
-        # v = sqrt(ab)*eps - sqrt(1-ab)*z0
-        # z_t = sqrt(ab)*z0 + sqrt(1-ab)*eps
-        # eps = (z_t - sqrt(ab)*z0) / sqrt(1-ab) = (sqrt(ab)*v + z_t) / (2*sqrt_ab) ...
-        # Simpler: from v and z_t, recover z0 = sqrt(ab)*z_t - sqrt(1-ab)*v
         z0_pred = sqrt_ab * x - (1 - ab).sqrt() * v
         x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * (x - sqrt_ab * z0_pred) / (
             (1 - ab).sqrt() + 1e-8
         )
 
+    if return_steps:
+        return x, steps_used
     return x
 
 
@@ -113,7 +129,9 @@ def sample_ddim(
     steps: int = 50,
     seed: int = 3407,
     device: torch.device = torch.device("cpu"),
-) -> Tensor:
+    spectral_schedule: SpectralSchedule | None = None,
+    return_steps: bool = False,
+) -> Tensor | tuple[Tensor, int]:
     """DDIM-style deterministic sampler for latent diffusion.
 
     Parameters
@@ -124,12 +142,19 @@ def sample_ddim(
     c_spec : Tensor (B, spec_dim), optional
     batch_size : int
     steps : int
+        Maximum number of sampling steps.
     seed : int
     device : torch.device
+    spectral_schedule : SpectralSchedule, optional
+        If provided, sampling stops early when the heat-death criterion
+        ``Σ ν_k · ᾱ_k(t) < ε`` is met.
+    return_steps : bool
+        If True, return (z, steps_used).
 
     Returns
     -------
     Tensor (B, latent_channels, latent_size, latent_size)
+        If return_steps, returns (z, steps_used).
     """
     gen = torch.Generator(device=device).manual_seed(seed)
     model = model.to(device).eval()
@@ -150,7 +175,13 @@ def sample_ddim(
         generator=gen,
     )
 
+    steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
+        if spectral_schedule is not None:
+            t_frac = sig / schedule.num_steps
+            if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
+                break
+        steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
         v = model(x, t, c_spec=c_spec)
 
@@ -159,14 +190,14 @@ def sample_ddim(
         sqrt_ab = ab.sqrt()
         sqrt_1mab = (1 - ab).sqrt()
 
-        # Recover z0 prediction from v
         z0_pred = sqrt_ab * x - sqrt_1mab * v
 
-        # DDIM deterministic step
         sqrt_ab_prev = ab_prev.sqrt()
         sqrt_1mab_prev = (1 - ab_prev).sqrt()
         x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * v
 
+    if return_steps:
+        return x, steps_used
     return x
 
 
@@ -178,8 +209,12 @@ def sample_ddim_steps(
     steps: int = 50,
     seed: int = 3407,
     device: torch.device = torch.device("cpu"),
+    spectral_schedule: SpectralSchedule | None = None,
 ) -> Iterator[Tensor]:
-    """Yield intermediate latents during DDIM sampling (for visualization)."""
+    """Yield intermediate latents during DDIM sampling (for visualization).
+
+    If spectral_schedule is provided, stops early at heat death.
+    """
     gen = torch.Generator(device=device).manual_seed(seed)
     model = model.to(device).eval()
     if c_spec is not None:
@@ -201,6 +236,10 @@ def sample_ddim_steps(
     yield x
 
     for sig, sig_prev in _pairwise(sigmas.tolist()):
+        if spectral_schedule is not None:
+            t_frac = sig / schedule.num_steps
+            if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
+                break
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
         v = model(x, t, c_spec=c_spec)
 

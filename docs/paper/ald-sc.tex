@@ -59,14 +59,13 @@
 
 \title{%
   \textbf{Arrowspace Latent Diffusion with\\ Spectral Chart Conditioning\\
-  \large \normalfont A Minimal Spectral Latent Diffusion Model}
+  \large \normalfont \ALDSC~A Minimal Spectral Latent Diffusion Model}
 }
 
 \author{%
   Lorenzo Moriondo \\[2pt]   \small tuned.org.uk\\   \small ORCID: 0000-0002-8804-2963\\   \texttt{tunedconsulting@gmail.com} }  \date{July 2026 \\
     \href{https://github.com/tuned-org-uk/arrowspace-latent-diffusion}{%
      \textsc{\Large\faGithub} tuned-org-uk/arrowspace-latent-diffusion} \\
-     \emph{Predecessor (full entropic clock):}
      \href{https://github.com/tuned-org-uk/entropic-semantic-diffusion}{%
      \textsc{\Large\faGithub} tuned-org-uk/entropic-semantic-diffusion}
   }
@@ -83,9 +82,10 @@
     implements only the minimal viable architecture described in
     Sections~\ref{sec:25d}--\ref{sec:objective} and
     Section~\ref{sec:experiments}. Section~\ref{sec:entropic_clock}
-    (entropic time) is a \emph{theoretical extension} with a thin
-    reproducible stub (Section~\ref{sec:per_mode_schedule}), not a
-    claim about the current implementation.
+    (entropic time) is an active part of the inference pipeline
+    (Section~\ref{sec:per_mode_schedule}): the heat-death stopping
+    criterion terminates sampling when the spectrally-weighted metric
+    drops below a threshold.
     \end{framed}
 
     \begin{abstract}
@@ -113,8 +113,11 @@
     The central falsifiable claim is that a frozen ArrowSpace spectral
     chart improves latent-image decoding and control at fixed latent
     capacity. The entropic clock (per-mode $\tau_k(t) = \nu_k \cdot t$)
-    is included as a theoretical extension with a reproducible stub,
-    positioning the upgrade path from \ALDSC~back to the full \ESDM.
+    is an active part of the inference pipeline: the sampler terminates
+    when the spectrally-weighted heat-death metric drops below a threshold,
+    rather than at a fixed step count. The Barontini principle survives
+    but in a narrower form than a per-mode noise schedule --- it governs
+    *when* the process terminates, not *how much* each mode is noised.
     \end{abstract}
 
     \vspace{1em} \noindent \textbf{Keywords:} latent diffusion, ArrowSpace, graph Laplacian, spectral conditioning, feature-space geometry, v-prediction, classifier-free guidance, thermal time.  \newpage \tableofcontents \newpage
@@ -251,9 +254,9 @@
     \item the entropic pump as a learned forcing term.
     \end{itemize}
 
-    The entropic clock is revisited as a theoretical extension in
-    Section~\ref{sec:entropic_clock}, with a thin reproducible stub
-    demonstrating the per-mode schedule formula on frozen eigenvalues.
+    The entropic clock is implemented as an intrinsic stopping criterion
+    in Section~\ref{sec:entropic_clock}: the sampler terminates when
+    the spectrally-weighted heat-death metric drops below a threshold.
 
     % ============================================================
     \section{The 2.5-D latent}
@@ -281,7 +284,7 @@
     \Pi_q)$. The parallel component lies in the smooth semantic
     subspace; the perpendicular captures off-manifold residual.
 
-    \noindent\textbf{Implementation:} \texttt{arrow_prior.py} --
+    \noindent\textbf{Implementation:} \texttt{arrow\_prior.py} --
     \texttt{ArrowSpacePrior.project\_to\_chart(A)} computes $A \Uq
     \Uq^\top$. The prior stores $L_F$, $U_q$, eigenvalues, and
     energy-dispersion as non-trainable buffers (zero
@@ -299,7 +302,7 @@
     \ed_{1^{\mathrm{chart}}},\ldots,\ed_{q^{\mathrm{chart}}},\;
     \nu_1,\ldots,\nu_q] \in \R^{3q}.\]
 
-    \noindent\textbf{Implementation:} \texttt{arrow_prior.py} --
+    \noindent\textbf{Implementation:} \texttt{arrow\_prior.py} --
     \texttt{chart\_energy\_descriptor(A)} returns $c_{\mathrm{spec}}$
     of shape $(B, 3q)$. No MLP is applied in the current
     implementation; the raw $3q$ vector is used directly as
@@ -441,13 +444,11 @@
     \label{sec:entropic_clock}
     % ============================================================
 
-    \begin{framed}
-    \noindent\textbf{Theoretical extension.} The material in this
-    section is \emph{not} part of the current \ALDSC~implementation.
-    It describes the upgrade path from \ALDSC~back to the full \ESDM.
-    A thin reproducible stub (Section~\ref{sec:per_mode_schedule})
-    demonstrates the per-mode formula on frozen eigenvalues.
-    \end{framed}
+    \noindent\textbf{Implementation note.} The Barontini-inspired
+    entropic clock is an active part of the \ALDSC~inference pipeline.
+    The heat-death stopping criterion (Section~\ref{sec:heat_death_clock})
+    is wired into the DDIM and Euler samplers, terminating sampling
+    when $\sum_k \nu_k \cdot \bar\alpha_k(t) < \varepsilon$.
 
     The heat-kernel prior admits a natural reading in terms of
     entropic time. The ArrowSpace Laplacian eigenvalues play the role
@@ -503,7 +504,7 @@
     \end{table}
 
     % ------------------------------------------------------------
-    \subsection{Per-mode entropic schedule (reproducible stub)}
+    \subsection{Per-mode entropic schedule and stopping criterion}
     \label{sec:per_mode_schedule}
     % ------------------------------------------------------------
     Instead of a single global schedule $\bar\alpha(t)$, each mode
@@ -526,10 +527,13 @@
     \noindent\textbf{Implementation:} \texttt{spectral\_schedule.py} --
     \texttt{SpectralSchedule} implements $\tau_k(t)$, $\bar\alpha_k(t)$,
     the entropy rate $dS_k/dt = -\nu_k$, and the heat-death stopping
-    criterion $\sum_k \nu_k \cdot \bar\alpha_k(t) < \varepsilon$. All
-    components are frozen (zero \texttt{nn.Parameter}). 16 unit tests
-    verify shapes, monotonicity, boundary cases, and the $\nu_k$
-    cancellation.
+    criterion $\sum_k \nu_k \cdot \bar\alpha_k(t) < \varepsilon$.
+    The samplers in \texttt{sampling.py} accept an optional
+    \texttt{spectral\_schedule} parameter; when provided, sampling
+    stops early at heat death instead of at a fixed step count. All
+    components are frozen (zero \texttt{nn.Parameter}). 21 unit tests
+    verify shapes, monotonicity, boundary cases, the $\nu_k$
+    cancellation, and the spectral stopping criterion.
 
     % ------------------------------------------------------------
     \subsection{Connection to information-theoretic schedulers}
@@ -561,9 +565,9 @@
     \midrule
     Time variable & Cond.\ entropy & RAPSD profile & Per-mode $\tau_k$ \\
     Spectral basis & Fourier (pixel) & Fourier (pixel) & ArrowSpace (semantic) \\
-    Per-mode schedule & Spectral variant & No & Yes (theoretical) \\
+    Per-mode schedule & Spectral variant & No & $\tau_k$ (stopping only) \\
     Geometry source & Image frequency & Image spectrum & Feature-space graph \\
-    Online adaptation & No (post-train) & No & Yes (MMSE, future) \\
+    Online adaptation & No (post-train) & No & No (static $\nu_k$) \\
     Barrier analogue & None & None & $q$ (retained modes) \\
     \bottomrule
     \end{tabular}
@@ -622,9 +626,12 @@
     \item \textbf{Frozen prior:} verified that the prior has zero
         trainable parameters and that VAE parameters stay frozen
         during diffusion training.
-    \item \textbf{Spectral schedule stub:} the per-mode $\tau_k(t)$,
+    \item \textbf{Spectral stopping:} the per-mode $\tau_k(t)$,
         $\bar\alpha_k$, entropy rate, and heat-death metric are
-        computed correctly on frozen $\nu_k$.
+        computed on frozen $\nu_k$. The DDIM sampler terminates early
+        when the heat-death criterion is met (verified by unit test:
+        high-$\varepsilon$ stops before max steps; same seed is
+        deterministic).
     \end{itemize}
 
     \subsection{Limitations}
@@ -635,8 +642,9 @@
         the next step.
     \item The topology decoder uses a simplified single-level spectral
         gate, not the full multi-resolution UpBlock formula.
-    \item The entropic clock is a stub, not an active training
-        schedule.
+    \item The entropic clock provides an intrinsic stopping criterion
+        but not an active training schedule; the cosine schedule is
+        still used during training.
     \item No FID or quantitative image-quality metrics are reported.
     \end{itemize}
 
@@ -662,9 +670,10 @@
     from outside. In \ESDM~this took the form of an entropy-derived
     temporal variable. In \ALDSC~it takes the form of a feature-space
     geometric prior that governs which semantic directions are valid
-    and how their energy is distributed. The spectral schedule stub
-    (Section~\ref{sec:per_mode_schedule}) provides the minimal
-    reproducible bridge.
+    and how their energy is distributed. The spectral schedule
+    (Section~\ref{sec:per_mode_schedule}) provides the active
+    stopping criterion, making the Barontini principle operational
+    within the minimal architecture.
 
     % ============================================================
     \section{Conclusion}
@@ -681,8 +690,10 @@
     The full \ALDSC~pipeline --- prior construction, spectral VAE,
     v-prediction diffusion, and DDIM/Euler sampling --- is implemented
     and validated by 67 unit tests. The entropic clock is included as
-    a theoretical extension with a reproducible stub, positioning the
-    upgrade path to the full \ESDM.
+    an active intrinsic stopping criterion in the inference pipeline,
+    making the Barontini principle operational within the minimal
+    architecture. The upgrade path to the full \ESDM~remains open
+    through the entropic training schedule.
 
     The original entropic formulation remains an important theoretical
     horizon. The present architecture offers a cleaner and more
@@ -714,9 +725,9 @@
     \S\ref{sec:decoder}: topology decoder & \texttt{vae.py} (simplified) & Partial \\
     \S\ref{sec:objective}: losses & \texttt{losses.py} & Implemented \\
     \S\ref{sec:heat_kernel}: heat-kernel prior & --- & Theoretical \\
-    \S\ref{sec:entropic_clock}: entropic clock & \texttt{spectral\_schedule.py} & Stub \\
-    \S\ref{sec:per_mode_schedule}: per-mode schedule & \texttt{spectral\_schedule.py} & Stub \\
-    \S\ref{sec:heat_death_clock}: heat death & \texttt{spectral\_schedule.py} & Stub \\
+    \S\ref{sec:entropic_clock}: entropic clock & \texttt{spectral\_schedule.py}, \texttt{sampling.py} & Implemented \\
+    \S\ref{sec:per_mode_schedule}: per-mode schedule & \texttt{spectral\_schedule.py} & Implemented \\
+    \S\ref{sec:heat_death_clock}: heat death & \texttt{spectral\_schedule.py}, \texttt{sampling.py} & Implemented \\
     \S\ref{sec:experiments}: image generation & \texttt{scripts/sample.py} & Implemented \\
     \bottomrule
     \end{tabular}
