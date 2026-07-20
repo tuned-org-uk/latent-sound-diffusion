@@ -73,34 +73,53 @@
 
     \begin{abstract}
     We present \ALDSC~(\emph{Arrowspace Latent Diffusion with Spectral
-    Chart Conditioning}), a minimal spectrally conditioned latent
-    diffusion model that builds on the theoretical framework of the
-    Entropic Semantic Diffusion Model (\ESDM)~\cite{Moriondo2026ESDM_code}
-    while deferring its full entropic-clock machinery.
+    Chart Conditioning}), a spectral latent diffusion model in which
+    decoding is performed on the feature-space manifold defined by a
+    frozen ArrowSpace graph Laplacian $L_F$ and its associated
+    energy-dispersion network $\lambda^{\mathrm{ED}}$.
 
-    The model encodes each image into a 2.5-D representation: a
-    standard spatial VAE latent $z$ for local detail, and a feature
-    field $A$ projected onto the smooth eigenspace of a \emph{frozen}
-    ArrowSpace graph Laplacian. From this projection we extract a
-    compact spectral chart $c_{\mathrm{spec}}$ of dimension $3q$,
-    which conditions both a DiT denoiser (via adaptive layer
-    normalisation) and a topology-adaptive decoder (via spectral
-    gates). Diffusion operates only on $z$; the spectral chart is a
-    side-channel, not a second diffused state.
+    The model encodes each image into a 2.5-D representation: a spatial
+    VAE latent $z$ for local detail, and a feature field $A$ projected
+    onto the smooth eigenspace of $L_F$. The 2.5-D encoding target is
+    the DualSpaceMatrix $M_N = \alpha\|VV^\top\|_F - \beta\|V L_F
+    V^\top\|_F$, which fuses item-space geometry with feature-space
+    topology. From the projected feature field we extract a compact
+    spectral chart $c_{\mathrm{spec}} \in \mathbb{R}^{3q}$ comprising
+    normalised band energies, the projected dispersion prior, and the
+    Laplacian eigenvalues.
 
-    We implement the full pipeline --- prior construction, spectral
-    VAE, v-prediction diffusion training, and DDIM/Euler sampling ---
-    in under 700 lines of PyTorch, validated by 67 unit tests on CPU.
-    The model generates images end-to-end via a single CLI command.
+    Diffusion operates only on $z$ with v-prediction and a cosine
+    schedule; $c_{\mathrm{spec}}$ is a conditioning side-channel, not a
+    second diffused state. The DiT denoiser receives $c_{\mathrm{spec}}$
+    via adaptive layer normalisation, with classifier-free guidance
+    dropout.
 
-    The central falsifiable claim is that a frozen ArrowSpace spectral
-    chart improves latent-image decoding and control at fixed latent
-    capacity. The entropic clock (per-mode $\tau_k(t) = \nu_k \cdot t$)
-    is an active part of the inference pipeline: the sampler terminates
-    when the spectrally-weighted heat-death metric drops below a threshold,
-    rather than at a fixed step count. The Barontini principle survives
-    but in a narrower form than a per-mode noise schedule --- it governs
-    *when* the process terminates, not *how much* each mode is noised.
+    The decoder is the research contribution: a \emph{graph-structured}
+    decoder in which $L_F$ (via its eigenvectors $U_q$) defines the
+    reconstruction paths and $\lambda^{\mathrm{ED}}$ (via
+    $c_{\mathrm{spec}}$) gates the energy allocation at each resolution.
+    The \emph{WaveReconstructionBlock} projects feature activations onto
+    the chart basis, gates them by the dispersion-derived weights, and
+    lifts them back --- the graph-theoretic analogue of the VAE
+    reparameterization trick, replacing unconstrained convolutions with
+    propagation along the graph's smooth directions.
+
+    The Barontini entropic clock is an active part of both inference and
+    decoding. The per-mode schedule $\tau_k(t) = \nu_k \cdot t$ and the
+    heat-death criterion $\sum_k \nu_k \bar\alpha_k(t) < \varepsilon$
+    terminate sampling intrinsically rather than at a fixed step count.
+    The \emph{ClockGatedGraphDecoder} modulates decoding tempo by
+    $\bar\alpha_k(t)$: graph-structured reconstruction effort increases
+    as the denoising process resolves each spectral mode.
+
+    The full pipeline --- prior construction, spectral VAE, graph
+    decoder, v-prediction diffusion training, DDIM/Euler sampling with
+    spectral stopping, and end-to-end image generation via CLI --- is
+    implemented in PyTorch and validated by 107 unit tests on CPU.
+
+    The central falsifiable claim is that decoding on the feature-space
+    manifold yields better global semantic coherence under compression
+    than decoding on an unconstrained ambient latent.
     \end{abstract}
 
     \vspace{1em} \noindent \textbf{Keywords:} latent diffusion, ArrowSpace, graph Laplacian, spectral conditioning, feature-space geometry, v-prediction, classifier-free guidance, thermal time.  \newpage \tableofcontents \newpage
