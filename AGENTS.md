@@ -15,6 +15,47 @@ The architecture is deliberately simple: it reuses ESDM's frozen-prior
 principle without replicating its full wave-recurrence and entropy-clock
 machinery. It reuses concepts developed in https://github.com/tuned-org-uk/entropic-semantic-diffusion
 
+### 1.1 The research programme: decoding on the feature-space manifold
+
+The basic point of this research programme is to design **decoding using
+three structures**, all computed from the training corpus via the
+ArrowSpace library (https://github.com/tuned-org-uk/pyarrowspace):
+
+1. **The item-space** — the spatial latent z carrying local image detail.
+2. **The feature-space graph Laplacian** L_F — its eigenvectors U_q define
+   the smooth semantic subspace; its eigenvalues ν_k define entropy
+   exchange rates.
+3. **The dispersion network** λ_ED — ArrowSpace's per-feature
+   energy-dispersion distribution (https://arxiv.org/abs/2606.21535).
+   This is not a diagnostic; it is a representation of how semantic
+   structure is distributed over the feature graph.
+
+The 2.5-D space is the structure defined by the projection of the
+item-space into the feature-space graph Laplacian (originally the
+DualSpaceMatrix M_N = α‖VVᵀᵗ‖_F − β‖V L_F Vᵀᵗ‖_F in ESDM). This is the
+training dataset for encoding.
+
+**Decoding must use L_F and λ_ED as constructive elements of the
+decoding operator, not merely as conditioning signals.** L_F defines the
+reconstruction paths (which directions to reconstruct along);
+λ_ED defines the energy allocation (where to concentrate reconstruction
+effort). Standard VAEs decode via the reparameterization trick (a
+continuous surface integral over a Gaussian latent). The research target
+is to find an analogous construction using the graph structures.
+
+**The Barontini entropic clock and the ESDM vibrational harness are
+tools** for achieving this decoding design, not separate concerns:
+- The clock provides temporal dynamics for decoding (when modes resolve,
+  intrinsic stopping via heat death).
+- The vibrational harness provides wave-based reconstruction on the graph
+  (propagating information along smooth directions, weighted by the
+  dispersion network).
+
+See `docs/00.md` § "The research programme" for the full design
+statement. The central falsifiable claim is that decoding on the
+feature-space manifold yields better global semantic coherence under
+compression than decoding on an unconstrained ambient latent.
+
 ***
 
 ## 2. Repository Layout
