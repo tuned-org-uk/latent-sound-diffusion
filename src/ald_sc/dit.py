@@ -116,8 +116,10 @@ class MinimalDiT(nn.Module):
         num_heads: int = 4,
         text_dim: int = 0,
         spec_dim: int = 768,  # 3 * 256
+        cfg_dropout: float = 0.0,
     ) -> None:
         super().__init__()
+        self.cfg_dropout = cfg_dropout
         self.latent_channels = latent_channels
         self.latent_size = latent_size
         self.patch_size = patch_size
@@ -183,6 +185,12 @@ class MinimalDiT(nn.Module):
         h = self.patch_embed(z_t)  # (B, dim, h/ps, w/ps)
         h = h.flatten(2).transpose(1, 2)  # (B, N, dim)
         h = h + self.pos_embed
+
+        # Classifier-free guidance dropout
+        if self.training and c_spec is not None and self.cfg_dropout > 0:
+            mask = torch.rand(B, device=z_t.device) < self.cfg_dropout
+            c_spec = c_spec.clone()
+            c_spec[mask] = 0.0
 
         # Conditioning
         cond = self.time_emb(t)  # (B, dim)
