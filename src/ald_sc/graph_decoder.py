@@ -25,6 +25,7 @@ import torch
 from torch import Tensor, nn
 
 from ald_sc.arrow_prior import ArrowSpacePrior
+from ald_sc.spectral_schedule import SpectralSchedule
 
 __all__ = ["WaveReconstructionBlock", "GraphDecoder"]
 
@@ -206,6 +207,130 @@ class GraphDecoder(nn.Module):
         h = nn.functional.interpolate(h, scale_factor=2, mode="nearest")
 
         h = self.wave_block_3(h, c_spec)
+        h = self.dec3(h)
+
+        x_hat = self.dec_out(h)
+        return x_hat
+
+
+class ClockGatedGraphDecoder(nn.Module):
+    """Graph decoder with clock-gated decoding tempo.
+
+    The SpectralSchedule governs when each spectral mode resolves during
+    decoding. The clock modulates the strength of each wave block's gate
+    based on the diffusion time:
+
+    - Early in the denoising process (t near 1.0, high noise): modes are
+      unresolved, gates are weak (the decoder does minimal graph-structured
+      reconstruction).
+    - Late in the denoising process (t near 0.0, low noise): modes are
+      active, gates are strong (the decoder fully uses the graph structure).
+
+    This implements the Barontini principle within the decoder: the graph
+    geometry governs *when* reconstruction effort is allocated, not just
+    *where*.
+
+    Parameters
+    ----------
+    latent_channels : int
+    out_channels : int
+    feature_dim : int
+        ArrowSpace feature dimension F.
+    base_channels : int
+    prior : ArrowSpacePrior
+        Frozen prior providing U_q and λ_ED.
+    spectral_schedule : SpectralSchedule
+        Frozen schedule providing per-mode ᾱ_k(t) for tempo modulation.
+    """
+
+    def __init__(
+        self,
+        latent_channels: int,
+        out_channels: int,
+        feature_dim: int,
+        base_channels: int,
+        prior: ArrowSpacePrior,
+        spectral_schedule: SpectralSchedule,
+    ) -> None:
+        super().__init__()
+        self.prior = prior
+        self.spectral_schedule = spectral_schedule
+
+        ch = base_channels
+
+        self.dec_in = nn.Conv2d(latent_channels, ch * 4, 1)
+
+        self.wave_block_1 = WaveReconstructionBlock(
+            channels=ch * 4, feature_dim=feature_dim, prior=prior
+        )
+        self.dec1 = nn.Sequential(
+            nn.Conv2d(ch * 4, ch * 2, 3, padding=1),
+            nn.GroupNorm(8, ch * 2),
+            nn.SiLU(),
+        )
+
+        self.wave_block_2 = WaveReconstructionBlock(
+            channels=ch * 2, feature_dim=feature_dim, prior=prior
+        )
+        self.dec2 = nn.Sequential(
+            nn.Conv2d(ch * 2, ch, 3, padding=1),
+            nn.GroupNorm(8, ch),
+            nn.SiLU(),
+        )
+
+        self.wave_block_3 = WaveReconstructionBlock(
+            channels=ch, feature_dim=feature_dim, prior=prior
+        )
+        self.dec3 = nn.Sequential(
+            nn.Conv2d(ch, ch, 3, padding=1),
+            nn.GroupNorm(8, ch),
+            nn.SiLU(),
+        )
+
+        self.dec_out = nn.Conv2d(ch, out_channels, 3, padding=1)
+
+    def forward(
+        self,
+        z: Tensor,
+        c_spec: Tensor,
+        diffusion_time: Tensor | None = None,
+    ) -> Tensor:
+        """Decode with clock-gated tempo.
+
+        Parameters
+        ----------
+        z : Tensor (B, latent_channels, h, w)
+            Spatial latent.
+        c_spec : Tensor (B, 3*q)
+            Spectral conditioning vector.
+        diffusion_time : Tensor (scalar), optional
+            Current diffusion time in [0, 1] (1 = high noise, 0 = clean).
+            If None, defaults to 0.0 (full gate strength).
+
+        Returns
+        -------
+        Tensor (B, out_channels, H, W)
+        """
+        if diffusion_time is None:
+            diffusion_time = torch.tensor(0.0, device=z.device)
+
+        ab_k = self.spectral_schedule.alpha_bar_k(diffusion_time)
+        tempo = ab_k.mean()
+
+        h = self.dec_in(z)
+
+        h_raw = self.wave_block_1(h, c_spec)
+        h = h + tempo * (h_raw - h)
+        h = self.dec1(h)
+        h = nn.functional.interpolate(h, scale_factor=2, mode="nearest")
+
+        h_raw = self.wave_block_2(h, c_spec)
+        h = h + tempo * (h_raw - h)
+        h = self.dec2(h)
+        h = nn.functional.interpolate(h, scale_factor=2, mode="nearest")
+
+        h_raw = self.wave_block_3(h, c_spec)
+        h = h + tempo * (h_raw - h)
         h = self.dec3(h)
 
         x_hat = self.dec_out(h)

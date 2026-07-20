@@ -71,23 +71,6 @@
   }
     \maketitle
 
-    \begin{framed}
-    \noindent\textbf{Codebase clarification.} This paper presents
-    \ALDSC, a \emph{minimal} spectral latent diffusion model. The
-    full entropic-clock formulation --- wave recurrence, vibrational
-    pump, density matrices, and the bright--dark KL clock --- is
-    implemented in the predecessor repository
-    \texttt{entropic-semantic-diffusion} and is cited here as
-    background. The code at \texttt{arrowspace-latent-diffusion}
-    implements only the minimal viable architecture described in
-    Sections~\ref{sec:25d}--\ref{sec:objective} and
-    Section~\ref{sec:experiments}. Section~\ref{sec:entropic_clock}
-    (entropic time) is an active part of the inference pipeline
-    (Section~\ref{sec:per_mode_schedule}): the heat-death stopping
-    criterion terminates sampling when the spectrally-weighted metric
-    drops below a threshold.
-    \end{framed}
-
     \begin{abstract}
     We present \ALDSC~(\emph{Arrowspace Latent Diffusion with Spectral
     Chart Conditioning}), a minimal spectrally conditioned latent
@@ -152,6 +135,23 @@
     latent diffusion system but whose semantic organisation is
     explicitly governed by graph Laplacian structure, trainable on a
     single CPU in minutes, and implementable in under 700 lines.
+    
+        \begin{framed}
+        \noindent\textbf{Codebase clarification.} This paper presents
+        \ALDSC, a \emph{minimal} spectral latent diffusion model. The
+        full entropic-clock formulation --- wave recurrence, vibrational
+        pump, density matrices, and the bright--dark KL clock --- is
+        implemented in the predecessor repository
+        \texttt{entropic-semantic-diffusion} and is cited here as
+        background. The code at \texttt{arrowspace-latent-diffusion}
+        implements only the minimal viable architecture described in
+        Sections~\ref{sec:25d}--\ref{sec:objective} and
+        Section~\ref{sec:experiments}. Section~\ref{sec:entropic_clock}
+        (entropic time) is an active part of the inference pipeline
+        (Section~\ref{sec:per_mode_schedule}): the heat-death stopping
+        criterion terminates sampling when the spectrally-weighted metric
+        drops below a threshold.
+        \end{framed}
 
     The three commitments of \ALDSC~are:
     \begin{enumerate}[leftmargin=1.5em]
@@ -354,31 +354,47 @@
     \texttt{CosineSchedule} and \texttt{LinearSchedule} with
     \texttt{add\_noise}, \texttt{v\_target}, \texttt{sample\_batch}.
 
-    \subsection{Topology-adaptive decoder}
+    \subsection{Graph-structured decoder}
     \label{sec:decoder}
-    The decoder reconstructs pixels from the denoised latent under
-    spectral control: $\hat x = D_\psi(\hat z; c_{\mathrm{spec}})$.
+    The decoder reconstructs pixels by propagating information along the
+    ArrowSpace graph's smooth directions, gated by the dispersion
+    network. This replaces the standard VAE decoder's unconstrained
+    convolutions with a constructive decoding operator where $L_F$ (via
+    $U_q$) defines the reconstruction paths and $\lambda^{\mathrm{ED}}$
+    (via $c_{\mathrm{spec}}$) defines the energy allocation.
 
-    The design target is a multi-resolution decoder where each stage
-    projects feature activations onto the chart basis, gates them by
-    $c_{\mathrm{spec}}$, and lifts back:
-    \[H^{(\ell+1)} = \mathrm{UpBlock}\!\left( H^{(\ell)} +
-    (\hat H^{(\ell)} \odot g^{(\ell)})\Uq^\top \right),\]
-    where $\hat H^{(\ell)} = H^{(\ell)}\Uq$ and $g^{(\ell)} =
-    \sigma(W_\ell c_{\mathrm{spec}} + b_\ell)$.
+    At each resolution stage, the \emph{WaveReconstructionBlock}
+    performs:
+    \begin{enumerate}
+    \item Pool feature activations: $A = \mathrm{Pool}(H^{(\ell)})$
+    \item Project to chart: $\hat H = A \Uq$ (decode along smooth directions)
+    \item Gate by dispersion: $g = \sigma(W \, c_{\mathrm{spec}})$
+    \item Lift back: $A' = (\hat H \odot g) \Uq^\top$ (reconstruct in feature space)
+    \item Residual update: $H^{(\ell+1)} = H^{(\ell)} + \mathrm{Conv}(\mathrm{norm}(H^{(\ell)} + \Delta))$
+    \end{enumerate}
+    where $\Delta$ is the feature-space reconstruction projected back to
+    channel dimension. This is the graph-theoretic analogue of the VAE
+    reparameterization trick: information flows along the graph's
+    eigenvectors rather than through unconstrained learned weights.
 
-    \noindent\textbf{Implementation:} The current \texttt{vae.py}
-    implements a \emph{simplified} version of this formula: a single
-    spectral gate at the top decoder level, $h \leftarrow h \cdot
-    (1 + \sigma(W c_{\mathrm{spec}}))$, followed by standard residual
-    up-blocks. The multi-resolution per-stage gating formula above is
-    the design target for future versions. This simplification is
-    tracked as issue \#4 in the repository.
+    \noindent\textbf{Clock-gated tempo.} The \emph{ClockGatedGraphDecoder}
+    modulates the strength of each wave block by the spectral schedule's
+    $\bar\alpha_k(t)$: early in the denoising process (high noise), gates
+    are weak (minimal graph-structured reconstruction); late (low noise),
+    gates are strong (full graph-structured reconstruction). This
+    implements the Barontini principle within the decoder: the graph
+    geometry governs \emph{when} reconstruction effort is allocated.
 
-    This construction makes the decoder topology-adaptive:
-    reconstruction is not performed relative to an isotropic ambient
-    prior alone but relative to the smooth directions described by the
-    ArrowSpace graph.
+    \noindent\textbf{Implementation:} \texttt{graph\_decoder.py} --
+    \texttt{GraphDecoder} uses 3 \texttt{WaveReconstructionBlock}
+    instances at decreasing channel resolution ($4\mathrm{ch}
+    \to 2\mathrm{ch} \to \mathrm{ch}$).
+    \texttt{ClockGatedGraphDecoder} adds the
+    \texttt{SpectralSchedule} for tempo modulation. The
+    \texttt{WaveReconstructionBlock} stores $U_q$ as a frozen buffer
+    (zero trainable parameters in the graph structure itself). The
+    simplified single-gate decoder in \texttt{vae.py} remains for
+    backward compatibility.
 
     % ============================================================
     \section{Heat-kernel prior}
@@ -626,6 +642,12 @@
     \item \textbf{Frozen prior:} verified that the prior has zero
         trainable parameters and that VAE parameters stay frozen
         during diffusion training.
+    \item \textbf{Graph-structured decoding:} the \texttt{GraphDecoder}
+        uses \texttt{WaveReconstructionBlock} instances that propagate
+        information along $U_q$ directions, gated by $c_{\mathrm{spec}}$.
+        The \texttt{ClockGatedGraphDecoder} modulates gate strength by
+        the spectral schedule (verified: different diffusion times
+        produce different outputs).
     \item \textbf{Spectral stopping:} the per-mode $\tau_k(t)$,
         $\bar\alpha_k$, entropy rate, and heat-death metric are
         computed on frozen $\nu_k$. The DDIM sampler terminates early
@@ -640,8 +662,8 @@
     \item Experiments use synthetic noise data, not real images. Real
         data experiments (CIFAR-10 with DINO/SigLIP embeddings) are
         the next step.
-    \item The topology decoder uses a simplified single-level spectral
-        gate, not the full multi-resolution UpBlock formula.
+    \item The graph decoder uses a single graph-filter step per block,
+        not the full second-order wave recurrence from \ESDM.
     \item The entropic clock provides an intrinsic stopping criterion
         but not an active training schedule; the cosine schedule is
         still used during training.
@@ -722,7 +744,7 @@
     \S\ref{sec:spectral_chart}: $c_{\mathrm{spec}}$ & \texttt{arrow\_prior.py} & Implemented \\
     \S\ref{sec:backbone}: DiT + AdaLN & \texttt{dit.py} & Implemented \\
     \S\ref{sec:backbone}: schedules & \texttt{schedule.py} & Implemented \\
-    \S\ref{sec:decoder}: topology decoder & \texttt{vae.py} (simplified) & Partial \\
+    \S\ref{sec:decoder}: graph decoder & \texttt{graph\_decoder.py} & Implemented \\
     \S\ref{sec:objective}: losses & \texttt{losses.py} & Implemented \\
     \S\ref{sec:heat_kernel}: heat-kernel prior & --- & Theoretical \\
     \S\ref{sec:entropic_clock}: entropic clock & \texttt{spectral\_schedule.py}, \texttt{sampling.py} & Implemented \\
