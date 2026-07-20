@@ -137,20 +137,42 @@
     single CPU in minutes, and implementable in under 700 lines.
     
         \begin{framed}
-        \noindent\textbf{Codebase clarification.} This paper presents
-        \ALDSC, a \emph{minimal} spectral latent diffusion model. The
-        full entropic-clock formulation --- wave recurrence, vibrational
-        pump, density matrices, and the bright--dark KL clock --- is
-        implemented in the predecessor repository
+        \noindent\textbf{What is implemented.} The code at
+        \texttt{arrowspace-latent-diffusion} implements:
+        \begin{itemize}[leftmargin=1.5em]
+        \item The frozen ArrowSpace prior $(\Lf, \Uq, \Lq, \ed)$ via the
+              ArrowSpace library or a kNN fallback (\texttt{wire\_graph.py},
+              \texttt{arrow\_prior.py}, \texttt{build\_prior.py}).
+        \item The 2.5-D encoding target: the DualSpaceMatrix
+              $M_N = \alpha\|VV^\top\|_F - \beta\|V \Lf V^\top\|_F$
+              (\texttt{dual\_space.py}).
+        \item The spectral VAE with dual-head encoder producing $(z, A)$
+              and $c_{\mathrm{spec}} \in \R^{3q}$
+              (\texttt{vae.py}, \texttt{losses.py}).
+        \item The DiT denoiser with AdaLN conditioning on $c_{\mathrm{spec}}$
+              and classifier-free guidance dropout (\texttt{dit.py}).
+        \item Cosine and linear noise schedules with v-prediction
+              (\texttt{schedule.py}).
+        \item A graph-structured decoder where $L_F$ (via $\Uq$) defines
+              reconstruction paths and $\ed$ (via $c_{\mathrm{spec}}$) gates
+              energy allocation. The \texttt{WaveReconstructionBlock}
+              propagates information along the graph's smooth directions ---
+              the graph-theoretic analogue of the VAE reparameterization trick
+              (\texttt{graph\_decoder.py}).
+        \item The Barontini entropic clock as an active intrinsic stopping
+              criterion: the sampler terminates when
+              $\sum_k \nu_k \bar\alpha_k(t) < \varepsilon$
+              (\texttt{spectral\_schedule.py}, \texttt{sampling.py}).
+              The \texttt{ClockGatedGraphDecoder} also modulates decoding
+              tempo by $\bar\alpha_k(t)$.
+        \item DDIM and Euler samplers, end-to-end image generation via CLI
+              (\texttt{sampling.py}, \texttt{scripts/sample.py}).
+        \end{itemize}
+        The full entropic-clock formulation --- wave recurrence,
+        vibrational pump, density matrices, and the bright--dark KL clock
+        --- is implemented in the predecessor repository
         \texttt{entropic-semantic-diffusion} and is cited here as
-        background. The code at \texttt{arrowspace-latent-diffusion}
-        implements only the minimal viable architecture described in
-        Sections~\ref{sec:25d}--\ref{sec:objective} and
-        Section~\ref{sec:experiments}. Section~\ref{sec:entropic_clock}
-        (entropic time) is an active part of the inference pipeline
-        (Section~\ref{sec:per_mode_schedule}): the heat-death stopping
-        criterion terminates sampling when the spectrally-weighted metric
-        drops below a threshold.
+        background. The code is validated by 107 unit tests on CPU.
         \end{framed}
 
     The three commitments of \ALDSC~are:
