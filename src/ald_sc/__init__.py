@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+from ald_sc.arrow_prior import ArrowSpacePrior
+from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.schedule import CosineSchedule, LinearSchedule
 
-__all__ = ["MinimalDiT", "CosineSchedule", "LinearSchedule"]
+__all__ = [
+    "ArrowSpacePrior",
+    "build_arrow_prior",
+    "CosineSchedule",
+    "LinearSchedule",
+    "MinimalDiT",
+]
