@@ -8,6 +8,7 @@ from ald_sc.dit import MinimalDiT
 from ald_sc.losses import ALDSCLoss
 from ald_sc.sampling import sample_ddim, sample_euler
 from ald_sc.schedule import CosineSchedule, LinearSchedule
+from ald_sc.spectral_schedule import SpectralSchedule
 from ald_sc.vae import SpectralVAE
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "ALDSCLoss",
     "sample_euler",
     "sample_ddim",
+    "SpectralSchedule",
 ]
