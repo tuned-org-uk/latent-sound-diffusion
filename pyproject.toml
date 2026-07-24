@@ -1,15 +1,18 @@
 [project]
-name = "arrowspace-latent-diffusion"
+name = "latent-sound-diffusion"
 version = "0.1.0"
-description = "Add your description here"
+description = "Sound generation via ArrowSpace Latent Diffusion with Spectral Chart Conditioning (ALD-SC)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "encodec>=0.1.1",
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
     "pytest>=9.1.1",
     "ruff>=0.15.22",
+    "soundfile>=0.13.1",
     "torch>=2.2",
+    "torchaudio>=0.28.0",
     "torchvision>=0.28.0",
 ]
 
