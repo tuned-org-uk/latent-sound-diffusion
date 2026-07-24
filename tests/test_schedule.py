@@ -1,4 +1,4 @@
-"""Tests for noise schedules and v-prediction targets."""
+"""Tests for noise schedules and v-prediction targets (1-D audio)."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestCosineSchedule:
     def test_add_noise_shape(self) -> None:
         torch.manual_seed(3407)
         sched = CosineSchedule(num_steps=100)
-        z0 = torch.randn(2, 4, 16, 16)
+        z0 = torch.randn(2, 4, 16)
         t = torch.tensor([10, 50])
         noise = torch.randn_like(z0)
         z_t = sched.add_noise(z0, t, noise)
@@ -33,7 +33,7 @@ class TestCosineSchedule:
     def test_add_noise_at_t_zero_is_clean(self) -> None:
         torch.manual_seed(3407)
         sched = CosineSchedule(num_steps=100)
-        z0 = torch.randn(2, 4, 16, 16)
+        z0 = torch.randn(2, 4, 16)
         t = torch.tensor([0, 0])
         noise = torch.randn_like(z0)
         z_t = sched.add_noise(z0, t, noise)
@@ -42,7 +42,7 @@ class TestCosineSchedule:
     def test_v_target_shape(self) -> None:
         torch.manual_seed(3407)
         sched = CosineSchedule(num_steps=100)
-        z0 = torch.randn(2, 4, 16, 16)
+        z0 = torch.randn(2, 4, 16)
         t = torch.tensor([10, 50])
         noise = torch.randn_like(z0)
         v = sched.v_target(z0, t, noise)
@@ -53,21 +53,21 @@ class TestCosineSchedule:
         and v = sqrt(ab)*noise - sqrt(1-ab)*z0, so z0 = sqrt(ab)*z_t - sqrt(1-ab)*v."""
         torch.manual_seed(3407)
         sched = CosineSchedule(num_steps=100)
-        z0 = torch.randn(3, 4, 16, 16)
+        z0 = torch.randn(3, 4, 16)
         t = torch.tensor([10, 50, 90])
         noise = torch.randn_like(z0)
         z_t = sched.add_noise(z0, t, noise)
         v = sched.v_target(z0, t, noise)
         ab = sched.alpha_bar[t]
-        sqrt_ab = ab.sqrt().view(-1, 1, 1, 1)
-        sqrt_1mab = (1 - ab).sqrt().view(-1, 1, 1, 1)
+        sqrt_ab = ab.sqrt().view(-1, 1, 1)
+        sqrt_1mab = (1 - ab).sqrt().view(-1, 1, 1)
         z0_recovered = sqrt_ab * z_t - sqrt_1mab * v
         assert torch.allclose(z0_recovered, z0, atol=1e-5)
 
     def test_sample_batch_shape(self) -> None:
         torch.manual_seed(3407)
         sched = CosineSchedule(num_steps=100)
-        x0 = torch.randn(4, 4, 16, 16)
+        x0 = torch.randn(4, 4, 16)
         t = sched.sample_batch(x0)
         assert t.shape == (4,)
         assert (t >= 0).all() and (t < 100).all()
@@ -89,7 +89,7 @@ class TestLinearSchedule:
     def test_add_noise_shape(self) -> None:
         torch.manual_seed(3407)
         sched = LinearSchedule(num_steps=100)
-        z0 = torch.randn(2, 4, 16, 16)
+        z0 = torch.randn(2, 4, 16)
         t = torch.tensor([10, 50])
         noise = torch.randn_like(z0)
         z_t = sched.add_noise(z0, t, noise)
@@ -98,14 +98,14 @@ class TestLinearSchedule:
     def test_v_target_add_noise_round_trip(self) -> None:
         torch.manual_seed(3407)
         sched = LinearSchedule(num_steps=100)
-        z0 = torch.randn(3, 4, 16, 16)
+        z0 = torch.randn(3, 4, 16)
         t = torch.tensor([10, 50, 90])
         noise = torch.randn_like(z0)
         z_t = sched.add_noise(z0, t, noise)
         v = sched.v_target(z0, t, noise)
         ab = sched.alpha_bar[t]
-        sqrt_ab = ab.sqrt().view(-1, 1, 1, 1)
-        sqrt_1mab = (1 - ab).sqrt().view(-1, 1, 1, 1)
+        sqrt_ab = ab.sqrt().view(-1, 1, 1)
+        sqrt_1mab = (1 - ab).sqrt().view(-1, 1, 1)
         z0_recovered = sqrt_ab * z_t - sqrt_1mab * v
         assert torch.allclose(z0_recovered, z0, atol=1e-5)
 
