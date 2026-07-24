@@ -193,6 +193,7 @@ uv run jupyter notebook notebooks/01_sound_generation.ipynb
 | # | Notebook | Description |
 |---|----------|-------------|
 | 01 | `01_sound_generation.ipynb` | End-to-end sound generation with interactive knobs (`SEED`, `STEPS`, `USE_C_SPEC`, `TEMPERATURE`, `CLIP_INDEX`) |
+| 02 | `02_long_form_generation.ipynb` | Long-form (5-8s) generation via overlap-and-add with pitch envelope, ADSR, and timbral filtering knobs |
 
 To run a notebook server:
 
