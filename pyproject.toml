@@ -6,6 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "encodec>=0.1.1",
+    "ipykernel>=6.29.0",
+    "ipython>=8.30.0",
+    "jupyter>=1.1.0",
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
     "pytest>=9.1.1",
