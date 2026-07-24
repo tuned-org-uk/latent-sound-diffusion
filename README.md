@@ -194,6 +194,23 @@ uv run jupyter notebook notebooks/01_sound_generation.ipynb
 |---|----------|-------------|
 | 01 | `01_sound_generation.ipynb` | End-to-end sound generation with interactive knobs (`SEED`, `STEPS`, `USE_C_SPEC`, `TEMPERATURE`, `CLIP_INDEX`) |
 
+To run a notebook server:
+
+```bash
+# Launch Jupyter Lab (preferred)
+uv run jupyter lab notebooks/
+
+# Or classic notebook interface
+uv run jupyter notebook notebooks/01_sound_generation.ipynb
+
+# Or execute non-interactively (outputs saved in-place)
+uv run jupyter nbconvert --to notebook --execute notebooks/01_sound_generation.ipynb
+```
+
+The notebook runs entirely on CPU using a stub encoder and
+`ToyAudioDataset` (no external data or GPU required). Swap to
+`EnCodecEncoder` and `Esc50Dataset` in the notebook cells for real audio.
+
 ---
 
 ## Repository layout
