@@ -1,4 +1,4 @@
-"""Tests for ALD-SC loss components."""
+"""Tests for ALD-SC audio loss components."""
 
 from __future__ import annotations
 
@@ -19,13 +19,30 @@ class TestALDSCLoss:
     def test_rec_loss_shape(self) -> None:
         prior = _make_prior()
         loss_fn = ALDSCLoss(prior=prior)
-        x = torch.randn(2, 3, 32, 32)
-        x_hat = torch.randn(2, 3, 32, 32)
+        x = torch.randn(2, 1, 4096)
+        x_hat = torch.randn(2, 1, 4096)
         A = torch.randn(2, 32)
         A_hat = torch.randn(2, 32)
         losses = loss_fn(x, x_hat, A, A_hat)
         assert "rec" in losses
+        assert "stft" in losses
         assert losses["rec"].dim() == 0
+
+    def test_stft_loss_shape(self) -> None:
+        prior = _make_prior()
+        loss_fn = ALDSCLoss(prior=prior)
+        x = torch.randn(2, 1, 4096)
+        x_hat = torch.randn(2, 1, 4096)
+        stft_loss = loss_fn.stft_loss(x, x_hat)
+        assert stft_loss.dim() == 0
+        assert stft_loss >= 0
+
+    def test_stft_loss_zero_when_identical(self) -> None:
+        prior = _make_prior()
+        loss_fn = ALDSCLoss(prior=prior)
+        x = torch.randn(2, 1, 4096)
+        stft_loss = loss_fn.stft_loss(x, x)
+        assert stft_loss < 1e-5
 
     def test_chart_loss_shape(self) -> None:
         prior = _make_prior()
@@ -55,14 +72,16 @@ class TestALDSCLoss:
     def test_total_loss_has_components(self) -> None:
         prior = _make_prior()
         loss_fn = ALDSCLoss(
-            prior=prior, lambda_rec=1.0, lambda_chart=0.5, lambda_smooth=0.1
+            prior=prior, lambda_rec=1.0, lambda_stft=1.0,
+            lambda_chart=0.5, lambda_smooth=0.1,
         )
-        x = torch.randn(2, 3, 32, 32)
-        x_hat = torch.randn(2, 3, 32, 32)
+        x = torch.randn(2, 1, 4096)
+        x_hat = torch.randn(2, 1, 4096)
         A = torch.randn(2, 32)
         A_hat = torch.randn(2, 32)
         losses = loss_fn(x, x_hat, A, A_hat)
         assert "rec" in losses
+        assert "stft" in losses
         assert "chart" in losses
         assert "smooth" in losses
         assert "total" in losses
@@ -70,8 +89,8 @@ class TestALDSCLoss:
     def test_gradient_flow(self) -> None:
         prior = _make_prior()
         loss_fn = ALDSCLoss(prior=prior)
-        x = torch.randn(2, 3, 16, 16)
-        x_hat = torch.randn(2, 3, 16, 16, requires_grad=True)
+        x = torch.randn(2, 1, 4096)
+        x_hat = torch.randn(2, 1, 4096, requires_grad=True)
         A = torch.randn(2, 32)
         A_hat = torch.randn(2, 32, requires_grad=True)
         losses = loss_fn(x, x_hat, A, A_hat)
