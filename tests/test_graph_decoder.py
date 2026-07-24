@@ -1,4 +1,4 @@
-"""Tests for the graph-structured decoder.
+"""Tests for the 1-D graph-structured decoder.
 
 The graph decoder uses L_F (via U_q) to define reconstruction paths and
 λ_ED to gate energy allocation. This is the constructive decoding operator
@@ -32,7 +32,7 @@ class TestWaveReconstructionBlock:
             feature_dim=32,
             prior=prior,
         )
-        h = torch.randn(2, 32, 8, 8)
+        h = torch.randn(2, 32, 16)
         c_spec = torch.randn(2, 24)
         out = block(h, c_spec)
         assert out.shape == h.shape
@@ -44,7 +44,7 @@ class TestWaveReconstructionBlock:
             feature_dim=32,
             prior=prior,
         )
-        h = torch.randn(2, 32, 8, 8, requires_grad=True)
+        h = torch.randn(2, 32, 16, requires_grad=True)
         c_spec = torch.randn(2, 24)
         out = block(h, c_spec)
         out.sum().backward()
@@ -58,7 +58,7 @@ class TestWaveReconstructionBlock:
             prior=prior,
         )
         block.eval()
-        h = torch.randn(2, 32, 8, 8)
+        h = torch.randn(2, 32, 16)
         c1 = torch.randn(2, 24)
         c2 = torch.randn(2, 24)
         out1 = block(h, c1)
@@ -82,26 +82,29 @@ class TestGraphDecoder:
         prior = _make_prior(f=32, q=8)
         decoder = GraphDecoder(
             latent_channels=4,
-            out_channels=3,
+            out_channels=1,
             feature_dim=32,
             base_channels=32,
             prior=prior,
+            upsample_strides=(2, 2),
         )
-        z = torch.randn(2, 4, 8, 8)
+        z = torch.randn(2, 4, 16)
         c_spec = torch.randn(2, 24)
         x_hat = decoder(z, c_spec)
-        assert x_hat.shape == (2, 3, 32, 32)
+        # 16 * (2*2) = 64
+        assert x_hat.shape == (2, 1, 64)
 
     def test_gradient_flow(self) -> None:
         prior = _make_prior(f=32, q=8)
         decoder = GraphDecoder(
             latent_channels=4,
-            out_channels=3,
+            out_channels=1,
             feature_dim=32,
             base_channels=32,
             prior=prior,
+            upsample_strides=(2, 2),
         )
-        z = torch.randn(2, 4, 8, 8, requires_grad=True)
+        z = torch.randn(2, 4, 16, requires_grad=True)
         c_spec = torch.randn(2, 24)
         x_hat = decoder(z, c_spec)
         x_hat.sum().backward()
@@ -111,13 +114,14 @@ class TestGraphDecoder:
         prior = _make_prior(f=32, q=8)
         decoder = GraphDecoder(
             latent_channels=4,
-            out_channels=3,
+            out_channels=1,
             feature_dim=32,
             base_channels=32,
             prior=prior,
+            upsample_strides=(2, 2),
         )
         decoder.eval()
-        z = torch.randn(2, 4, 8, 8)
+        z = torch.randn(2, 4, 16)
         c1 = torch.randn(2, 24)
         c2 = torch.randn(2, 24)
         out1 = decoder(z, c1)
@@ -129,10 +133,11 @@ class TestGraphDecoder:
         prior = _make_prior(f=32, q=8)
         decoder = GraphDecoder(
             latent_channels=4,
-            out_channels=3,
+            out_channels=1,
             feature_dim=32,
             base_channels=32,
             prior=prior,
+            upsample_strides=(2, 2),
         )
         wave_blocks = [
             m for m in decoder.modules() if isinstance(m, WaveReconstructionBlock)
@@ -144,12 +149,13 @@ class TestGraphDecoder:
         prior = _make_prior(f=32, q=8)
         decoder = GraphDecoder(
             latent_channels=4,
-            out_channels=3,
+            out_channels=1,
             feature_dim=32,
             base_channels=32,
             prior=prior,
+            upsample_strides=(2, 2),
         )
-        z = torch.randn(2, 4, 8, 8)
+        z = torch.randn(2, 4, 16)
         c_spec = torch.randn(2, 24)
         x_hat = decoder(z, c_spec)
         x_hat.sum().backward()
