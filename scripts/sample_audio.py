@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 import torch
-import torchaudio
+import soundfile
 
 from ald_sc.audio_codec import BaselineAudioDecoder
 from ald_sc.build_prior import build_arrow_prior
@@ -115,7 +115,7 @@ def main() -> None:
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    torchaudio.save(str(out_path), audio.cpu(), args.sample_rate)
+    soundfile.write(str(out_path), audio.squeeze(0).numpy(), args.sample_rate)
     print(f"Saved audio to {out_path} ({audio.shape[1] / args.sample_rate:.2f}s)")
 
 
