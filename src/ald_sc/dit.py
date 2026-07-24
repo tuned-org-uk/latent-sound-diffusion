@@ -143,7 +143,8 @@ class MinimalDiT(nn.Module):
         self.patch_embed = nn.Conv1d(
             latent_channels, dim, kernel_size=patch_size, stride=patch_size
         )
-        num_patches = latent_length // patch_size
+        # Use ceil division so pos_embed covers padded length
+        num_patches = math.ceil(latent_length / patch_size)
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, dim))
         nn.init.normal_(self.pos_embed, std=0.02)
 
@@ -193,10 +194,16 @@ class MinimalDiT(nn.Module):
         Tensor (B, C, T)
             Predicted velocity v.
         """
-        B = z_t.shape[0]
+        B, _, T = z_t.shape
+        ps = self.patch_size
 
-        # 1-D Patchify: (B, C, T) -> (B, dim, T/patch) -> (B, N, dim)
-        h = self.patch_embed(z_t)  # (B, dim, T/patch)
+        # Pad temporal axis to be divisible by patch_size
+        pad_len = (ps - T % ps) % ps
+        if pad_len > 0:
+            z_t = nn.functional.pad(z_t, (0, pad_len))
+
+        # 1-D Patchify: (B, C, T_pad) -> (B, dim, N) -> (B, N, dim)
+        h = self.patch_embed(z_t)  # (B, dim, N)
         h = h.transpose(1, 2)  # (B, N, dim)
         h = h + self.pos_embed
 
@@ -224,9 +231,13 @@ class MinimalDiT(nn.Module):
         h = self.final_norm(h)
         h = self.final_proj(h)  # (B, N, C*patch)
 
-        # 1-D Unpatchify: (B, N, C*patch) -> (B, C, T)
-        ps = self.patch_size
+        # 1-D Unpatchify: (B, N, C*patch) -> (B, C, T_pad)
         h = h.transpose(1, 2)  # (B, C*patch, N)
         h = h.reshape(B, self.latent_channels, ps, -1)  # (B, C, patch, N)
-        h = h.reshape(B, self.latent_channels, -1)  # (B, C, T)
+        h = h.reshape(B, self.latent_channels, -1)  # (B, C, T_pad)
+
+        # Crop to original length
+        if pad_len > 0:
+            h = h[:, :, :T]
+
         return h
