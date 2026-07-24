@@ -1,19 +1,26 @@
-# arrowspace-latent-diffusion
+# latent-sound-diffusion
 
-Name: Arrowspace Latent Diffusion
+Name: Latent Sound Diffusion
 
 ## 1. Project Identity
 
 **ALD-SC** (ArrowSpace Latent Diffusion with Spectral Chart Conditioning) is a
-spectrally conditioned latent diffusion model. A frozen ArrowSpace graph-wiring
-prior (L_F, U_q, Λ_q, λ_ED) defines a low-dimensional semantic manifold. A
-standard spatial VAE latent carries local image detail. The diffusion process
-operates only on the spatial latent; the spectral chart provides global
+spectrally conditioned latent diffusion model for **sound generation**. A
+frozen ArrowSpace graph-wiring prior (L_F, U_q, Λ_q, λ_ED) defines a
+low-dimensional semantic manifold. A frozen EnCodec encoder produces 1-D
+audio latents `z` carrying local acoustic detail. The diffusion process
+operates only on the 1-D latent; the spectral chart provides global
 topology-aware conditioning.
+
+This repository is a sound-generation-specific fork of
+[arrowspace-latent-diffusion](https://github.com/tuned-org-uk/arrowspace-latent-diffusion).
+The image-generation code has been replaced with 1-D audio-native
+modules. The research programme is unchanged (see §1.1).
 
 The architecture is deliberately simple: it reuses ESDM's frozen-prior
 principle without replicating its full wave-recurrence and entropy-clock
-machinery. It reuses concepts developed in https://github.com/tuned-org-uk/entropic-semantic-diffusion
+machinery. It reuses concepts developed in
+https://github.com/tuned-org-uk/entropic-semantic-diffusion
 
 ### 1.1 The research programme: decoding on the feature-space manifold
 
@@ -21,7 +28,8 @@ The basic point of this research programme is to design **decoding using
 three structures**, all computed from the training corpus via the
 ArrowSpace library (https://github.com/tuned-org-uk/pyarrowspace):
 
-1. **The item-space** — the spatial latent z carrying local image detail.
+1. **The item-space** — the 1-D audio latent `z` (EnCodec continuous
+   features) carrying local acoustic detail.
 2. **The feature-space graph Laplacian** L_F — its eigenvectors U_q define
    the smooth semantic subspace; its eigenvalues ν_k define entropy
    exchange rates.
@@ -30,11 +38,6 @@ ArrowSpace library (https://github.com/tuned-org-uk/pyarrowspace):
    This is not a diagnostic; it is a representation of how semantic
    structure is distributed over the feature graph.
 
-The 2.5-D space is the structure defined by the projection of the
-item-space into the feature-space graph Laplacian (originally the
-DualSpaceMatrix M_N = α‖VVᵀᵗ‖_F − β‖V L_F Vᵀᵗ‖_F in ESDM). This is the
-training dataset for encoding.
-
 **Decoding must use L_F and λ_ED as constructive elements of the
 decoding operator, not merely as conditioning signals.** L_F defines the
 reconstruction paths (which directions to reconstruct along);
@@ -42,14 +45,6 @@ reconstruction paths (which directions to reconstruct along);
 effort). Standard VAEs decode via the reparameterization trick (a
 continuous surface integral over a Gaussian latent). The research target
 is to find an analogous construction using the graph structures.
-
-**The Barontini entropic clock and the ESDM vibrational harness are
-tools** for achieving this decoding design, not separate concerns:
-- The clock provides temporal dynamics for decoding (when modes resolve,
-  intrinsic stopping via heat death).
-- The vibrational harness provides wave-based reconstruction on the graph
-  (propagating information along smooth directions, weighted by the
-  dispersion network).
 
 See `docs/00.md` § "The research programme" for the full design
 statement. The central falsifiable claim is that decoding on the
@@ -61,40 +56,43 @@ compression than decoding on an unconstrained ambient latent.
 ## 2. Repository Layout
 
 ```
-arrowspace-latent-diffusion/
+latent-sound-diffusion/
 ├── pyproject.toml              # uv / hatchling project config
 ├── README.md
 ├── AGENTS.md                   # this file
 ├── .gitignore
-├── configs/
-│   ├── vae_base.yaml           # Phase 1 config
-│   └── diffusion_base.yaml     # Phase 2 config
+├── configs/                    # YAML configs (planned)
+│   ├── audio_decoder.yaml      #   decoder training config
+│   └── audio_diffusion.yaml    #   diffusion training config
 ├── docs/
-│   └── 00.md                   # design document
-│   └── 01.md                   # design document
+│   ├── 00.md                   # design document — the research programme
+│   ├── 01.md                   # design document — ESDM transfer
+│   └── 02.md                   # design document — audio adaptation
+├── notebooks/                  # numbered milestones
+│   └── 01_sound_generation.ipynb  # end-to-end notebook (planned)
 ├── scripts/
-│   ├── build_arrow_prior.py    # build frozen prior from embeddings
-│   ├── train_vae.py            # Phase 1 training entry point
-│   ├── train_diffusion.py     # Phase 2 training entry point
-│   └── sample.py               # inference / image generation
+│   ├── build_audio_prior.py    # build frozen prior from EnCodec features
+│   ├── train_audio_decoder.py  # decoder training (graph vs baseline)
+│   ├── train_audio_diffusion.py # 1-D DiT training
+│   ├── sample_audio.py        # inference / audio generation
+│   └── eval_audio.py           # reconstruction + FAD evaluation
 ├── src/ald_sc/
 │   ├── __init__.py
 │   ├── arrow_prior.py          # ArrowSpacePrior: frozen spectral prior
-│   ├── build_prior.py           # build_arrow_prior() from corpus embeddings
-│   ├── data.py                  # ImageFolderDataset, build_dataloader()
-│   ├── dit.py                   # MinimalDiT: patchify + AdaLN transformer
-│   ├── losses.py                # ALDSCLoss: diff + rec + chart + smooth
-│   ├── sampling.py              # sample_euler(), sample_ddim()
-│   ├── schedule.py              # CosineSchedule, LinearSchedule
-│   ├── trainer.py               # train_vae(), train_diffusion()
-│   └── vae.py                   # SpectralVAE: dual-head encoder + topology decoder
-└── tests/
-    ├── __init__.py
-    ├── test_arrow_prior.py
-    ├── test_dit.py
-    ├── test_losses.py
-    ├── test_schedule.py
-    └── test_vae.py
+│   ├── audio_codec.py          # EnCodecEncoder, BaselineAudioDecoder, AudioVAE
+│   ├── build_prior.py          # build_arrow_prior() from corpus embeddings
+│   ├── data.py                 # Esc50Dataset, AudioFolderDataset, ToyAudioDataset
+│   ├── dit.py                  # MinimalDiT: 1-D patchify + AdaLN transformer
+│   ├── dual_space.py           # DualSpaceMatrix M_N (2.5-D encoding target)
+│   ├── graph_decoder.py        # WaveReconstructionBlock, GraphDecoder,
+│   │                           #   ClockGatedGraphDecoder (1-D audio)
+│   ├── losses.py               # ALDSCLoss: rec (L1+STFT) + chart + smooth
+│   ├── sampling.py             # sample_euler(), sample_ddim() + spectral stopping
+│   ├── schedule.py             # CosineSchedule, LinearSchedule (v-prediction)
+│   ├── spectral_schedule.py    # Per-mode τ_k, ᾱ_k, heat-death criterion
+│   ├── trainer.py              # train_audio_decoder(), train_audio_diffusion()
+│   └── wire_graph.py           # ArrowSpace adapter: L_F + λ_ED
+└── tests/                      # unit tests (CPU)
 ```
 
 ***
@@ -105,8 +103,8 @@ This project uses **uv** for dependency management.
 
 ```bash
 # Clone and install
-git clone https://github.com/tuned-org-uk/arrowspace-latent-diffusion.git
-cd arrowspace-latent-diffusion
+git clone https://github.com/tuned-org-uk/latent-sound-diffusion.git
+cd latent-sound-diffusion
 uv sync
 
 # Run tests
@@ -116,9 +114,11 @@ uv run pytest tests/ -v
 uv run ruff check src/ tests/ scripts/
 ```
 
-Always use the local arrowspace-latent-diffusion/.venv environment.
+Always use the local latent-sound-diffusion/.venv environment.
 
 Python ≥ 3.13 is required. PyTorch ≥ 2.2 is the primary dependency.
+EnCodec and torchaudio provide audio encoding/decoding; fadtk provides
+Fréchet Audio Distance computation.
 
 ***
 
@@ -147,19 +147,20 @@ prior.band_energies(A)          # e_k = ||A u_k||^2 / N  — per-mode energy
 prior.chart_energy_descriptor(A) # [ẽ, λ_chart, ν]  — conditioning vector (3*q,)
 ```
 
-### 4.2 The 2.5-D Latent
+### 4.2 The 1-D Audio Latent
 
-Each image encodes to two coupled objects:
+Each audio clip encodes via frozen EnCodec to:
 
-- **z ∈ R^{B×c×h×w}** — spatial latent (standard VAE latent)
-- **A ∈ R^{B×N×F}** — feature field over the latent plane
+- **z ∈ R^{B×D×T}** — 1-D latent (EnCodec pre-quantization continuous
+  features, D=128, T=375 for 5s @ 24kHz)
+- **A = pool(z) ∈ R^{B×D}** — pooled feature field (D=F=128)
 
-The ArrowSpace projection restricts A to the smooth subspace. The spectral
-chart provides compact global conditioning via `c_spec`.
+The ArrowSpace projection restricts A to the smooth subspace. The
+spectral chart provides compact global conditioning via `c_spec`.
 
 ### 4.3 Noise Schedule
 
-- `CosineSchedule` — ScheduleLDM-style, for diffusion in VAE-latent space
+- `CosineSchedule` — ScheduleLDM-style, for diffusion in latent space
 - `LinearSchedule` — ScheduleDDPM-style, for comparison
 
 Both support `add_noise(z0, t, noise)` and `v_target(z0, t, noise)` for
@@ -169,10 +170,10 @@ v-prediction training.
 
 | Loss | Formula | When active |
 |---|---|---|
-| L_diff | \|\|v − v_θ(z_t, t, c_spec)\|\|² | Phase 2 |
-| L_rec | \|\|x − x̂\|\|₁ + λ_perc·LPIPS | Phase 1, Phase 3 |
-| L_chart | \|\|ẽ(x) − ẽ(x̂)\|\|² | Phase 1, Phase 3 |
-| L_smooth | \|\|A(I − U_qU_q^T)\|\|²_F / \|\|A\|\|²_F | Phase 1, Phase 3 |
+| L_diff | \|\|v − v_θ(z_t, t, c_spec)\|\|² | Diffusion training |
+| L_rec | \|\|x − x̂\|\|₁ + λ_stft·L_STFT | Decoder training |
+| L_chart | \|\|ẽ(x) − ẽ(x̂)\|\|² | Decoder training |
+| L_smooth | \|\|A(I − U_qU_q^T)\|\|²_F / \|\|A\|\|²_F | Decoder training |
 
 ***
 
@@ -180,7 +181,7 @@ v-prediction training.
 
 ### 5.1 Standard Development Cycle
 
-1. **Understand the design**: Read `docs/00-DESIGN.md` first.
+1. **Understand the design**: Read `docs/00.md` and `docs/02.md` first.
 2. **Run tests**: `uv run pytest tests/ -v` — all must pass before pushing.
 3. **Lint**: `uv run ruff check src/ tests/ scripts/` — fix all warnings.
 4. **Format**: `uv run ruff format src/ tests/ scripts/`
@@ -191,7 +192,7 @@ v-prediction training.
 1. Create the file in `src/ald_sc/`.
 2. Export public symbols in `src/ald_sc/__init__.py`.
 3. Add corresponding test file in `tests/`.
-4. Update `docs/00-DESIGN.md` if the architecture changes.
+4. Update `docs/02.md` if the architecture changes.
 5. Run `uv run pytest tests/ -v` and `uv run ruff check`.
 
 ### 5.3 Modifying an Existing Module
@@ -200,7 +201,7 @@ v-prediction training.
 2. Make the minimal change needed.
 3. Update or add tests to cover the change.
 4. Run tests and lint.
-5. If the change affects the architecture, update `docs/00-DESIGN.md`.
+5. If the change affects the architecture, update `docs/02.md`.
 
 ***
 
@@ -208,77 +209,59 @@ v-prediction training.
 
 ### 6.1 What ALD-SC Is
 
-- A latent diffusion model (like Stable Diffusion) with an additional frozen
+- A latent diffusion model for audio with an additional frozen
   spectral conditioning path derived from ArrowSpace graph wiring.
-- The diffusion backbone is a minimal DiT; swap for a larger architecture when
-  scaling up.
-- The VAE has a dual-head encoder (spatial + feature) and a topology-adaptive
-  decoder with spectral-chart gating.
+- The diffusion backbone is a minimal 1-D DiT; swap for a larger
+  architecture when scaling up.
+- EnCodec (frozen) provides the encoder. The decoder is a 1-D
+  graph-structured decoder with spectral-chart gating, trained against
+  a matched-capacity unconstrained baseline.
 
 ### 6.2 What ALD-SC Is Not
 
 - **Not a full ESDM.** The wave recurrence, entropy clock, Rayleigh-gradient
-  restoring force, and learned pump are intentionally deferred. They can be
-  added as isolated second-stage contributions once the core hypothesis is
-  validated.
-- **Not a per-image graph.** The ArrowSpace prior is corpus-level and frozen.
-  Do not construct a new graph per image.
-- **Not a coupled dual-diffusion.** Diffusion runs on z only. Do not run a
-  second diffusion process on the spectral chart in v1.
+  restoring force, and learned pump are intentionally deferred.
+- **Not a per-clip graph.** The ArrowSpace prior is corpus-level and frozen.
+- **Not a coupled dual-diffusion.** Diffusion runs on z only.
+- **Not text/genre-conditioned (Phase 1).** Unconditional generation only;
+  text/CLAP conditioning is tracked in a follow-up issue.
 
 ### 6.3 Design Principles
 
-1. **Frozen prior**: L_F, U_q are buffers, not Parameters. The graph defines
-   the valid semantic geometry; learning happens on top of it.
-2. **Simple and clean**: The architecture should remain readable. Avoid adding
-   complexity that is not needed to test the central hypothesis.
-3. **Reusable concepts**: Import and reuse ESDM concepts where they fit
-   (frozen prior, projection, heat-kernel weights) rather than reimplementing
-   the full vibrational system.
-4. **Convention over configuration**: Use the provided YAML configs as
-   defaults. Override via CLI args or config edits.
+1. **Frozen prior**: L_F, U_q are buffers, not Parameters.
+2. **Frozen encoder**: EnCodec weights are never updated.
+3. **Simple and clean**: Keep the architecture readable.
+4. **Controlled comparison**: Graph decoder vs baseline decoder at
+   matched capacity — the only variable is graph structure.
 
 ***
 
 ## 7. Implementation Phases
 
-### Phase 1: Spectral VAE (current focus)
+### Phase 1: Sound generation (current focus)
 
-**Goal**: Demonstrate that a topology-conditioned VAE improves reconstruction
-or latent interpolation at fixed capacity.
+**Goal**: End-to-end audio synthesis via ALD-SC. Validate that
+graph-structured decoding improves reconstruction fidelity over an
+unconstrained baseline for audio.
 
-- [x] `arrow_prior.py` — ArrowSpacePrior container
-- [x] `build_prior.py` — prior construction from embeddings
-- [x] `vae.py` — SpectralVAE with dual-head encoder + topology decoder
-- [x] `losses.py` — L_rec + L_chart + L_smooth
-- [x] `trainer.py` — `train_vae()` loop
-- [x] `scripts/train_vae.py` — Phase 1 entry point
-- [x] `scripts/build_arrow_prior.py` — prior builder script
-- [ ] Run on CIFAR-10 or equivalent with DINO/SigLIP embeddings
-- [ ] Compare against baseline VAE (no spectral conditioning)
-- [ ] Measure: PSNR, SSIM, LPIPS, chart-energy error, off-manifold ratio
+- [ ] `dit.py` — 1-D DiT with Conv1d patchify + AdaLN (Issue #3)
+- [ ] `graph_decoder.py` — 1-D WaveReconstructionBlock + GraphDecoder (Issue #4)
+- [ ] `audio_codec.py` — EnCodecEncoder + BaselineAudioDecoder + AudioVAE (Issue #5)
+- [ ] `data.py` — Esc50Dataset, AudioFolderDataset, ToyAudioDataset (Issue #5)
+- [ ] `sampling.py` — 1-D latent sampling (Issue #6)
+- [ ] `losses.py` — L1 + multi-scale STFT + chart + smooth (Issue #6)
+- [ ] `trainer.py` — train_audio_decoder() + train_audio_diffusion() (Issue #6)
+- [ ] Scripts + configs (Issue #7)
+- [ ] End-to-end notebook with interactive knobs (Issue #8)
 
-### Phase 2: Latent Diffusion
+### Phase 2: Music-specific generation (future)
 
-**Goal**: Train the DiT denoiser conditioned on spectral chart tokens.
+- Text/CLAP conditioning
+- Genre/instrument conditioning
+- Long-form musical structure
+- Multi-instrument / polyphonic corpora
 
-- [x] `dit.py` — MinimalDiT with AdaLN conditioning
-- [x] `schedule.py` — cosine and linear schedules
-- [x] `trainer.py` — `train_diffusion()` loop
-- [x] `scripts/train_diffusion.py` — Phase 2 entry point
-- [ ] Run with frozen Phase 1 VAE
-- [ ] Measure: FID, spectral consistency of generated images
-- [ ] Ablation: with vs. without spectral conditioning
-
-### Phase 3: Joint Fine-tuning
-
-**Goal**: End-to-end optimisation with low-weight spectral losses.
-
-- [ ] Unfreeze decoder adapters
-- [ ] Train with full loss (L_diff + L_rec + L_chart + L_smooth)
-- [ ] Validate that spectral structure is preserved under generation
-
-### Phase 4: Advanced ESDM Concepts (future)
+### Phase 3: Advanced ESDM Concepts (future)
 
 - [ ] Add entropy-clock-gated schedule
 - [ ] Add wave-recurrence encoder block
@@ -292,12 +275,12 @@ or latent interpolation at fixed capacity.
 Use conventional commits:
 
 ```
-feat: add spectral gating to decoder block 3
+feat: add 1-D DiT patchify for audio latents
 fix: correct chart_energy_descriptor padding when q < F
 refactor: move reparametrize to static method
 test: add off_manifold_energy boundary tests
-docs: update 00-DESIGN.md with Phase 2 details
-chore: bump torch to 2.3
+docs: update 02.md with audio decoder details
+chore: bump torchaudio to 0.28
 ```
 
 ***
@@ -305,9 +288,10 @@ chore: bump torch to 2.3
 ## 9. Testing Requirements
 
 - Every public function and class must have at least one test.
-- Tests must pass on CPU (no GPU required for boilerplate tests).
-- Use small tensor sizes in tests (e.g., F=32, q=8, img_size=64).
+- Tests must pass on CPU (no GPU required).
+- Use small tensor sizes in tests (e.g., F=32, q=8, T=16).
 - Test both forward pass shapes and gradient flow.
+- EnCodec-dependent tests must skip gracefully if weights/network absent.
 
 Run tests:
 
@@ -319,7 +303,7 @@ uv run pytest tests/ -v --tb=short
 
 ## 10. Code Style
 
-- Python ≥ 3.11; use modern syntax (`from __future__ import annotations`).
+- Python ≥ 3.13; use modern syntax (`from __future__ import annotations`).
 - Line length: 100 characters.
 - Use `ruff` for linting and formatting.
 - Type hints are required on all public functions.
@@ -336,27 +320,31 @@ uv run pytest tests/ -v --tb=short
 | File | Responsibility | Do Not |
 |---|---|---|
 | `arrow_prior.py` | Store and expose the frozen prior | Add trainable parameters |
+| `audio_codec.py` | EnCodec encoder + baseline/graph decoders | Add training logic |
 | `build_prior.py` | Construct the prior from embeddings | Import torch.nn modules |
-| `vae.py` | Encoder + topology decoder | Add diffusion logic |
-| `dit.py` | DiT denoiser | Add VAE decoding logic |
-| `schedule.py` | Noise schedules | Import model modules |
-| `losses.py` | Loss computation | Import trainer or model modules (except for type hints) |
-| `trainer.py` | Training loops | Define model architectures |
+| `data.py` | Audio data loading (ESC-50, folders, synthetic) | Add model logic |
+| `dit.py` | 1-D DiT denoiser | Add VAE decoding logic |
+| `dual_space.py` | DualSpaceMatrix M_N (2.5-D target) | Add audio-specific logic |
+| `graph_decoder.py` | 1-D graph-structured decoder | Add diffusion logic |
+| `losses.py` | Loss computation (L1+STFT, chart, smooth) | Import trainer or model modules |
 | `sampling.py` | Inference samplers | Add training logic |
-| `data.py` | Data loading | Add model logic |
+| `schedule.py` | Noise schedules | Import model modules |
+| `spectral_schedule.py` | Per-mode entropic schedule | Import model modules |
+| `trainer.py` | Training loops | Define model architectures |
+| `wire_graph.py` | ArrowSpace adapter | Add model logic |
 
 ***
 
 ## 12. When Stuck
 
-1. Re-read `docs/00.md` and `docs/01.md` — the design doc is the source of truth.
+1. Re-read `docs/00.md` (research programme) and `docs/02.md` (audio
+   adaptation) — these are the source of truth.
 2. Check existing tests for usage patterns.
-3. Check the ESDM design doc for the original concept definitions.
+3. Check the upstream `arrowspace-latent-diffusion` for the image-domain
+   reference implementation.
 4. The frozen prior is **never** trainable. If you find yourself adding
    `nn.Parameter` to `arrow_prior.py`, you are on the wrong track.
-5. The diffusion model operates on **z only**. If you are adding a second
-   diffusion process on spectral coefficients, you are ahead of the v1 scope.
-6. Keep it simple. If a change adds significant complexity without testing the
-   core hypothesis (spectral conditioning improves latent diffusion), defer it
-   to Phase 4.
-'''
+5. The EnCodec encoder is **never** trainable. Only the decoder and DiT
+   have trainable parameters.
+6. Keep it simple. If a change adds significant complexity without
+   testing the core hypothesis, defer it.
