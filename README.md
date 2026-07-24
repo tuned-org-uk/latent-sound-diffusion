@@ -1,4 +1,4 @@
-# Latent Sound Diffusion (ALD-SC)
+# LSD: Latent Sound Diffusion (forked from ALD-SC)
 
 **ArrowSpace Latent Diffusion with Spectral Chart Conditioning** — a
 spectrally conditioned latent diffusion model for **sound generation**.
