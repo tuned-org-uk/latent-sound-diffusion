@@ -1,8 +1,11 @@
-"""Minimal DiT (Diffusion Transformer) denoiser conditioned on text and
-spectral-chart tokens.
+"""Minimal 1-D DiT (Diffusion Transformer) denoiser for audio latents.
 
-A single-layer transformer for the boilerplate.  Swap for a larger architecture
-when scaling up.
+A single-layer transformer for the boilerplate.  Swap for a larger
+architecture when scaling up.
+
+Operates on 1-D audio latents z ∈ (B, C, T) produced by a frozen EnCodec
+encoder.  Patchify uses Conv1d over the temporal axis; the AdaLN/CFG
+conditioning scaffold is unchanged from the 2-D image version.
 """
 
 from __future__ import annotations
@@ -81,19 +84,24 @@ class DiTBlock(nn.Module):
 
 
 class MinimalDiT(nn.Module):
-    """A minimal DiT denoiser for latent diffusion.
+    """A minimal 1-D DiT denoiser for audio latent diffusion.
 
-    Treats the spatial latent as a sequence of patches.  Conditioned on
-    timestep, text embeddings, and spectral-chart tokens via AdaLN.
+    Treats the 1-D audio latent as a sequence of temporal patches.
+    Conditioned on timestep, optional text embeddings, and optional
+    spectral-chart tokens via AdaLN.
+
+    For Phase 1 sound generation, the model operates unconditionally
+    (time-only AdaLN).  The ``c_spec`` and ``text_emb`` hooks are
+    retained but default to ``None`` (unconditional).
 
     Parameters
     ----------
     latent_channels : int
-        Channels of the spatial latent z.
-    latent_size : int
-        Spatial size of the latent (assumed square, e.g. 32 or 64).
+        Channels of the 1-D latent z (e.g. 128 for EnCodec).
+    latent_length : int
+        Temporal length of the latent (e.g. 375 for 5s @ 24kHz).
     patch_size : int
-        Patch size for latent tokenisation.
+        Patch size for temporal tokenisation.
     dim : int
         Transformer hidden dimension.
     depth : int
@@ -104,13 +112,16 @@ class MinimalDiT(nn.Module):
         Dimension of text embedding input (0 to disable).
     spec_dim : int
         Dimension of spectral conditioning vector c_spec.
+    cfg_dropout : float
+        Probability of dropping c_spec during training (classifier-free
+        guidance).
     """
 
     def __init__(
         self,
-        latent_channels: int = 4,
-        latent_size: int = 32,
-        patch_size: int = 2,
+        latent_channels: int = 128,
+        latent_length: int = 375,
+        patch_size: int = 8,
         dim: int = 256,
         depth: int = 4,
         num_heads: int = 4,
@@ -121,15 +132,18 @@ class MinimalDiT(nn.Module):
         super().__init__()
         self.cfg_dropout = cfg_dropout
         self.latent_channels = latent_channels
-        self.latent_size = latent_size
+        self.latent_length = latent_length
         self.patch_size = patch_size
         self.dim = dim
 
-        # Patch embedding
-        self.patch_embed = nn.Conv2d(
+        # latent_shape attribute for samplers: (channels, length)
+        self.latent_shape = (latent_channels, latent_length)
+
+        # 1-D Patch embedding
+        self.patch_embed = nn.Conv1d(
             latent_channels, dim, kernel_size=patch_size, stride=patch_size
         )
-        num_patches = (latent_size // patch_size) ** 2
+        num_patches = latent_length // patch_size
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, dim))
         nn.init.normal_(self.pos_embed, std=0.02)
 
@@ -152,7 +166,7 @@ class MinimalDiT(nn.Module):
 
         # Output
         self.final_norm = nn.LayerNorm(dim)
-        self.final_proj = nn.Linear(dim, latent_channels * patch_size * patch_size)
+        self.final_proj = nn.Linear(dim, latent_channels * patch_size)
 
     def forward(
         self,
@@ -165,8 +179,8 @@ class MinimalDiT(nn.Module):
 
         Parameters
         ----------
-        z_t : Tensor (B, c, h, w)
-            Noised latent.
+        z_t : Tensor (B, C, T)
+            Noised 1-D audio latent.
         t : Tensor (B,)
             Timestep indices.
         text_emb : Tensor (B, text_dim), optional
@@ -176,14 +190,14 @@ class MinimalDiT(nn.Module):
 
         Returns
         -------
-        Tensor (B, c, h, w)
+        Tensor (B, C, T)
             Predicted velocity v.
         """
         B = z_t.shape[0]
 
-        # Patchify
-        h = self.patch_embed(z_t)  # (B, dim, h/ps, w/ps)
-        h = h.flatten(2).transpose(1, 2)  # (B, N, dim)
+        # 1-D Patchify: (B, C, T) -> (B, dim, T/patch) -> (B, N, dim)
+        h = self.patch_embed(z_t)  # (B, dim, T/patch)
+        h = h.transpose(1, 2)  # (B, N, dim)
         h = h + self.pos_embed
 
         # Classifier-free guidance dropout
@@ -198,25 +212,21 @@ class MinimalDiT(nn.Module):
             cond = torch.cat([cond, self.text_proj(text_emb)], dim=-1)
         if c_spec is not None:
             cond = torch.cat([cond, self.spec_proj(c_spec)], dim=-1)
+        else:
+            # Unconditional: zero spectral conditioning
+            zero_spec = torch.zeros(B, self.spec_proj.in_features, device=z_t.device)
+            cond = torch.cat([cond, self.spec_proj(zero_spec)], dim=-1)
         cond = self.cond_fuse(cond)  # (B, dim)
 
         for block in self.blocks:
             h = block(h, cond)
 
         h = self.final_norm(h)
-        h = self.final_proj(h)  # (B, N, c*ps*ps)
+        h = self.final_proj(h)  # (B, N, C*patch)
 
-        # Unpatchify
+        # 1-D Unpatchify: (B, N, C*patch) -> (B, C, T)
         ps = self.patch_size
-        h = h.transpose(1, 2)  # (B, c*ps*ps, N)
-        h = h.reshape(
-            B,
-            self.latent_channels,
-            ps,
-            ps,
-            self.latent_size // ps,
-            self.latent_size // ps,
-        )
-        h = h.permute(0, 1, 4, 2, 5, 3)  # (B, c, h/ps, ps, w/ps, ps)
-        h = h.reshape(B, self.latent_channels, self.latent_size, self.latent_size)
+        h = h.transpose(1, 2)  # (B, C*patch, N)
+        h = h.reshape(B, self.latent_channels, ps, -1)  # (B, C, patch, N)
+        h = h.reshape(B, self.latent_channels, -1)  # (B, C, T)
         return h

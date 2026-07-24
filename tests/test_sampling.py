@@ -1,4 +1,4 @@
-"""Tests for samplers."""
+"""Tests for samplers (1-D audio latents)."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from ald_sc.sampling import sample_euler, sample_ddim
 
 
 def _make_dit(
-    latent_channels: int = 4, latent_size: int = 8, spec_dim: int = 12
+    latent_channels: int = 4, latent_length: int = 16, spec_dim: int = 12
 ) -> MinimalDiT:
     return MinimalDiT(
         latent_channels=latent_channels,
-        latent_size=latent_size,
+        latent_length=latent_length,
         patch_size=2,
         dim=32,
         depth=2,
@@ -34,7 +34,7 @@ class TestSampleEuler:
         steps = 10
 
         z = sample_euler(dit, sched, c_spec=c_spec, batch_size=2, steps=steps)
-        assert z.shape == (2, 4, 8, 8)
+        assert z.shape == (2, 4, 16)
 
     def test_determinism_with_seed(self) -> None:
         torch.manual_seed(3407)
@@ -55,7 +55,7 @@ class TestSampleDDIM:
         c_spec = torch.randn(2, 12)
 
         z = sample_ddim(dit, sched, c_spec=c_spec, batch_size=2, steps=10)
-        assert z.shape == (2, 4, 8, 8)
+        assert z.shape == (2, 4, 16)
 
     def test_determinism_with_seed(self) -> None:
         torch.manual_seed(3407)

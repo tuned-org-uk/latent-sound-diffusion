@@ -1,4 +1,4 @@
-"""Tests for spectral (heat-death) stopping criterion in sampling."""
+"""Tests for spectral (heat-death) stopping criterion in sampling (1-D)."""
 
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ from ald_sc.spectral_schedule import SpectralSchedule
 
 
 def _make_dit(
-    latent_channels: int = 4, latent_size: int = 8, spec_dim: int = 12
+    latent_channels: int = 4, latent_length: int = 16, spec_dim: int = 12
 ) -> MinimalDiT:
     return MinimalDiT(
         latent_channels=latent_channels,
-        latent_size=latent_size,
+        latent_length=latent_length,
         patch_size=2,
         dim=32,
         depth=2,
@@ -51,7 +51,7 @@ class TestSpectralStopping:
             seed=3407,
             spectral_schedule=spec_sched,
         )
-        assert z.shape == (2, 4, 8, 8)
+        assert z.shape == (2, 4, 16)
 
     def test_spectral_stopping_fires_before_max_steps(self) -> None:
         """With a high epsilon, the spectral schedule should stop early."""
@@ -59,7 +59,6 @@ class TestSpectralStopping:
         dit = _make_dit()
         sched = CosineSchedule(num_steps=100)
         prior = _make_prior()
-        # Very high eps -> heat death fires very early
         spec_sched = SpectralSchedule(prior, horizon=1.0, eps=100.0)
 
         c_spec = torch.randn(1, 12)
@@ -129,9 +128,6 @@ class TestSpectralStopping:
         spec_sched = SpectralSchedule(prior, horizon=1.0)
         CosineSchedule(num_steps=100)
 
-        # Metric at t near T (start of sampling) should be lower than at t near 0
-        # In sampling, we go from high t to low t, so metric increases
-        # (modes become more active as we denoise)
         metric_start = spec_sched.heat_death_metric(torch.tensor(0.99))
         metric_end = spec_sched.heat_death_metric(torch.tensor(0.01))
         assert metric_end > metric_start, (
