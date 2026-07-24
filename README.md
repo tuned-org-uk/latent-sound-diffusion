@@ -52,7 +52,7 @@ See [`docs/00.md`](docs/00.md) § "The research programme" and
 ## Architecture
 
 ```text
-                         Frozen ArrowSpace prior
+                          Frozen ArrowSpace prior
                ┌──────────────────────────────────────┐
                │ L_F, U_q, Λ_q, λ_ED  (from ArrowSpace)│
                └──────────────────────────────────────┘
@@ -78,6 +78,10 @@ Each audio clip encodes via frozen EnCodec (24 kHz mono) to:
 - **A = pool(z)** — pooled feature field for spectral chart extraction
 - **c_spec** $\in \mathbb{R}^{3q}$ — `[ẽ, λ_chart, ν]` (conditioning vector)
 
+c_spec is **derived from z itself** (self-consistent decoding): the DiT
+generates z unconditionally, then the decoder derives c_spec from the
+generated z. No separate c_spec sampling is needed.
+
 ### The graph-structured decoder
 
 The `WaveReconstructionBlock` at each resolution:
@@ -93,10 +97,10 @@ $\bar\alpha_k(t)$: early in denoising (high noise) gates are weak; late
 
 ### Controlled comparison
 
-The **baseline decoder** has identical channel widths and upsampling
-strides, but uses plain `ResBlock1d` in place of `WaveReconstructionBlock`
-(no $U_q$, no $\lambda^{\mathrm{ED}}$). This isolates graph structure as
-the only variable.
+The **baseline decoder** (`BaselineAudioDecoder`) has identical channel
+widths and upsampling strides, but uses plain `ResBlock1d` in place of
+`WaveReconstructionBlock` (no $U_q$, no $\lambda^{\mathrm{ED}}$). This
+isolates graph structure as the only variable.
 
 ---
 
@@ -107,16 +111,20 @@ the only variable.
 | ArrowSpace adapter | `wire_graph.py` | $L_F$ + $\lambda^{\mathrm{ED}}$ via pyarrowspace or kNN fallback |
 | Frozen prior | `arrow_prior.py`, `build_prior.py` | $L_F$, $U_q$, $\Pi_q$, $c_{\mathrm{spec}}$ as buffers |
 | 2.5-D encoding target | `dual_space.py` | $M_N = \alpha\|VV^\top\|_F - \beta\|V L_F V^\top\|_F$ |
-| Audio codec | `audio_codec.py` | Frozen EnCodec encoder, baseline + graph decoders (planned) |
-| 1-D DiT denoiser | `dit.py` | 1-D patchify + AdaLN + CFG dropout (planned) |
+| Audio codec | `audio_codec.py` | Frozen `EnCodecEncoder`, `BaselineAudioDecoder`, `AudioVAE` |
+| 1-D DiT denoiser | `dit.py` | 1-D `Conv1d` patchify + AdaLN + CFG dropout, `latent_shape` attr |
 | Schedules | `schedule.py` | Cosine + linear, v-prediction |
-| Graph decoder | `graph_decoder.py` | 1-D `WaveReconstructionBlock`, `GraphDecoder`, `ClockGatedGraphDecoder` (planned) |
+| Graph decoder | `graph_decoder.py` | 1-D `WaveReconstructionBlock`, `GraphDecoder`, `ClockGatedGraphDecoder` |
 | Entropic clock | `spectral_schedule.py` | $\tau_k(t)$, $\bar\alpha_k(t)$, heat-death stopping criterion |
-| Samplers | `sampling.py` | DDIM + Euler with spectral stopping criterion |
-| Losses | `losses.py` | $L_{\mathrm{diff}}$ + $L_{\mathrm{rec}}$ (L1+STFT) + $L_{\mathrm{chart}}$ + $L_{\mathrm{smooth}}$ |
-| Training | `trainer.py` | `train_audio_decoder()` + `train_audio_diffusion()` (planned) |
-| Data | `data.py` | `Esc50Dataset`, `AudioFolderDataset`, `ToyAudioDataset` (planned) |
-| CLI | `scripts/sample_audio.py` | End-to-end audio generation (planned) |
+| Samplers | `sampling.py` | DDIM + Euler with spectral stopping, 1-D `latent_shape` noise init |
+| Losses | `losses.py` | $L_{\mathrm{diff}}$ + $L_{\mathrm{rec}}$ (L1+multi-scale STFT) + $L_{\mathrm{chart}}$ + $L_{\mathrm{smooth}}$ |
+| Training | `trainer.py` | `train_audio_decoder()` + `train_audio_diffusion()` |
+| Data | `data.py` | `Esc50Dataset`, `AudioFolderDataset`, `ToyAudioDataset` |
+| CLI scripts | `scripts/` | `build_audio_prior`, `train_audio_decoder`, `train_audio_diffusion`, `sample_audio`, `eval_audio` |
+| Configs | `configs/` | `audio_decoder.yaml`, `audio_diffusion.yaml` |
+| Notebook | `notebooks/01_sound_generation.ipynb` | End-to-end pipeline with interactive knobs |
+
+**129 unit tests**, all on CPU. `uv run pytest tests/ -v`.
 
 ---
 
@@ -125,16 +133,24 @@ the only variable.
 | Phase | Scope | State |
 |---|---|---|
 | Setup | Project rename, audio deps, docs identity | ✅ Complete |
-| Phase 1 | 1-D DiT + graph decoder + EnCodec + ESC-50 + notebook | In progress |
+| Phase 1 | 1-D DiT + graph decoder + EnCodec + ESC-50 + notebook | ✅ Complete |
 | Phase 2 | Music-specific generation (text/CLAP, genre, long-form) | Future |
 | Phase 3 | Advanced ESDM concepts (wave recurrence, entropy clock training) | Future |
+
+### Open issues (limitations)
+
+- [#1](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/1) — Sound generation: end-to-end audio synthesis via ALD-SC
+- FAD computation (`fadtk` removed due to dependency conflicts; multi-scale STFT used as fallback)
+- Real-data experiments on ESC-50 with real EnCodec (notebook uses stub encoder for CPU demo)
 
 ---
 
 ## Setup
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency
-management and requires Python ≥ 3.13 with PyTorch ≥ 2.2.
+management and requires Python ≥ 3.13 with PyTorch ≥ 2.2. EnCodec and
+torchaudio provide audio encoding/decoding; Jupyter is included for
+running notebooks.
 
 ```bash
 git clone https://github.com/tuned-org-uk/latent-sound-diffusion.git
@@ -145,25 +161,38 @@ uv sync
 ## Usage
 
 ```bash
-# Run the test suite (CPU)
+# Run the test suite (CPU; 129 tests)
 uv run pytest tests/ -v
 
 # Lint and format
 uv run ruff check src/ tests/ scripts/
 uv run ruff format src/ tests/ scripts/
 
-# Generate audio (planned)
-uv run python scripts/sample_audio.py --out results/sample.wav
+# Build the ArrowSpace prior from EnCodec features
+uv run python scripts/build_audio_prior.py --toy --out prior.pt
 
-# With options (planned)
-uv run python scripts/sample_audio.py --steps 50 --seed 3407 --out results/sample.wav
+# Train a decoder (graph or baseline)
+uv run python scripts/train_audio_decoder.py --prior prior.pt --graph --epochs 50
+uv run python scripts/train_audio_decoder.py --prior prior.pt --baseline --epochs 50
+
+# Train the 1-D DiT
+uv run python scripts/train_audio_diffusion.py --prior prior.pt --toy --epochs 50
+
+# Generate audio
+uv run python scripts/sample_audio.py --prior prior.pt --decoder decoder.pt --dit dit.pt --out results/sample.wav
+
+# Evaluate reconstruction (graph vs baseline, λ_ED ablation)
+uv run python scripts/eval_audio.py --graph-decoder decoder.pt --baseline-decoder baseline.pt --toy
+
+# Run the end-to-end notebook
+uv run jupyter notebook notebooks/01_sound_generation.ipynb
 ```
 
 ### Notebooks
 
 | # | Notebook | Description |
 |---|----------|-------------|
-| 01 | `01_sound_generation.ipynb` | End-to-end sound generation with interactive knobs (planned) |
+| 01 | `01_sound_generation.ipynb` | End-to-end sound generation with interactive knobs (`SEED`, `STEPS`, `USE_C_SPEC`, `TEMPERATURE`, `CLIP_INDEX`) |
 
 ---
 
@@ -173,24 +202,27 @@ uv run python scripts/sample_audio.py --steps 50 --seed 3407 --out results/sampl
 latent-sound-diffusion/
 ├── pyproject.toml                # uv / hatchling project config
 ├── AGENTS.md                     # contributor guide (read this first)
+├── configs/
+│   ├── audio_decoder.yaml        # decoder training config
+│   └── audio_diffusion.yaml      # diffusion training config
 ├── docs/
 │   ├── 00.md                     # design document — the research programme
 │   ├── 01.md                     # design document — ESDM transfer
 │   └── 02.md                     # design document — audio adaptation
 ├── notebooks/
-│   └── 01_sound_generation.ipynb # end-to-end notebook (planned)
+│   └── 01_sound_generation.ipynb # end-to-end notebook
 ├── scripts/
-│   ├── build_audio_prior.py      # build prior from EnCodec features (planned)
-│   ├── train_audio_decoder.py    # decoder training (planned)
-│   ├── train_audio_diffusion.py  # 1-D DiT training (planned)
-│   ├── sample_audio.py           # CLI audio generation (planned)
-│   └── eval_audio.py             # reconstruction + FAD eval (planned)
+│   ├── build_audio_prior.py      # build prior from EnCodec features
+│   ├── train_audio_decoder.py    # decoder training (graph vs baseline)
+│   ├── train_audio_diffusion.py  # 1-D DiT training
+│   ├── sample_audio.py           # CLI audio generation
+│   └── eval_audio.py             # reconstruction + FAD eval
 ├── src/ald_sc/
 │   ├── __init__.py
 │   ├── arrow_prior.py            # ArrowSpacePrior: frozen spectral prior
-│   ├── audio_codec.py            # EnCodecEncoder, BaselineAudioDecoder, AudioVAE (planned)
+│   ├── audio_codec.py            # EnCodecEncoder, BaselineAudioDecoder, AudioVAE
 │   ├── build_prior.py            # build_arrow_prior() from corpus embeddings
-│   ├── data.py                   # Esc50Dataset, AudioFolderDataset, ToyAudioDataset (planned)
+│   ├── data.py                   # Esc50Dataset, AudioFolderDataset, ToyAudioDataset
 │   ├── dit.py                    # MinimalDiT: 1-D patchify + AdaLN + CFG
 │   ├── dual_space.py             # DualSpaceMatrix M_N (2.5-D encoding target)
 │   ├── graph_decoder.py          # 1-D WaveReconstructionBlock, GraphDecoder,
@@ -200,9 +232,8 @@ latent-sound-diffusion/
 │   ├── schedule.py               # CosineSchedule, LinearSchedule (v-prediction)
 │   ├── spectral_schedule.py      # Per-mode τ_k, ᾱ_k, heat-death criterion
 │   ├── trainer.py                # train_audio_decoder(), train_audio_diffusion()
-│   ├── vae.py                    # (legacy image VAE — to be removed)
 │   └── wire_graph.py             # ArrowSpace adapter: L_F + λ_ED
-└── tests/                        # unit tests (CPU)
+└── tests/                        # 16 test files, 129 tests (CPU)
 ```
 
 ---

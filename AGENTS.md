@@ -61,15 +61,15 @@ latent-sound-diffusion/
 ├── README.md
 ├── AGENTS.md                   # this file
 ├── .gitignore
-├── configs/                    # YAML configs (planned)
-│   ├── audio_decoder.yaml      #   decoder training config
-│   └── audio_diffusion.yaml    #   diffusion training config
+├── configs/
+│   ├── audio_decoder.yaml      # decoder training config
+│   └── audio_diffusion.yaml    # diffusion training config
 ├── docs/
 │   ├── 00.md                   # design document — the research programme
 │   ├── 01.md                   # design document — ESDM transfer
 │   └── 02.md                   # design document — audio adaptation
-├── notebooks/                  # numbered milestones
-│   └── 01_sound_generation.ipynb  # end-to-end notebook (planned)
+├── notebooks/
+│   └── 01_sound_generation.ipynb  # end-to-end notebook
 ├── scripts/
 │   ├── build_audio_prior.py    # build frozen prior from EnCodec features
 │   ├── train_audio_decoder.py  # decoder training (graph vs baseline)
@@ -92,7 +92,7 @@ latent-sound-diffusion/
 │   ├── spectral_schedule.py    # Per-mode τ_k, ᾱ_k, heat-death criterion
 │   ├── trainer.py              # train_audio_decoder(), train_audio_diffusion()
 │   └── wire_graph.py           # ArrowSpace adapter: L_F + λ_ED
-└── tests/                      # unit tests (CPU)
+└── tests/                      # 16 test files, 129 tests (CPU)
 ```
 
 ***
@@ -112,13 +112,16 @@ uv run pytest tests/ -v
 
 # Lint
 uv run ruff check src/ tests/ scripts/
+
+# Run the notebook
+uv run jupyter notebook notebooks/01_sound_generation.ipynb
 ```
 
 Always use the local latent-sound-diffusion/.venv environment.
 
 Python ≥ 3.13 is required. PyTorch ≥ 2.2 is the primary dependency.
-EnCodec and torchaudio provide audio encoding/decoding; fadtk provides
-Fréchet Audio Distance computation.
+EnCodec and torchaudio provide audio encoding/decoding. Jupyter is
+included for running notebooks.
 
 ***
 
@@ -154,6 +157,11 @@ Each audio clip encodes via frozen EnCodec to:
 - **z ∈ R^{B×D×T}** — 1-D latent (EnCodec pre-quantization continuous
   features, D=128, T=375 for 5s @ 24kHz)
 - **A = pool(z) ∈ R^{B×D}** — pooled feature field (D=F=128)
+- **c_spec ∈ R^{B×3q}** — spectral conditioning vector [ẽ, λ_chart, ν]
+
+c_spec is derived from z itself (self-consistent decoding): the DiT
+generates z unconditionally, then the decoder derives c_spec from the
+generated z.
 
 The ArrowSpace projection restricts A to the smooth subspace. The
 spectral chart provides compact global conditioning via `c_spec`.
@@ -170,7 +178,7 @@ v-prediction training.
 
 | Loss | Formula | When active |
 |---|---|---|
-| L_diff | \|\|v − v_θ(z_t, t, c_spec)\|\|² | Diffusion training |
+| L_diff | \|\|v − v_θ(z_t, t)\|\|² | Diffusion training |
 | L_rec | \|\|x − x̂\|\|₁ + λ_stft·L_STFT | Decoder training |
 | L_chart | \|\|ẽ(x) − ẽ(x̂)\|\|² | Decoder training |
 | L_smooth | \|\|A(I − U_qU_q^T)\|\|²_F / \|\|A\|\|²_F | Decoder training |
@@ -244,15 +252,15 @@ v-prediction training.
 graph-structured decoding improves reconstruction fidelity over an
 unconstrained baseline for audio.
 
-- [ ] `dit.py` — 1-D DiT with Conv1d patchify + AdaLN (Issue #3)
-- [ ] `graph_decoder.py` — 1-D WaveReconstructionBlock + GraphDecoder (Issue #4)
-- [ ] `audio_codec.py` — EnCodecEncoder + BaselineAudioDecoder + AudioVAE (Issue #5)
-- [ ] `data.py` — Esc50Dataset, AudioFolderDataset, ToyAudioDataset (Issue #5)
-- [ ] `sampling.py` — 1-D latent sampling (Issue #6)
-- [ ] `losses.py` — L1 + multi-scale STFT + chart + smooth (Issue #6)
-- [ ] `trainer.py` — train_audio_decoder() + train_audio_diffusion() (Issue #6)
-- [ ] Scripts + configs (Issue #7)
-- [ ] End-to-end notebook with interactive knobs (Issue #8)
+- [x] `dit.py` — 1-D DiT with Conv1d patchify + AdaLN
+- [x] `graph_decoder.py` — 1-D WaveReconstructionBlock + GraphDecoder + ClockGatedGraphDecoder
+- [x] `audio_codec.py` — EnCodecEncoder + BaselineAudioDecoder + AudioVAE
+- [x] `data.py` — Esc50Dataset, AudioFolderDataset, ToyAudioDataset
+- [x] `sampling.py` — 1-D latent sampling via `latent_shape` attribute
+- [x] `losses.py` — L1 + multi-scale STFT + chart + smooth
+- [x] `trainer.py` — train_audio_decoder() + train_audio_diffusion()
+- [x] Scripts + configs (build_audio_prior, train_audio_decoder, train_audio_diffusion, sample_audio, eval_audio)
+- [x] End-to-end notebook with interactive knobs (01_sound_generation.ipynb)
 
 ### Phase 2: Music-specific generation (future)
 
