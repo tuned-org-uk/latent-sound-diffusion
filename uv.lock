@@ -1082,7 +1082,7 @@ wheels = [
 [[package]]
 name = "latent-sound-diffusion"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "encodec" },
     { name = "ipykernel" },
