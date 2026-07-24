@@ -1,0 +1,39 @@
+# Audio decoder training configuration
+# EnCodec 24kHz mono → 1-D latent → graph/baseline decoder → waveform
+
+# EnCodec settings
+encodec:
+  sample_rate: 24000
+  bandwidth: 24  # kbps
+
+# Audio settings
+audio:
+  length: 120000  # 5s @ 24kHz
+  sample_rate: 24000
+
+# Decoder architecture
+decoder:
+  latent_channels: 128
+  out_channels: 1
+  feature_dim: 128
+  base_channels: 64
+  upsample_strides: [2, 4, 5, 8]  # 320× to match EnCodec stride
+
+# Loss weights
+loss:
+  lambda_rec: 1.0
+  lambda_stft: 1.0
+  lambda_chart: 0.5
+  lambda_smooth: 0.1
+  stft_fft_sizes: [512, 1024, 2048]
+
+# Training
+training:
+  batch_size: 4
+  epochs: 50
+  lr: 0.0001
+
+# ArrowSpace prior
+prior:
+  q: 8  # spectral modes
+  k: 8  # kNN neighbours

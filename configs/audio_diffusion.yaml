@@ -1,0 +1,33 @@
+# 1-D DiT diffusion training configuration
+# Unconditional generation on EnCodec continuous latents
+
+# DiT architecture
+dit:
+  latent_channels: 128
+  latent_length: 375  # 5s @ 75Hz frame rate
+  patch_size: 8
+  dim: 256
+  depth: 4
+  num_heads: 4
+  spec_dim: 24  # 3 * q
+
+# Noise schedule
+schedule:
+  type: cosine
+  num_steps: 1000
+
+# Training
+training:
+  batch_size: 4
+  epochs: 50
+  lr: 0.0001
+  cfg_dropout: 0.1  # unused in unconditional Phase 1
+
+# Sampling defaults
+sampling:
+  steps: 50
+  seed: 3407
+
+# ArrowSpace prior
+prior:
+  q: 8
