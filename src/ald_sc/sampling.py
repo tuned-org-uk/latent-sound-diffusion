@@ -1,12 +1,12 @@
 """Inference samplers for ALD-SC latent diffusion.
 
 Provides Euler and DDIM-style deterministic samplers that turn noise into
-a latent, which can then be decoded through the frozen VAE to produce an image.
+a 1-D audio latent, which can then be decoded through the graph decoder
+to produce a waveform.
 
-When a ``SpectralSchedule`` is provided, the sampler uses the Barontini-inspired
-heat-death stopping criterion: sampling terminates when
-``Σ ν_k · ᾱ_k(t) < ε``, rather than at a fixed step count. The number of
-effective sampling steps is therefore data-dependent and spectrally determined.
+When a ``SpectralSchedule`` is provided, the sampler uses the
+Barontini-inspired heat-death stopping criterion: sampling terminates
+when ``Σ ν_k · ᾱ_k(t) < ε``, rather than at a fixed step count.
 
 This module must not add training logic (per AGENTS.md §11).
 """
@@ -33,6 +33,27 @@ def _pairwise(iterable: list[int]) -> Iterator[tuple[int, int]]:
     for curr in it:
         yield prev, curr
         prev = curr
+
+
+def _init_noise(
+    model: nn.Module, batch_size: int, device: torch.device, gen: torch.Generator
+) -> Tensor:
+    """Initialise noise latent from the model's latent_shape attribute."""
+    latent_channels = getattr(model, "latent_channels", 4)
+    latent_shape = getattr(model, "latent_shape", None)
+    if latent_shape is not None:
+        return torch.randn(batch_size, *latent_shape, device=device, generator=gen)
+    # Fallback for models without latent_shape
+    latent_length = getattr(model, "latent_length", None)
+    if latent_length is not None:
+        return torch.randn(
+            batch_size, latent_channels, latent_length, device=device, generator=gen
+        )
+    latent_size = getattr(model, "latent_size", 32)
+    return torch.randn(
+        batch_size, latent_channels, latent_size, latent_size,
+        device=device, generator=gen,
+    )
 
 
 @torch.no_grad()
@@ -72,7 +93,7 @@ def sample_euler(
 
     Returns
     -------
-    Tensor (B, latent_channels, latent_size, latent_size)
+    Tensor
         Denoised latent z_0. If return_steps, returns (z, steps_used).
     """
     gen = torch.Generator(device=device).manual_seed(seed)
@@ -82,17 +103,7 @@ def sample_euler(
 
     sigmas = schedule.sample_sigmas(steps).to(device)
 
-    latent_channels = getattr(model, "latent_channels", 4)
-    latent_size = getattr(model, "latent_size", 32)
-
-    x = torch.randn(
-        batch_size,
-        latent_channels,
-        latent_size,
-        latent_size,
-        device=device,
-        generator=gen,
-    )
+    x = _init_noise(model, batch_size, device, gen)
 
     steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
@@ -146,14 +157,12 @@ def sample_ddim(
     seed : int
     device : torch.device
     spectral_schedule : SpectralSchedule, optional
-        If provided, sampling stops early when the heat-death criterion
-        ``Σ ν_k · ᾱ_k(t) < ε`` is met.
     return_steps : bool
         If True, return (z, steps_used).
 
     Returns
     -------
-    Tensor (B, latent_channels, latent_size, latent_size)
+    Tensor
         If return_steps, returns (z, steps_used).
     """
     gen = torch.Generator(device=device).manual_seed(seed)
@@ -163,17 +172,7 @@ def sample_ddim(
 
     sigmas = schedule.sample_sigmas(steps).to(device)
 
-    latent_channels = getattr(model, "latent_channels", 4)
-    latent_size = getattr(model, "latent_size", 32)
-
-    x = torch.randn(
-        batch_size,
-        latent_channels,
-        latent_size,
-        latent_size,
-        device=device,
-        generator=gen,
-    )
+    x = _init_noise(model, batch_size, device, gen)
 
     steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
@@ -222,17 +221,7 @@ def sample_ddim_steps(
 
     sigmas = schedule.sample_sigmas(steps).to(device)
 
-    latent_channels = getattr(model, "latent_channels", 4)
-    latent_size = getattr(model, "latent_size", 32)
-
-    x = torch.randn(
-        batch_size,
-        latent_channels,
-        latent_size,
-        latent_size,
-        device=device,
-        generator=gen,
-    )
+    x = _init_noise(model, batch_size, device, gen)
     yield x
 
     for sig, sig_prev in _pairwise(sigmas.tolist()):
