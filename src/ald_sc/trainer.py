@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader
 
 from ald_sc._logging import configure_logging
 from ald_sc.arrow_prior import ArrowSpacePrior
+from ald_sc.audio_codec import BaselineAudioDecoder
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
 
@@ -39,6 +40,7 @@ def train_audio_decoder(
     epochs: int = 10,
     lr: float = 1e-4,
     device: torch.device = torch.device("cpu"),
+    noise_std: float = 0.0,
 ) -> Iterator[dict[str, float]]:
     """Phase 1 audio decoder training loop.
 
@@ -58,6 +60,12 @@ def train_audio_decoder(
     epochs : int
     lr : float
     device : torch.device
+    noise_std : float
+        Standard deviation of Gaussian noise injected into the latent z
+        before decoding (latent-space augmentation). 0.0 disables it and
+        reproduces the deterministic baseline. Larger values produce
+        different, non-repeatable training runs — a feature for artistic
+        exploration rather than a bug.
 
     Yields
     ------
@@ -75,12 +83,23 @@ def train_audio_decoder(
     decoder_params = [p for p in audio_vae.decoder.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(decoder_params, lr=lr)
 
+    decode = audio_vae.decoder
+    is_baseline = isinstance(decode, BaselineAudioDecoder)
+
     for epoch in range(epochs):
         for batch in loader:
             x = batch.to(device) if isinstance(batch, Tensor) else batch[0].to(device)
             optimizer.zero_grad()
 
-            z, A, c_spec, x_hat = audio_vae(x, prior)
+            z, A, c_spec = audio_vae.encoder.encode(x, prior)
+
+            # Latent-space augmentation: noise the latent the decoder sees.
+            # c_spec stays derived from the clean A so the spectral chart
+            # conditioning is preserved; only the decoder input is noised.
+            if noise_std > 0:
+                z = z + noise_std * torch.randn_like(z)
+
+            x_hat = decode(z) if is_baseline else decode(z, c_spec)
 
             A_hat = A.detach()
             losses = loss_fn(x, x_hat, A, A_hat)

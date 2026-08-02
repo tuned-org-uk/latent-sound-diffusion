@@ -20,6 +20,21 @@ exploring what we call *the sound of the future*.
 > sound-design tool, not as the object of a claim. The goal is simply to
 > generate compelling, novel audio.
 
+### Sound production, not a research claim
+LSD is a **sound-generation** variant, not the ALD-SC research artifact.
+There is no falsifiable claim to defend. The objective is to let artists
+**train fast on their own samples** and explore what we call *the sound of
+the future*. Two knobs encode the artistic requirement that training be
+*interesting*, not merely reproducible:
+
+- **`SEED = None`** — non-repeatable training. Each run samples a fresh
+  seed, so every model — and every generated sound — differs. Variation
+  across runs is a feature, not a bug.
+- **`NOISE_INJECT`** — latent-space noise injected into the EnCodec latent
+  $z$ before decoding during decoder training. 0.0 reproduces the
+  deterministic baseline; larger values raise the early loss and yield
+  different, more varied models. Tune for taste.
+
 ### Quick start
 ```python
 # Run the end-to-end notebook

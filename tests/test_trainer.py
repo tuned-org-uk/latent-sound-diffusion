@@ -120,6 +120,49 @@ class TestTrainAudioDecoder:
             assert "chart" in d
             assert "smooth" in d
 
+    def test_noise_std_zero_matches_default(self) -> None:
+        """noise_std=0.0 reproduces the default trajectory."""
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=8, audio_length=320 * 16)
+
+        torch.manual_seed(7)
+        vae1 = _make_vae()
+        losses_default = list(
+            train_audio_decoder(loader, vae1, prior, loss_fn, epochs=1, lr=1e-3)
+        )
+
+        torch.manual_seed(7)
+        vae2 = _make_vae()
+        losses_zero = list(
+            train_audio_decoder(
+                loader, vae2, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.0
+            )
+        )
+        assert len(losses_default) == len(losses_zero)
+        for d1, d2 in zip(losses_default, losses_zero):
+            assert abs(d1["loss"] - d2["loss"]) < 1e-6
+
+    def test_noise_std_positive_runs(self) -> None:
+        """noise_std>0 must run and still yield valid loss dicts."""
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        vae = _make_vae(base_channels=16)
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=8, audio_length=320 * 16)
+        losses = list(
+            train_audio_decoder(
+                loader, vae, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.1
+            )
+        )
+        assert len(losses) > 0
+        for d in losses:
+            assert d["loss"] >= 0.0
+            assert "epoch" in d and "loss" in d
+
 
 class TestTrainAudioDiffusion:
     def test_diffusion_loss_decreases(self) -> None:
