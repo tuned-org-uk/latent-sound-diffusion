@@ -69,7 +69,11 @@ latent-sound-diffusion/
 │   ├── 01.md                   # design document — ESDM transfer
 │   └── 02.md                   # design document — audio adaptation
 ├── notebooks/
-│   └── 01_sound_generation.ipynb  # end-to-end notebook
+│   ├── 01_sound_generation.ipynb       # end-to-end notebook (stub encoder)
+│   ├── 02_long_form_generation.ipynb   # overlap-and-add + effects
+│   ├── 03_bps_modulation_effects.ipynb  # BPS modulation + pedalboard
+│   ├── 04_latent_concatenation.ipynb   # latent-space concatenation
+│   └── 05_full_music_generation.ipynb  # real EnCodec encoder
 ├── scripts/
 │   ├── build_audio_prior.py    # build frozen prior from EnCodec features
 │   ├── train_audio_decoder.py  # decoder training (graph vs baseline)

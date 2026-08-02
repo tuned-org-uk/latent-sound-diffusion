@@ -5,7 +5,13 @@ from __future__ import annotations
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.build_prior import build_arrow_prior
-from ald_sc.data import AudioFolderDataset, Esc50Dataset, ToyAudioDataset, build_audio_dataloader
+from ald_sc.data import (
+    AudioFolderDataset,
+    Esc50Dataset,
+    MusicSynthDataset,
+    ToyAudioDataset,
+    build_audio_dataloader,
+)
 from ald_sc.dit import MinimalDiT
 from ald_sc.dual_space import DualSpaceMatrix
 from ald_sc.graph_decoder import (
@@ -41,6 +47,7 @@ __all__ = [
     "WaveReconstructionBlock",
     "AudioFolderDataset",
     "Esc50Dataset",
+    "MusicSynthDataset",
     "ToyAudioDataset",
     "train_audio_decoder",
     "train_audio_diffusion",

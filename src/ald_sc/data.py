@@ -1,8 +1,8 @@
 """Audio data loading for ALD-SC sound generation.
 
 Provides datasets for ESC-50 environmental sounds, generic audio folders,
-and synthetic test waveforms. All audio is loaded as 24 kHz mono and
-padded/cropped to a fixed length.
+synthetic test waveforms, and synthetic music-like clips. All audio is
+loaded as 24 kHz mono and padded/cropped to a fixed length.
 
 This module must not add model logic (per AGENTS.md §11).
 """
@@ -20,6 +20,7 @@ __all__ = [
     "ToyAudioDataset",
     "AudioFolderDataset",
     "Esc50Dataset",
+    "MusicSynthDataset",
     "build_audio_dataloader",
     "load_audio_clip",
 ]
@@ -117,6 +118,120 @@ class ToyAudioDataset(Dataset):
         waveform = sine + noise
 
         # Normalize
+        peak = waveform.abs().max()
+        if peak > 0:
+            waveform = waveform / peak
+
+        return waveform.unsqueeze(0)  # (1, T)
+
+
+class MusicSynthDataset(Dataset):
+    """Synthetic music-like dataset for training and demos.
+
+    Generates deterministic, harmonic clips that are richer than simple
+    sine waves: each clip combines a fundamental tone, several harmonics,
+    a simple amplitude envelope, rhythmic tremolo, and occasional noise
+    bursts. No external data is required.
+
+    This is intended as a drop-in replacement for real music corpora when
+    demonstrating the full ALD-SC pipeline with the real EnCodec encoder.
+
+    Parameters
+    ----------
+    num_samples : int
+        Number of clips to generate.
+    audio_length : int
+        Length of each clip in samples (default 120000 = 5s @ 24kHz).
+    sample_rate : int
+        Sample rate (default 24000).
+    seed : int
+        Random seed for reproducibility.
+    num_harmonics : int
+        Number of harmonics above the fundamental.
+    """
+
+    def __init__(
+        self,
+        num_samples: int = 100,
+        audio_length: int = 120000,
+        sample_rate: int = SAMPLE_RATE,
+        seed: int = 3407,
+        num_harmonics: int = 4,
+    ) -> None:
+        self.num_samples = num_samples
+        self.audio_length = audio_length
+        self.sample_rate = sample_rate
+        self.seed = seed
+        self.num_harmonics = num_harmonics
+
+    def __len__(self) -> int:
+        return self.num_samples
+
+    def __getitem__(self, idx: int) -> Tensor:
+        # Reproducible per-index generation
+        rng = torch.Generator()
+        rng.manual_seed(self.seed + idx)
+        t = torch.arange(self.audio_length, dtype=torch.float32) / self.sample_rate
+
+        # Choose a base note from a pentatonic-ish scale (110-880 Hz)
+        base_freqs = torch.tensor(
+            [
+                110.0,
+                130.81,
+                146.83,
+                164.81,
+                196.0,
+                220.0,
+                261.63,
+                293.66,
+                329.63,
+                392.0,
+                440.0,
+                523.25,
+            ],
+        )
+        base_idx = torch.randint(0, len(base_freqs), (1,), generator=rng).item()
+        base_freq = base_freqs[base_idx].item()
+
+        # Fundamental + harmonics with decaying amplitudes
+        waveform = torch.zeros(self.audio_length)
+        harmonic_amplitudes = [1.0]
+        for h in range(1, self.num_harmonics + 1):
+            harmonic_amplitudes.append(0.6**h)
+
+        for h, amp in enumerate(harmonic_amplitudes):
+            freq = base_freq * (h + 1)
+            phase = torch.rand(1, generator=rng).item() * 2 * torch.pi
+            waveform += amp * torch.sin(2 * torch.pi * freq * t + phase)
+
+        # Add a simple ADSR-like envelope (attack, decay, sustain, release)
+        attack_samples = min(int(0.05 * self.sample_rate), self.audio_length // 4)
+        release_samples = min(int(0.1 * self.sample_rate), self.audio_length // 4)
+        envelope = torch.ones(self.audio_length)
+        if attack_samples > 1:
+            envelope[:attack_samples] = torch.linspace(0, 1, attack_samples)
+        if release_samples > 1:
+            envelope[-release_samples:] = torch.linspace(1, 0, release_samples)
+
+        waveform = waveform * envelope
+
+        # Rhythmic tremolo synchronized to a beats-per-second rate
+        bps = 2.0 + 2.0 * torch.rand(1, generator=rng).item()  # 2-4 beats per second
+        tremolo = 0.85 + 0.15 * torch.sin(2 * torch.pi * bps * t)
+        waveform = waveform * tremolo
+
+        # Sparse noise bursts (percussive element)
+        num_bursts = int(1 + torch.rand(1, generator=rng).item() * 3)
+        for _ in range(num_bursts):
+            burst_center = int(torch.rand(1, generator=rng).item() * self.audio_length)
+            burst_width = int(0.02 * self.sample_rate)
+            start = max(0, burst_center - burst_width // 2)
+            end = min(self.audio_length, burst_center + burst_width // 2)
+            if end > start:
+                noise = torch.randn(end - start, generator=rng)
+                waveform[start:end] += 0.2 * noise
+
+        # Normalize to [-1, 1]
         peak = waveform.abs().max()
         if peak > 0:
             waveform = waveform / peak
