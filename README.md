@@ -221,6 +221,7 @@ uv run jupyter notebook notebooks/01_sound_generation.ipynb
 | 04 | `04_latent_concatenation.ipynb` | Latent-space concatenation of multiple variations into ~20s output, with per-section BPS modulation and pedalboard effects |
 | 05 | `05_full_music_generation.ipynb` | Full music generation with the real frozen EnCodec encoder and synthetic `MusicSynthDataset` |
 | 06 | `06_end_to_end_real_data.ipynb` | End-to-end training on real audio files in `data/` using `AudioFolderDataset` and real EnCodec |
+| 07 | `07_production_workflow.ipynb` | Full LSD production workflow — train two models, A/B/C inference, then longform + BPS/effects + latent-concat progression |
 
 To run a notebook server:
 
@@ -261,7 +262,8 @@ latent-sound-diffusion/
 │   ├── 03_bps_modulation_effects.ipynb  # BPS modulation + pedalboard
 │   ├── 04_latent_concatenation.ipynb   # latent-space concatenation
 │   ├── 05_full_music_generation.ipynb  # real EnCodec encoder
-│   └── 06_end_to_end_real_data.ipynb   # train on audio files in data/
+│   ├── 06_end_to_end_real_data.ipynb   # train on audio files in data/
+│   └── 07_production_workflow.ipynb  # full production workflow (A/B/C + effects chain)
 ├── scripts/
 │   ├── build_audio_prior.py      # build prior from EnCodec features
 │   ├── train_audio_decoder.py    # decoder training (graph vs baseline)
