@@ -12,12 +12,13 @@ reconstructs waveforms by decoding on the feature-space manifold.
 This repository is a sound-generation-specific fork of
 [arrowspace-latent-diffusion](https://github.com/tuned-org-uk/arrowspace-latent-diffusion).
 The image-generation code has been replaced with 1-D audio-native
-modules. The research programme — decoding on the feature-space
-manifold — is unchanged.
+modules. Unlike ALD-SC, LSD has no falsifiable research claim — it exists
+for **sound production**: generating sounds for their own sake, and
+exploring what we call *the sound of the future*.
 
-> **Central claim:** decoding on the feature-space manifold
-> $(L_F, \lambda^{\mathrm{ED}})$ yields better global semantic coherence
-> under compression than decoding on an unconstrained ambient latent.
+> The frozen ArrowSpace prior $(L_F, \lambda^{\mathrm{ED}})$ is used here as a
+> sound-design tool, not as the object of a claim. The goal is simply to
+> generate compelling, novel audio.
 
 ### Quick start
 ```python
