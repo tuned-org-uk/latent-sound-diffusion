@@ -14,6 +14,7 @@ from ald_sc.data import (
 )
 from ald_sc.dit import MinimalDiT
 from ald_sc.dual_space import DualSpaceMatrix
+from ald_sc.inference import LSDModel
 from ald_sc.graph_decoder import (
     ClockGatedGraphDecoder,
     GraphDecoder,
@@ -45,6 +46,7 @@ __all__ = [
     "GraphDecoder",
     "ClockGatedGraphDecoder",
     "WaveReconstructionBlock",
+    "LSDModel",
     "AudioFolderDataset",
     "Esc50Dataset",
     "MusicSynthDataset",

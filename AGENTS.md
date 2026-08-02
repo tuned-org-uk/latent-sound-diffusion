@@ -97,7 +97,7 @@ latent-sound-diffusion/
 │   ├── spectral_schedule.py    # Per-mode τ_k, ᾱ_k, heat-death criterion
 │   ├── trainer.py              # train_audio_decoder(), train_audio_diffusion()
 │   └── wire_graph.py           # ArrowSpace adapter: L_F + λ_ED
-└── tests/                      # 16 test files, 147 tests (CPU)
+└── tests/                      # 17 test files, 160 tests (CPU)
 ```
 
 ***

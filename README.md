@@ -140,13 +140,14 @@ isolates graph structure as the only variable.
 | Entropic clock | `spectral_schedule.py` | $\tau_k(t)$, $\bar\alpha_k(t)$, heat-death stopping criterion |
 | Samplers | `sampling.py` | DDIM + Euler with spectral stopping, 1-D `latent_shape` noise init |
 | Losses | `losses.py` | $L_{\mathrm{diff}}$ + $L_{\mathrm{rec}}$ (L1+multi-scale STFT) + $L_{\mathrm{chart}}$ + $L_{\mathrm{smooth}}$ |
-| Training | `trainer.py` | `train_audio_decoder()` + `train_audio_diffusion()` + `log_training()` for epoch-level logging |
+| Training | `trainer.py` | `train_audio_decoder()` (with `noise_std` latent augmentation) + `train_audio_diffusion()` + `log_training()` (structlog) |
 | Data | `data.py` | `Esc50Dataset`, `AudioFolderDataset`, `ToyAudioDataset`, `MusicSynthDataset` (load_audio_clip falls back to soundfile if torchaudio backend is unavailable) |
+| Inference contract | `inference.py` | `LSDModel`: `generate_sound_bank` (A), `condition_on_audio` (B), `synthesize_midi` (C) — see [`docs/03.md`](docs/03.md) |
 | CLI scripts | `scripts/` | `build_audio_prior`, `train_audio_decoder`, `train_audio_diffusion`, `sample_audio`, `eval_audio` |
 | Configs | `configs/` | `audio_decoder.yaml`, `audio_diffusion.yaml` |
 | Notebook | `notebooks/01_sound_generation.ipynb` | End-to-end pipeline with interactive knobs |
 
-**147 unit tests**, all on CPU. `uv run pytest tests/ -v`.
+**160 unit tests**, all on CPU. `uv run pytest tests/ -v`.
 
 ---
 
@@ -183,7 +184,7 @@ uv sync
 ## Usage
 
 ```bash
-# Run the test suite (CPU; 147 tests)
+# Run the test suite (CPU; 160 tests)
 uv run pytest tests/ -v
 
 # Lint and format
@@ -283,7 +284,7 @@ latent-sound-diffusion/
 │   ├── spectral_schedule.py      # Per-mode τ_k, ᾱ_k, heat-death criterion
 │   ├── trainer.py                # train_audio_decoder(), train_audio_diffusion()
 │   └── wire_graph.py             # ArrowSpace adapter: L_F + λ_ED
-└── tests/                        # 16 test files, 147 tests (CPU)
+└── tests/                        # 16 test files, 160 tests (CPU)
 ```
 
 ---
