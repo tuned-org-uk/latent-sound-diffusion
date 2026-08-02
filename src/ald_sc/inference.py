@@ -17,8 +17,13 @@ a non-repeatable, time-sampled seed — a deliberate artistic feature.
 
 from __future__ import annotations
 
+import json
 import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 
+import soundfile
 import structlog
 
 import torch
@@ -35,7 +40,7 @@ configure_logging()
 
 log = structlog.get_logger("ald_sc.inference")
 
-__all__ = ["LSDModel", "MidiEvent"]
+__all__ = ["LSDModel", "Bank", "MidiEvent"]
 
 # A MIDI note event: (midi_note:int, start_seconds:float, duration_seconds:float).
 MidiEvent = tuple[int, float, float]
@@ -107,6 +112,53 @@ class LSDModel:
         self.schedule = schedule
         self.sample_rate = sample_rate
         self._is_baseline = isinstance(decoder, BaselineAudioDecoder)
+
+    def store(
+        self,
+        root_dir: str | Path,
+        slug: str = "lsd-model",
+        hyperparams: dict | None = None,
+    ) -> Path:
+        """Save model artefacts and a metadata.json for reproducibility.
+
+        Creates <root_dir>/<timestamp>-<slug>/ (timestamp = YYYYMMDD-HHMMSS)
+        and writes prior.pt, decoder.pt, dit.pt, and metadata.json (sample
+        rate, latent shape, decoder type, schedule steps, hyperparams).
+        Returns the model directory path.
+        """
+        root_dir = Path(root_dir)
+        ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+        safe_slug = (
+            "".join(c if c.isalnum() or c in "-_" else "-" for c in slug) or "model"
+        )
+        model_dir = root_dir / f"{ts}-{safe_slug}"
+        model_dir.mkdir(parents=True, exist_ok=True)
+
+        torch.save(self.prior, model_dir / "prior.pt")
+        torch.save(self.decoder.state_dict(), model_dir / "decoder.pt")
+        torch.save(self.dit.state_dict(), model_dir / "dit.pt")
+
+        latent_channels, latent_length = getattr(self.dit, "latent_shape", (None, None))
+        schedule_steps = getattr(self.schedule, "num_steps", None)
+        metadata = {
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "sample_rate": self.sample_rate,
+            "latent_channels": latent_channels,
+            "latent_length": latent_length,
+            "decoder_type": type(self.decoder).__module__
+            + "."
+            + type(self.decoder).__name__,
+            "schedule_num_steps": schedule_steps,
+            "hyperparameters": dict(hyperparams) if hyperparams else {},
+        }
+        (model_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+        log.info(
+            "model_store",
+            slug=safe_slug,
+            path=str(model_dir),
+            hyperparameters=metadata["hyperparameters"],
+        )
+        return model_dir
 
     @torch.no_grad()
     def _sample_and_decode(
@@ -321,3 +373,81 @@ class LSDModel:
             seed=s,
         )
         return _normalize(out)
+
+
+@dataclass
+class Bank:
+    """A generated sound bank: clips plus provenance.
+
+    Parameters
+    ----------
+    model : LSDModel
+        The model that produced the clips (for sample-rate / metadata).
+    clips : list[Tensor]
+        Peak-normalised waveforms of shape (1, T).
+    name : str
+        Human-friendly bank name (used as the directory name when stored).
+    generated_at : str, optional
+        ISO timestamp of generation; defaults to now.
+    """
+
+    model: "LSDModel"
+    clips: list[Tensor]
+    name: str = "bank"
+    generated_at: str = field(
+        default_factory=lambda: datetime.now().isoformat(timespec="seconds")
+    )
+
+    def __post_init__(self) -> None:
+        if not self.clips:
+            raise ValueError("Bank.clips must be non-empty")
+
+    def store(self, out_dir: str | Path) -> Path:
+        """Write the bank to <out_dir>/banks/<name>/.
+
+        Each clip is saved as NN.wav (zero-padded), and a manifest.json
+        records the bank name, clip list, sample rate, generation
+        timestamp, and provenance. Returns the bank directory path.
+        """
+        out_dir = Path(out_dir)
+        bank_dir = out_dir / "banks" / self.name
+        bank_dir.mkdir(parents=True, exist_ok=True)
+
+        clip_entries = []
+        for i, clip in enumerate(self.clips):
+            fname = f"{i:02d}.wav"
+            wave = clip.squeeze(0).numpy()
+            soundfile.write(str(bank_dir / fname), wave, self.model.sample_rate)
+            clip_entries.append({"file": fname, "shape": list(clip.shape)})
+
+        manifest = {
+            "name": self.name,
+            "n_clips": len(self.clips),
+            "sample_rate": self.model.sample_rate,
+            "generated_at": self.generated_at,
+            "clips": clip_entries,
+        }
+        (bank_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        log.info(
+            "bank_store",
+            name=self.name,
+            n_clips=len(self.clips),
+            path=str(bank_dir),
+        )
+        return bank_dir
+
+    @classmethod
+    def from_generation(
+        cls,
+        model: "LSDModel",
+        n: int = 8,
+        steps: int = 50,
+        temperature: float = 1.0,
+        seed: int | None = None,
+        name: str = "bank",
+    ) -> "Bank":
+        """Generate a bank and wrap it in a Bank."""
+        clips = model.generate_sound_bank(
+            n=n, steps=steps, temperature=temperature, seed=seed
+        )
+        return cls(model=model, clips=clips, name=name)
