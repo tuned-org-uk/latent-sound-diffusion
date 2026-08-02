@@ -325,6 +325,7 @@ uv run pytest tests/ -v --tb=short
 - No commented-out code in committed files.
 - No `print()` in library code (`src/ald_sc/`); use logging or return values.
   `print()` is allowed in `scripts/` and `tests/`.
+- Always use standard library's `pathlib` for dealing with paths
 
 ***
 
