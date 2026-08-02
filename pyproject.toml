@@ -16,6 +16,7 @@ dependencies = [
     "ruff>=0.15.22",
     "scipy>=1.14.0",
     "soundfile>=0.13.1",
+    "structlog>=26.1.0",
     "torch>=2.2",
     "torchaudio>=0.28.0",
     "torchvision>=0.28.0",

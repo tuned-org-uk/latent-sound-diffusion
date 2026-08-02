@@ -9,12 +9,14 @@ import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
 
+import structlog
+
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
-from ald_sc.trainer import train_audio_decoder, train_audio_diffusion, log_training
+from ald_sc.trainer import log_training, train_audio_decoder, train_audio_diffusion
 
 
 class StubEncoder(nn.Module):
@@ -203,3 +205,23 @@ class TestLogTraining:
     def test_empty_iterator(self) -> None:
         history = list(log_training(iter([]), label="Test"))
         assert history == []
+
+    def test_emits_structlog_event_per_epoch(self) -> None:
+        """log_training should emit one structlog 'epoch' event per epoch."""
+        records = [
+            {"epoch": 0, "loss": 1.0},
+            {"epoch": 0, "loss": 0.9},
+            {"epoch": 1, "loss": 0.8},
+            {"epoch": 1, "loss": 0.7},
+        ]
+        with structlog.testing.capture_logs() as caps:
+            list(log_training(iter(records), label="Test"))
+
+        epoch_events = [e for e in caps if e["event"] == "epoch"]
+        assert len(epoch_events) == 2
+        assert epoch_events[0]["epoch"] == 0
+        assert epoch_events[0]["label"] == "Test"
+        assert epoch_events[0]["mean_loss"] == 0.95
+        assert epoch_events[0]["steps"] == 2
+        assert epoch_events[1]["epoch"] == 1
+        assert epoch_events[1]["mean_loss"] == 0.75

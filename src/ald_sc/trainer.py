@@ -4,7 +4,9 @@ Provides ``train_audio_decoder()`` for Phase 1 decoder training (graph or
 baseline) and ``train_audio_diffusion()`` for 1-D DiT training.
 
 Training loops yield loss dicts (mirrors the from-scratch pattern) so
-notebooks can plot live curves.
+notebooks can plot live curves. ``log_training()`` wraps such an
+iterator and emits a structured per-epoch summary event via ``structlog``
+so notebooks can follow progress without polling per-batch losses.
 
 This module must not define model architectures (per AGENTS.md §11).
 """
@@ -13,13 +15,18 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
+import structlog
+
 import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
+from ald_sc._logging import configure_logging
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
+
+configure_logging()
 
 __all__ = ["train_audio_decoder", "train_audio_diffusion", "log_training"]
 
@@ -173,12 +180,13 @@ def log_training(
     train_iter: Iterator[dict[str, float]],
     label: str = "Training",
 ) -> Iterator[dict[str, float]]:
-    """Consume a training iterator and yield epoch-level summaries.
+    """Wrap a training iterator, yielding records enriched with epoch stats.
 
-    Each yielded record is enriched with ``epoch_mean_loss`` and
-    ``epoch_steps``. A per-epoch summary line is printed whenever the
-    epoch changes. This lets notebooks follow training progress without
-    manually aggregating per-batch loss dicts.
+    Each yielded per-batch record is enriched with a running
+    ``epoch_mean_loss`` and the count of ``epoch_steps`` seen so far in the
+    current epoch. A structured ``epoch`` event is emitted via ``structlog``
+    when the epoch changes (and once at the end) so callers can follow
+    training progress by epoch without aggregating per-batch losses.
 
     Parameters
     ----------
@@ -186,23 +194,27 @@ def log_training(
         Iterator yielding per-batch loss dicts (must contain 'epoch' and
         'loss').
     label : str
-        Label printed in summary lines (e.g. "Graph decoder").
+        Label attached to each emitted structlog event (e.g. "Graph decoder").
 
     Yields
     ------
     dict[str, float]
         Original record enriched with 'epoch_mean_loss' and 'epoch_steps'.
     """
+    log = structlog.get_logger("ald_sc.trainer")
     current_epoch: int | None = None
-    epoch_records: list[dict[str, float]] = []
+    epoch_sum: float = 0.0
+    epoch_n: int = 0
 
     def _flush() -> None:
-        if not epoch_records:
+        if epoch_n == 0:
             return
-        mean_loss = sum(r["loss"] for r in epoch_records) / len(epoch_records)
-        epoch = epoch_records[0]["epoch"]
-        print(
-            f"{label} epoch {epoch}: loss={mean_loss:.4f} ({len(epoch_records)} steps)"
+        log.info(
+            "epoch",
+            label=label,
+            epoch=current_epoch,
+            mean_loss=epoch_sum / epoch_n,
+            steps=epoch_n,
         )
 
     for record in train_iter:
@@ -210,17 +222,17 @@ def log_training(
 
         if current_epoch is not None and epoch != current_epoch:
             _flush()
-            epoch_records = []
+            epoch_sum = 0.0
+            epoch_n = 0
 
         current_epoch = epoch
-        epoch_records.append(record)
+        epoch_sum += float(record["loss"])
+        epoch_n += 1
 
-        mean_loss = sum(r["loss"] for r in epoch_records) / len(epoch_records)
-        enriched = {
+        yield {
             **record,
-            "epoch_mean_loss": float(mean_loss),
-            "epoch_steps": len(epoch_records),
+            "epoch_mean_loss": epoch_sum / epoch_n,
+            "epoch_steps": epoch_n,
         }
-        yield enriched
 
     _flush()
