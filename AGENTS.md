@@ -73,7 +73,8 @@ latent-sound-diffusion/
 │   ├── 02_long_form_generation.ipynb   # overlap-and-add + effects
 │   ├── 03_bps_modulation_effects.ipynb  # BPS modulation + pedalboard
 │   ├── 04_latent_concatenation.ipynb   # latent-space concatenation
-│   └── 05_full_music_generation.ipynb  # real EnCodec encoder
+│   ├── 05_full_music_generation.ipynb  # real EnCodec encoder
+│   └── 06_end_to_end_real_data.ipynb   # train on audio files in data/
 ├── scripts/
 │   ├── build_audio_prior.py    # build frozen prior from EnCodec features
 │   ├── train_audio_decoder.py  # decoder training (graph vs baseline)

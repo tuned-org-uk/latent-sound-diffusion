@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import soundfile
 import torch
 import torchaudio
 from torch import Tensor
@@ -51,7 +52,17 @@ def load_audio_clip(
     Tensor (1, target_length) or (1, T)
         Audio waveform in mono at target_sr.
     """
-    waveform, sr = torchaudio.load(str(path))
+    try:
+        waveform, sr = torchaudio.load(str(path))
+    except Exception:
+        # Fallback for environments without torchcodec / ffmpeg backend
+        data, sr = soundfile.read(str(path), dtype="float32")
+        waveform = torch.from_numpy(data)
+        if waveform.ndim == 1:
+            waveform = waveform.unsqueeze(0)
+        else:
+            # soundfile returns (samples, channels); transpose to (channels, samples)
+            waveform = waveform.T
 
     # Convert to mono if stereo
     if waveform.shape[0] > 1:

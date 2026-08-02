@@ -2,9 +2,19 @@
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
+
+import soundfile
 import torch
 
-from ald_sc.data import MusicSynthDataset, ToyAudioDataset, build_audio_dataloader
+from ald_sc.data import (
+    AudioFolderDataset,
+    MusicSynthDataset,
+    ToyAudioDataset,
+    build_audio_dataloader,
+    load_audio_clip,
+)
 
 
 class TestToyAudioDataset:
@@ -77,6 +87,86 @@ class TestMusicSynthDataset:
         ds2 = MusicSynthDataset(num_samples=2, audio_length=24000, seed=123)
         assert torch.allclose(ds1[0], ds2[0])
         assert torch.allclose(ds1[1], ds2[1])
+
+
+class TestLoadAudioClip:
+    def _write_wav(self, path: Path, sr: int, length: int, channels: int = 1) -> None:
+        t = torch.arange(length, dtype=torch.float32) / sr
+        freq = 440.0
+        waveform = torch.sin(2 * torch.pi * freq * t)
+        if channels > 1:
+            waveform = waveform.unsqueeze(0).repeat(channels, 1)
+        else:
+            waveform = waveform.unsqueeze(0)
+        soundfile.write(str(path), waveform.T.numpy(), sr)
+
+    def test_load_mono_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=16000, length=16000)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        assert clip.shape == (1, 24000)
+
+    def test_resample_to_target_sr(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=16000, length=16000)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        # 1s at 16kHz -> 24000 samples after resampling
+        assert clip.shape[1] == 24000
+
+    def test_crop_to_target_length(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=24000, length=48000)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        assert clip.shape == (1, 24000)
+
+    def test_pad_to_target_length(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=24000, length=12000)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        assert clip.shape == (1, 24000)
+
+    def test_stereo_converts_to_mono(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=24000, length=24000, channels=2)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        assert clip.shape == (1, 24000)
+
+    def test_normalization(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test.wav"
+            self._write_wav(path, sr=24000, length=24000)
+            clip = load_audio_clip(path, target_sr=24000, target_length=24000)
+        assert clip.abs().max() <= 1.0 + 1e-6
+
+
+class TestAudioFolderDataset:
+    def test_loads_wav_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            for i in range(3):
+                t = torch.arange(24000, dtype=torch.float32) / 24000
+                waveform = torch.sin(2 * torch.pi * 440.0 * t).unsqueeze(0)
+                soundfile.write(
+                    str(tmp_path / f"clip_{i}.wav"), waveform.T.numpy(), 24000
+                )
+            ds = AudioFolderDataset(tmp_path, audio_length=24000, sample_rate=24000)
+            assert len(ds) == 3
+            assert ds[0].shape == (1, 24000)
+
+    def test_ignores_non_audio_extensions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            t = torch.arange(24000, dtype=torch.float32) / 24000
+            waveform = torch.sin(2 * torch.pi * 440.0 * t).unsqueeze(0)
+            soundfile.write(str(tmp_path / "clip.wav"), waveform.T.numpy(), 24000)
+            (tmp_path / "readme.txt").write_text("not audio")
+            ds = AudioFolderDataset(tmp_path, audio_length=24000, sample_rate=24000)
+            assert len(ds) == 1
 
 
 class TestBuildAudioDataloader:
