@@ -19,6 +19,12 @@ manifold — is unchanged.
 > $(L_F, \lambda^{\mathrm{ED}})$ yields better global semantic coherence
 > under compression than decoding on an unconstrained ambient latent.
 
+### Quick start
+```python
+# Run the end-to-end notebook
+uv run jupyter notebook notebooks/01_sound_generation.ipynb
+```
+
 ---
 
 ## The research programme
@@ -119,12 +125,12 @@ isolates graph structure as the only variable.
 | Samplers | `sampling.py` | DDIM + Euler with spectral stopping, 1-D `latent_shape` noise init |
 | Losses | `losses.py` | $L_{\mathrm{diff}}$ + $L_{\mathrm{rec}}$ (L1+multi-scale STFT) + $L_{\mathrm{chart}}$ + $L_{\mathrm{smooth}}$ |
 | Training | `trainer.py` | `train_audio_decoder()` + `train_audio_diffusion()` |
-| Data | `data.py` | `Esc50Dataset`, `AudioFolderDataset`, `ToyAudioDataset` |
+| Data | `data.py` | `Esc50Dataset`, `AudioFolderDataset`, `ToyAudioDataset`, `MusicSynthDataset` (load_audio_clip falls back to soundfile if torchaudio backend is unavailable) |
 | CLI scripts | `scripts/` | `build_audio_prior`, `train_audio_decoder`, `train_audio_diffusion`, `sample_audio`, `eval_audio` |
 | Configs | `configs/` | `audio_decoder.yaml`, `audio_diffusion.yaml` |
 | Notebook | `notebooks/01_sound_generation.ipynb` | End-to-end pipeline with interactive knobs |
 
-**129 unit tests**, all on CPU. `uv run pytest tests/ -v`.
+**144 unit tests**, all on CPU. `uv run pytest tests/ -v`.
 
 ---
 
@@ -141,7 +147,7 @@ isolates graph structure as the only variable.
 
 - [#1](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/1) — Sound generation: end-to-end audio synthesis via ALD-SC
 - FAD computation (`fadtk` removed due to dependency conflicts; multi-scale STFT used as fallback)
-- Real-data experiments on ESC-50 with real EnCodec (notebook uses stub encoder for CPU demo)
+- Real-data experiments on ESC-50 with real EnCodec (notebooks 05 and 06 use real EnCodec; notebook 01 is a CPU demo)
 
 ---
 
@@ -196,6 +202,8 @@ uv run jupyter notebook notebooks/01_sound_generation.ipynb
 | 02 | `02_long_form_generation.ipynb` | Long-form (5-8s) generation via overlap-and-add with pitch envelope, ADSR, and timbral filtering knobs |
 | 03 | `03_bps_modulation_effects.ipynb` | BPS-synchronized modulation (tremolo, vibrato, filter sweep) with pedalboard effects and scipy.signal IIR filters |
 | 04 | `04_latent_concatenation.ipynb` | Latent-space concatenation of multiple variations into ~20s output, with per-section BPS modulation and pedalboard effects |
+| 05 | `05_full_music_generation.ipynb` | Full music generation with the real frozen EnCodec encoder and synthetic `MusicSynthDataset` |
+| 06 | `06_end_to_end_real_data.ipynb` | End-to-end training on real audio files in `data/` using `AudioFolderDataset` and real EnCodec |
 
 To run a notebook server:
 
@@ -210,9 +218,10 @@ uv run jupyter notebook notebooks/01_sound_generation.ipynb
 uv run jupyter nbconvert --to notebook --execute notebooks/01_sound_generation.ipynb
 ```
 
-The notebook runs entirely on CPU using a stub encoder and
-`ToyAudioDataset` (no external data or GPU required). Swap to
-`EnCodecEncoder` and `Esc50Dataset` in the notebook cells for real audio.
+Notebook 01 runs entirely on CPU using a stub encoder and
+`ToyAudioDataset` (no external data or GPU required). Notebooks 05 and 06 use
+the real frozen `EnCodecEncoder`: notebook 05 with synthetic `MusicSynthDataset`,
+and notebook 06 with real audio files in `data/` via `AudioFolderDataset`.
 
 ---
 
@@ -230,7 +239,12 @@ latent-sound-diffusion/
 │   ├── 01.md                     # design document — ESDM transfer
 │   └── 02.md                     # design document — audio adaptation
 ├── notebooks/
-│   └── 01_sound_generation.ipynb # end-to-end notebook
+│   ├── 01_sound_generation.ipynb       # end-to-end notebook (stub encoder)
+│   ├── 02_long_form_generation.ipynb   # overlap-and-add + effects
+│   ├── 03_bps_modulation_effects.ipynb  # BPS modulation + pedalboard
+│   ├── 04_latent_concatenation.ipynb   # latent-space concatenation
+│   ├── 05_full_music_generation.ipynb  # real EnCodec encoder
+│   └── 06_end_to_end_real_data.ipynb   # train on audio files in data/
 ├── scripts/
 │   ├── build_audio_prior.py      # build prior from EnCodec features
 │   ├── train_audio_decoder.py    # decoder training (graph vs baseline)
@@ -253,7 +267,7 @@ latent-sound-diffusion/
 │   ├── spectral_schedule.py      # Per-mode τ_k, ᾱ_k, heat-death criterion
 │   ├── trainer.py                # train_audio_decoder(), train_audio_diffusion()
 │   └── wire_graph.py             # ArrowSpace adapter: L_F + λ_ED
-└── tests/                        # 16 test files, 129 tests (CPU)
+└── tests/                        # 16 test files, 144 tests (CPU)
 ```
 
 ---
