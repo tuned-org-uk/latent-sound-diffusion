@@ -21,7 +21,7 @@ from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
 
-__all__ = ["train_audio_decoder", "train_audio_diffusion"]
+__all__ = ["train_audio_decoder", "train_audio_diffusion", "log_training"]
 
 
 def train_audio_decoder(
@@ -167,3 +167,60 @@ def train_audio_diffusion(
                 "epoch": epoch,
                 "loss": float(loss.item()),
             }
+
+
+def log_training(
+    train_iter: Iterator[dict[str, float]],
+    label: str = "Training",
+) -> Iterator[dict[str, float]]:
+    """Consume a training iterator and yield epoch-level summaries.
+
+    Each yielded record is enriched with ``epoch_mean_loss`` and
+    ``epoch_steps``. A per-epoch summary line is printed whenever the
+    epoch changes. This lets notebooks follow training progress without
+    manually aggregating per-batch loss dicts.
+
+    Parameters
+    ----------
+    train_iter : Iterator[dict[str, float]]
+        Iterator yielding per-batch loss dicts (must contain 'epoch' and
+        'loss').
+    label : str
+        Label printed in summary lines (e.g. "Graph decoder").
+
+    Yields
+    ------
+    dict[str, float]
+        Original record enriched with 'epoch_mean_loss' and 'epoch_steps'.
+    """
+    current_epoch: int | None = None
+    epoch_records: list[dict[str, float]] = []
+
+    def _flush() -> None:
+        if not epoch_records:
+            return
+        mean_loss = sum(r["loss"] for r in epoch_records) / len(epoch_records)
+        epoch = epoch_records[0]["epoch"]
+        print(
+            f"{label} epoch {epoch}: loss={mean_loss:.4f} ({len(epoch_records)} steps)"
+        )
+
+    for record in train_iter:
+        epoch = int(record["epoch"])
+
+        if current_epoch is not None and epoch != current_epoch:
+            _flush()
+            epoch_records = []
+
+        current_epoch = epoch
+        epoch_records.append(record)
+
+        mean_loss = sum(r["loss"] for r in epoch_records) / len(epoch_records)
+        enriched = {
+            **record,
+            "epoch_mean_loss": float(mean_loss),
+            "epoch_steps": len(epoch_records),
+        }
+        yield enriched
+
+    _flush()

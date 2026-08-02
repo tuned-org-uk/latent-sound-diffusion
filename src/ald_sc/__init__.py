@@ -23,7 +23,7 @@ from ald_sc.losses import ALDSCLoss
 from ald_sc.sampling import sample_ddim, sample_euler
 from ald_sc.schedule import CosineSchedule, LinearSchedule
 from ald_sc.spectral_schedule import SpectralSchedule
-from ald_sc.trainer import train_audio_decoder, train_audio_diffusion
+from ald_sc.trainer import log_training, train_audio_decoder, train_audio_diffusion
 from ald_sc.wire_graph import WireGraph
 
 __all__ = [
@@ -49,6 +49,7 @@ __all__ = [
     "Esc50Dataset",
     "MusicSynthDataset",
     "ToyAudioDataset",
+    "log_training",
     "train_audio_decoder",
     "train_audio_diffusion",
 ]

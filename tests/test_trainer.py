@@ -14,7 +14,7 @@ from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
-from ald_sc.trainer import train_audio_decoder, train_audio_diffusion
+from ald_sc.trainer import train_audio_decoder, train_audio_diffusion, log_training
 
 
 class StubEncoder(nn.Module):
@@ -58,12 +58,17 @@ class TestTrainAudioDecoder:
         prior = build_arrow_prior(embeddings, q=8, k=4)
         vae = _make_vae(latent_dim=128, base_channels=16)
         loss_fn = ALDSCLoss(
-            prior=prior, lambda_rec=1.0, lambda_stft=0.0,
-            lambda_chart=0.5, lambda_smooth=0.1,
+            prior=prior,
+            lambda_rec=1.0,
+            lambda_stft=0.0,
+            lambda_chart=0.5,
+            lambda_smooth=0.1,
         )
         loader = _make_dataloader(n=8, audio_length=320 * 16)
 
-        losses = list(train_audio_decoder(loader, vae, prior, loss_fn, epochs=3, lr=1e-3))
+        losses = list(
+            train_audio_decoder(loader, vae, prior, loss_fn, epochs=3, lr=1e-3)
+        )
         assert len(losses) > 0
         assert "loss" in losses[0]
         first = losses[0]["loss"]
@@ -76,7 +81,9 @@ class TestTrainAudioDecoder:
         prior = build_arrow_prior(embeddings, q=8, k=4)
         vae = _make_vae(latent_dim=128, base_channels=16)
         loss_fn = ALDSCLoss(
-            prior=prior, lambda_rec=1.0, lambda_stft=0.0,
+            prior=prior,
+            lambda_rec=1.0,
+            lambda_stft=0.0,
         )
         loader = _make_dataloader(n=8, audio_length=320 * 16)
 
@@ -91,12 +98,17 @@ class TestTrainAudioDecoder:
         prior = build_arrow_prior(embeddings, q=8, k=4)
         vae = _make_vae()
         loss_fn = ALDSCLoss(
-            prior=prior, lambda_rec=1.0, lambda_stft=0.0,
-            lambda_chart=0.5, lambda_smooth=0.1,
+            prior=prior,
+            lambda_rec=1.0,
+            lambda_stft=0.0,
+            lambda_chart=0.5,
+            lambda_smooth=0.1,
         )
         loader = _make_dataloader(n=4, audio_length=320 * 16)
 
-        losses = list(train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3))
+        losses = list(
+            train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3)
+        )
         assert len(losses) > 0
         for d in losses:
             assert "epoch" in d
@@ -131,9 +143,7 @@ class TestTrainAudioDiffusion:
         )
 
         losses = list(
-            train_audio_diffusion(
-                loader, vae, dit, prior, sched, epochs=3, lr=1e-3
-            )
+            train_audio_diffusion(loader, vae, dit, prior, sched, epochs=3, lr=1e-3)
         )
         assert len(losses) > 0
         assert "loss" in losses[0]
@@ -163,3 +173,33 @@ class TestTrainAudioDiffusion:
 
         vae_grads_after = [p.grad for p in vae.parameters()]
         assert all(g is None for g in vae_grads_after), "VAE must stay frozen"
+
+
+class TestLogTraining:
+    def test_returns_all_records(self) -> None:
+        records = [
+            {"epoch": 0, "loss": 1.0},
+            {"epoch": 0, "loss": 0.9},
+            {"epoch": 1, "loss": 0.8},
+            {"epoch": 1, "loss": 0.7},
+        ]
+        history = list(log_training(iter(records), label="Test"))
+        assert len(history) == 4
+
+    def test_epoch_summary_shape(self) -> None:
+        records = [
+            {"epoch": 0, "loss": 1.0},
+            {"epoch": 0, "loss": 0.9},
+            {"epoch": 1, "loss": 0.8},
+        ]
+        summaries = list(log_training(iter(records), label="Test"))
+        assert summaries[0]["epoch"] == 0
+        # Running mean: first record of epoch 0 is 1.0, second is 0.95
+        assert summaries[0]["epoch_mean_loss"] == 1.0
+        assert summaries[1]["epoch_mean_loss"] == 0.95
+        assert summaries[2]["epoch_mean_loss"] == 0.8
+        assert "epoch_steps" in summaries[0]
+
+    def test_empty_iterator(self) -> None:
+        history = list(log_training(iter([]), label="Test"))
+        assert history == []
