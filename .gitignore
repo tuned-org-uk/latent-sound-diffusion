@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 .venv/
 .DS_Store
+notebooks/results
 
 # C extensions
 *.so

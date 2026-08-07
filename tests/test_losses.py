@@ -72,8 +72,11 @@ class TestALDSCLoss:
     def test_total_loss_has_components(self) -> None:
         prior = _make_prior()
         loss_fn = ALDSCLoss(
-            prior=prior, lambda_rec=1.0, lambda_stft=1.0,
-            lambda_chart=0.5, lambda_smooth=0.1,
+            prior=prior,
+            lambda_rec=1.0,
+            lambda_stft=1.0,
+            lambda_chart=0.5,
+            lambda_smooth=0.1,
         )
         x = torch.randn(2, 1, 4096)
         x_hat = torch.randn(2, 1, 4096)
