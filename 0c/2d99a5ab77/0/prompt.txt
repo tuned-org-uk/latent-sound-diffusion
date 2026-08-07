@@ -1,1 +1,5 @@
-Let;s implement https://github.com/tuned-org-uk/latent-sound-diffusion/issues/24 in a branch for next patch version
+please consider this feedback https://github.com/tuned-org-uk/latent-sound-diffusion/pull/32#pullrequestreview-4885741444
+
+---
+
+just delete uv.lock and rebuild to regenerate
