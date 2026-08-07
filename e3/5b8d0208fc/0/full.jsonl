@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 2.8823822862800004,
+    "cost": 2.93946502628,
     "tokens": {
-      "input": 971572,
-      "output": 30201,
+      "input": 971859,
+      "output": 30310,
       "reasoning": 9982,
       "cache": {
-        "read": 9349385,
+        "read": 9565544,
         "write": 0
       }
     },
     "time": {
       "created": 1786126223424,
-      "updated": 1786128360890
+      "updated": 1786128371237
     }
   },
   "messages": [
@@ -16487,21 +16487,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.02838992,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 108166,
+          "input": 96,
+          "output": 38,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 108032
           }
         },
         "modelID": "glm-5.2",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786128360890
+          "created": 1786128360890,
+          "completed": 1786128371226
         },
+        "finish": "tool-calls",
         "id": "msg_fdd8be5ba001f77rC6HVsWbGby",
         "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
       },
@@ -16518,20 +16521,115 @@
           "tool": "bash",
           "callID": "chatcmpl-tool-b463c64669353db2",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add pyproject.toml && git commit --amend --no-edit && git push github feat/cfg-guidance-scale-issue-23"
             },
+            "output": "[feat/cfg-guidance-scale-issue-23 f9dc9eb] fix(tests): move shared helpers to _helpers.py (CI import fix)\n Date: Fri Aug 7 19:45:54 2026 +0100\n 6 files changed, 97 insertions(+), 86 deletions(-)\n create mode 100644 tests/_helpers.py\n[entire] Pushing entire/checkpoints/v1 to github..... done\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n   375ce8b..f9dc9eb  feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+            "metadata": {
+              "output": "[feat/cfg-guidance-scale-issue-23 f9dc9eb] fix(tests): move shared helpers to _helpers.py (CI import fix)\n Date: Fri Aug 7 19:45:54 2026 +0100\n 6 files changed, 97 insertions(+), 86 deletions(-)\n create mode 100644 tests/_helpers.py\n[entire] Pushing entire/checkpoints/v1 to github..... done\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n   375ce8b..f9dc9eb  feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add pyproject.toml && git commit --amend --no-edit && git push github feat/cfg-guidance-scale-issue-23",
             "time": {
-              "start": 1786128364184
+              "start": 1786128371094,
+              "end": 1786128371100
             }
           },
           "id": "prt_fdd8bf17f001NhUW0d6ajgJVX0",
           "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
           "messageID": "msg_fdd8be5ba001f77rC6HVsWbGby"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "b18a7100150f887154ec261efd1a9a5a897125fe",
+          "type": "step-finish",
+          "tokens": {
+            "total": 108166,
+            "input": 96,
+            "output": 38,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 108032
+            }
+          },
+          "cost": 0.02838992,
+          "id": "prt_fdd8c0ddf001ghRi72OuizHKa3",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8be5ba001f77rC6HVsWbGby"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd8ba8fd001AKkUdfAw0o617r",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.02869282,
+        "tokens": {
+          "total": 108389,
+          "input": 191,
+          "output": 71,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 108127
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786128371232,
+          "completed": 1786128373107
+        },
+        "finish": "stop",
+        "id": "msg_fdd8c0e200010hIbmXJ5KCfMS3",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "b18a7100150f887154ec261efd1a9a5a897125fe",
+          "type": "step-start",
+          "id": "prt_fdd8c12f1001WFc2W7jsb15VAj",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8c0e200010hIbmXJ5KCfMS3"
+        },
+        {
+          "type": "text",
+          "text": "Pushed `f9dc9eb`. The fix: moved shared helpers from `conftest.py` to `tests/_helpers.py`, added `\"tests\"` to the pytest `pythonpath`, and changed imports to `from _helpers import ...`. Verified working under `uv run pytest`. Version bumped to 0.5.7.",
+          "time": {
+            "start": 1786128372467,
+            "end": 1786128372990
+          },
+          "id": "prt_fdd8c12f3001J7F2PlFBrwIUbM",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8c0e200010hIbmXJ5KCfMS3"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "b18a7100150f887154ec261efd1a9a5a897125fe",
+          "type": "step-finish",
+          "tokens": {
+            "total": 108389,
+            "input": 191,
+            "output": 71,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 108127
+            }
+          },
+          "cost": 0.02869282,
+          "id": "prt_fdd8c1538001EGnlKzmwbVAnNd",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8c0e200010hIbmXJ5KCfMS3"
         }
       ]
     }
