@@ -96,11 +96,15 @@ class TestTemperatureMapsToEta:
         n = 8
         device = torch.device("cpu")
         det_latents = [
-            sample_ddim(m.dit, m.schedule, steps=10, seed=200 + i, device=device, eta=0.0)
+            sample_ddim(
+                m.dit, m.schedule, steps=10, seed=200 + i, device=device, eta=0.0
+            )
             for i in range(n)
         ]
         sto_latents = [
-            sample_ddim(m.dit, m.schedule, steps=10, seed=200 + i, device=device, eta=1.0)
+            sample_ddim(
+                m.dit, m.schedule, steps=10, seed=200 + i, device=device, eta=1.0
+            )
             for i in range(n)
         ]
 
