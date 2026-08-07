@@ -54,8 +54,12 @@ def _init_noise(
         )
     latent_size = getattr(model, "latent_size", 32)
     return torch.randn(
-        batch_size, latent_channels, latent_size, latent_size,
-        device=device, generator=gen,
+        batch_size,
+        latent_channels,
+        latent_size,
+        latent_size,
+        device=device,
+        generator=gen,
     )
 
 
@@ -237,9 +241,11 @@ def sample_ddim(
             x = sqrt_ab_prev * z0_pred + (1 - ab_prev).sqrt() * v
         else:
             # Stochastic DDIM-ancestral update (Song et al. 2020, eq. 12)
-            sigma_t = eta * ((1 - ab_prev) / (1 - ab)).sqrt() * (1 - ab / ab_prev).sqrt()
+            sigma_t = (
+                eta * ((1 - ab_prev) / (1 - ab)).sqrt() * (1 - ab / ab_prev).sqrt()
+            )
             # Coefficient for the "direction pointing to x_t" term
-            coef_direction = (1 - ab_prev - sigma_t ** 2).clamp(min=0.0).sqrt()
+            coef_direction = (1 - ab_prev - sigma_t**2).clamp(min=0.0).sqrt()
             direction = (x - sqrt_ab * z0_pred) / (sqrt_1mab + 1e-8)
             noise = torch.randn_like(x, generator=gen)
             x = sqrt_ab_prev * z0_pred + coef_direction * direction + sigma_t * noise
@@ -412,8 +418,10 @@ def sample_ddim_steps(
         if eta == 0.0:
             x = sqrt_ab_prev * z0_pred + (1 - ab_prev).sqrt() * v
         else:
-            sigma_t = eta * ((1 - ab_prev) / (1 - ab)).sqrt() * (1 - ab / ab_prev).sqrt()
-            coef_direction = (1 - ab_prev - sigma_t ** 2).clamp(min=0.0).sqrt()
+            sigma_t = (
+                eta * ((1 - ab_prev) / (1 - ab)).sqrt() * (1 - ab / ab_prev).sqrt()
+            )
+            coef_direction = (1 - ab_prev - sigma_t**2).clamp(min=0.0).sqrt()
             direction = (x - sqrt_ab * z0_pred) / (sqrt_1mab + 1e-8)
             noise = torch.randn_like(x, generator=gen)
             x = sqrt_ab_prev * z0_pred + coef_direction * direction + sigma_t * noise

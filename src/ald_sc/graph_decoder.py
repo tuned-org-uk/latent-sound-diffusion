@@ -190,7 +190,9 @@ class GraphDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
+        self.dec_out = nn.Conv1d(
+            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
+        )
 
     def forward(self, z: Tensor, c_spec: Tensor) -> Tensor:
         """Decode 1-D latent under graph-structured reconstruction.
@@ -291,7 +293,9 @@ class ClockGatedGraphDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
+        self.dec_out = nn.Conv1d(
+            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
+        )
 
     def forward(
         self,

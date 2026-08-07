@@ -91,11 +91,17 @@ class ALDSCLoss:
         for n_fft in self.stft_fft_sizes:
             hop = n_fft // 4
             spec_x = torch.stft(
-                x, n_fft, hop_length=hop, return_complex=True,
+                x,
+                n_fft,
+                hop_length=hop,
+                return_complex=True,
                 window=torch.hann_window(n_fft, device=x.device),
             )
             spec_xhat = torch.stft(
-                x_hat, n_fft, hop_length=hop, return_complex=True,
+                x_hat,
+                n_fft,
+                hop_length=hop,
+                return_complex=True,
                 window=torch.hann_window(n_fft, device=x.device),
             )
 

@@ -78,7 +78,9 @@ class EnCodecEncoder(nn.Module):
             logger.warning("Failed to load EnCodec model: %s", e)
             raise
 
-    def encode(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor]:
+    def encode(
+        self, x: Tensor, prior: ArrowSpacePrior
+    ) -> tuple[Tensor, Tensor, Tensor]:
         """Encode audio waveform to (z, A, c_spec).
 
         Parameters
@@ -205,7 +207,9 @@ class BaselineAudioDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
+        self.dec_out = nn.Conv1d(
+            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
+        )
 
     def forward(self, z: Tensor) -> Tensor:
         """Decode 1-D latent to waveform (no spectral conditioning).
