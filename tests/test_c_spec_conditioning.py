@@ -35,7 +35,7 @@ from ald_sc.inference import LSDModel
 from ald_sc.schedule import CosineSchedule
 from ald_sc.trainer import train_audio_diffusion
 
-from tests.conftest import (
+from _helpers import (
     LATENT_CH,
     LATENT_LEN,
     SPEC_DIM,
