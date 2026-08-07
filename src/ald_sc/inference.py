@@ -170,6 +170,7 @@ class LSDModel:
         temperature: float,
         z_init: Tensor | None = None,
         c_spec_override: Tensor | None = None,
+        guidance_scale: float = 1.0,
     ) -> Tensor:
         """Sample (or use a provided) latent and decode it to a waveform.
 
@@ -193,6 +194,11 @@ class LSDModel:
             is ``None`` (i.e. when sampling actually runs).  If both are
             provided a ``ValueError`` is raised, because the sampling step
             would be skipped and the override would have no effect.
+        guidance_scale : float
+            Classifier-free guidance scale forwarded to the sampler.
+            1.0 = pure conditional (single pass), 0.0 = pure unconditional,
+            >1.0 = amplified conditioning (two-pass).  Only effective when
+            ``c_spec_override`` is provided.
 
         Raises
         ------
@@ -221,6 +227,7 @@ class LSDModel:
                 steps=steps,
                 seed=seed,
                 device=device,
+                guidance_scale=guidance_scale,
             )
         else:
             z = z_init.to(device)
@@ -245,6 +252,7 @@ class LSDModel:
         temperature: float = 1.0,
         seed: int | None = None,
         target_c_spec: Tensor | None = None,
+        guidance_scale: float = 1.0,
     ) -> list[Tensor]:
         """Mode A: generate a bank of ``n`` sounds.
 
@@ -258,6 +266,11 @@ class LSDModel:
         spectral region.  A typical workflow is to encode a reference sound
         with ``self.encoder.encode(ref_audio, self.prior)`` and pass the
         resulting ``c_spec`` here.
+
+        ``guidance_scale`` controls classifier-free guidance strength when
+        ``target_c_spec`` is provided: 1.0 = pure conditional, 0.0 = pure
+        unconditional, >1.0 = amplified conditioning (more directed, less
+        diverse).  It is ignored when ``target_c_spec`` is ``None``.
 
         .. note::
             When ``target_c_spec`` is used, **all samples in the bank share
@@ -281,6 +294,10 @@ class LSDModel:
         target_c_spec : Tensor (1, spec_dim) or (B, spec_dim), optional
             Spectral conditioning vector to steer the DiT.  If shape is
             ``(1, spec_dim)`` it is broadcast across all samples in the bank.
+        guidance_scale : float
+            Classifier-free guidance scale (only effective with
+            ``target_c_spec``).  1.0 = pure conditional, 0.0 = pure
+            unconditional, >1.0 = amplified conditioning.
 
         Returns
         -------
@@ -295,6 +312,7 @@ class LSDModel:
                 steps=steps,
                 temperature=temperature,
                 c_spec_override=target_c_spec,
+                guidance_scale=guidance_scale,
             )
             bank.append(clip)
         log.info(
@@ -304,6 +322,7 @@ class LSDModel:
             temperature=temperature,
             seed=s,
             c_spec_conditioned=target_c_spec is not None,
+            guidance_scale=guidance_scale,
         )
         return bank
 

@@ -27,6 +27,56 @@ from ald_sc.spectral_schedule import SpectralSchedule
 __all__ = ["sample_euler", "sample_ddim", "sample_ddim_steps", "sample_ddpm"]
 
 
+def _cfg_forward(
+    model: nn.Module,
+    x: Tensor,
+    t: Tensor,
+    c_spec: Tensor | None,
+    guidance_scale: float,
+) -> Tensor:
+    """Forward pass with classifier-free guidance (CFG).
+
+    Standard CFG formulation::
+
+        v = v_uncond + s * (v_cond - v_uncond)
+
+    where ``s`` is the guidance scale.  Special cases are short-circuited
+    to a single forward pass for efficiency:
+
+    - ``c_spec is None``       → unconditional (guidance is meaningless)
+    - ``guidance_scale == 1`` → pure conditional
+    - ``guidance_scale == 0`` → pure unconditional
+
+    Only ``0 < s ≠ 1`` triggers the two-pass blend.
+
+    Parameters
+    ----------
+    model : nn.Module
+        DiT denoiser predicting velocity v.
+    x : Tensor
+        Current latent.
+    t : Tensor
+        Timestep indices.
+    c_spec : Tensor or None
+        Spectral conditioning vector (``None`` = unconditional).
+    guidance_scale : float
+        CFG scale: 1.0 = pure conditional, 0.0 = pure unconditional,
+        >1.0 = amplified conditioning.
+
+    Returns
+    -------
+    Tensor
+        Guided velocity prediction.
+    """
+    if c_spec is None or guidance_scale == 1.0:
+        return model(x, t, c_spec=c_spec)
+    if guidance_scale == 0.0:
+        return model(x, t, c_spec=None)
+    v_cond = model(x, t, c_spec=c_spec)
+    v_uncond = model(x, t, c_spec=None)
+    return v_uncond + guidance_scale * (v_cond - v_uncond)
+
+
 def _pairwise(iterable: list[int]) -> Iterator[tuple[int, int]]:
     it = iter(iterable)
     try:
@@ -74,6 +124,7 @@ def sample_euler(
     device: torch.device = torch.device("cpu"),
     spectral_schedule: SpectralSchedule | None = None,
     return_steps: bool = False,
+    guidance_scale: float = 1.0,
 ) -> Tensor | tuple[Tensor, int]:
     """Euler sampler for latent diffusion.
 
@@ -99,6 +150,11 @@ def sample_euler(
         ``Σ ν_k · ᾱ_k(t) < ε`` is met.
     return_steps : bool
         If True, return (z, steps_used).
+    guidance_scale : float
+        Classifier-free guidance scale.  1.0 = pure conditional (single
+        pass), 0.0 = pure unconditional, >1.0 = amplified conditioning
+        (two-pass: conditional + unconditional, blended).  Only effective
+        when ``c_spec`` is provided; ignored otherwise.
 
     Returns
     -------
@@ -122,7 +178,7 @@ def sample_euler(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = model(x, t, c_spec=c_spec)
+        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -152,6 +208,7 @@ def sample_ddim(
     spectral_schedule: SpectralSchedule | None = None,
     return_steps: bool = False,
     eta: float = 0.0,
+    guidance_scale: float = 1.0,
 ) -> Tensor | tuple[Tensor, int]:
     """DDIM sampler for latent diffusion, with optional stochastic noise.
 
@@ -194,6 +251,11 @@ def sample_ddim(
         deterministic DDIM; ``eta=1`` matches DDPM noise level.
         Values > 1 are valid but increase variance beyond DDPM.
         Must be >= 0; negative values raise ``ValueError``.
+    guidance_scale : float
+        Classifier-free guidance scale.  1.0 = pure conditional (single
+        pass), 0.0 = pure unconditional, >1.0 = amplified conditioning
+        (two-pass: conditional + unconditional, blended).  Only effective
+        when ``c_spec`` is provided; ignored otherwise.
 
     Returns
     -------
@@ -224,7 +286,7 @@ def sample_ddim(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = model(x, t, c_spec=c_spec)
+        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -266,6 +328,7 @@ def sample_ddpm(
     device: torch.device = torch.device("cpu"),
     spectral_schedule: SpectralSchedule | None = None,
     return_steps: bool = False,
+    guidance_scale: float = 1.0,
 ) -> Tensor | tuple[Tensor, int]:
     """Full ancestral DDPM sampler for latent diffusion.
 
@@ -305,6 +368,11 @@ def sample_ddpm(
         If provided, sampling stops early at heat-death criterion.
     return_steps : bool
         If True, return (z, steps_used).
+    guidance_scale : float
+        Classifier-free guidance scale.  1.0 = pure conditional (single
+        pass), 0.0 = pure unconditional, >1.0 = amplified conditioning
+        (two-pass: conditional + unconditional, blended).  Only effective
+        when ``c_spec`` is provided; ignored otherwise.
 
     Returns
     -------
@@ -328,7 +396,7 @@ def sample_ddpm(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = model(x, t, c_spec=c_spec)
+        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -371,6 +439,7 @@ def sample_ddim_steps(
     device: torch.device = torch.device("cpu"),
     spectral_schedule: SpectralSchedule | None = None,
     eta: float = 0.0,
+    guidance_scale: float = 1.0,
 ) -> Iterator[Tensor]:
     """Yield intermediate latents during DDIM sampling (for visualization).
 
@@ -381,6 +450,10 @@ def sample_ddim_steps(
     eta : float
         Stochasticity coefficient forwarded to the DDIM update rule.
         ``eta=0`` (default) is fully deterministic.  Must be >= 0.
+    guidance_scale : float
+        Classifier-free guidance scale.  1.0 = pure conditional (single
+        pass), 0.0 = pure unconditional, >1.0 = amplified conditioning
+        (two-pass).  Only effective when ``c_spec`` is provided.
 
     Raises
     ------
@@ -405,7 +478,7 @@ def sample_ddim_steps(
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
                 break
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = model(x, t, c_spec=c_spec)
+        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
