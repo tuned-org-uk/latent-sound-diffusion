@@ -5,11 +5,7 @@
   "branch": "feat/cfg-guidance-scale-issue-23",
   "checkpoints_count": 4,
   "files_touched": [
-    "pyproject.toml",
-    "tests/_helpers.py",
-    "tests/conftest.py",
-    "tests/test_c_spec_conditioning.py",
-    "tests/test_cfg_guidance.py"
+    "pyproject.toml"
   ],
   "sessions": [
     {
@@ -17,14 +13,14 @@
       "transcript": "/e3/5b8d0208fc/0/full.jsonl",
       "compact_transcript": "/e3/5b8d0208fc/0/transcript.jsonl",
       "content_hash": "/e3/5b8d0208fc/0/content_hash.txt",
-      "prompt": "/e3/5b8d0208fc/0/prompt.txt"
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 35001,
+    "input_tokens": 235,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 3901956,
-    "output_tokens": 5585,
-    "api_call_count": 39
+    "cache_read_tokens": 107798,
+    "output_tokens": 87,
+    "api_call_count": 2
   }
 }

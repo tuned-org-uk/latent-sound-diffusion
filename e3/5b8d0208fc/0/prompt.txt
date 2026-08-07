@@ -1,5 +1,0 @@
-please consider the feedback in https://github.com/tuned-org-uk/latent-sound-diffusion/pull/31#pullrequestreview-4885554812
-
----
-
-when finished bump patch. commit and push in PR
