@@ -1,6 +1,6 @@
 [project]
 name = "latent-sound-diffusion"
-version = "0.5.3"
+version = "0.5.5"
 description = "Sound generation via ArrowSpace Latent Diffusion with Spectral Chart Conditioning (ALD-SC)"
 readme = "README.md"
 requires-python = ">=3.13"
