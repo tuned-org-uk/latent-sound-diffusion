@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "5abf9f039d61",
+  "strategy": "manual-commit",
+  "branch": "feat/c-spec-dit-conditioning-issue-22",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "pyproject.toml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/5a/bf9f039d61/0/metadata.json",
+      "transcript": "/5a/bf9f039d61/0/full.jsonl",
+      "compact_transcript": "/5a/bf9f039d61/0/transcript.jsonl",
+      "content_hash": "/5a/bf9f039d61/0/content_hash.txt",
+      "prompt": "/5a/bf9f039d61/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 39784,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 39552,
+    "output_tokens": 90,
+    "api_call_count": 3
+  }
+}
