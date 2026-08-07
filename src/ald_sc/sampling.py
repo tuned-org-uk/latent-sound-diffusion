@@ -189,12 +189,21 @@ def sample_ddim(
         Stochasticity coefficient in [0, 1].  ``eta=0`` is fully
         deterministic DDIM; ``eta=1`` matches DDPM noise level.
         Values > 1 are valid but increase variance beyond DDPM.
+        Must be >= 0; negative values raise ``ValueError``.
 
     Returns
     -------
     Tensor
         Denoised latent z_0. If return_steps, returns (z, steps_used).
+
+    Raises
+    ------
+    ValueError
+        If ``eta < 0``.
     """
+    if eta < 0:
+        raise ValueError(f"eta must be >= 0, got {eta}")
+
     gen = torch.Generator(device=device).manual_seed(seed)
     model = model.to(device).eval()
     if c_spec is not None:
@@ -267,9 +276,13 @@ def sample_ddpm(
         x_prev      = mean + sigma_t * N(0, I)
 
     where ``eps_pred`` is the predicted noise derived from the model's
-    v-parameterisation via ``eps = sqrt(1-ab) * x / ? + ...``.  Note
-    that ``sigma_t = 0`` at the final step (t=0) so no noise is added
-    to the last iterate.
+    v-parameterisation.  Given ``v = sqrt(ab)*eps - sqrt(1-ab)*z0``,
+    inverting for ``eps`` yields::
+
+        eps_pred = sqrt(ab) * v + sqrt(1 - ab) * x
+
+    Note that ``sigma_t = 0`` at the final step (t=0) so no noise is
+    added to the last iterate.
 
     Parameters
     ----------
@@ -302,7 +315,7 @@ def sample_ddpm(
 
     steps_used = 0
     sigma_list = sigmas.tolist()
-    for i, (sig, sig_prev) in enumerate(_pairwise(sigma_list)):
+    for sig, sig_prev in _pairwise(sigma_list):
         if spectral_schedule is not None:
             t_frac = sig / schedule.num_steps
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
@@ -326,9 +339,10 @@ def sample_ddpm(
         coef_eps = beta_t / (sqrt_1mab + 1e-8)
         mean = coef_x * (x - coef_eps * eps_pred)
 
-        # DDPM posterior variance: sigma_t^2 = beta_t * (1-ab_prev) / (1-ab)
-        # At the last step (sig_prev == 0 / ab_prev == 1) no noise is injected.
-        is_last_step = i == len(sigma_list) - 2
+        # No noise on the final step. Use sig_prev == sigma_list[-1] rather than
+        # an index check so this stays correct when spectral_schedule causes early
+        # exit (the index-based i == len-2 would be wrong in that case).
+        is_last_step = sig_prev == sigma_list[-1]
         if is_last_step or ab_prev >= 1.0 - 1e-6:
             x = mean
         else:
@@ -360,8 +374,16 @@ def sample_ddim_steps(
     ----------
     eta : float
         Stochasticity coefficient forwarded to the DDIM update rule.
-        ``eta=0`` (default) is fully deterministic.
+        ``eta=0`` (default) is fully deterministic.  Must be >= 0.
+
+    Raises
+    ------
+    ValueError
+        If ``eta < 0``.
     """
+    if eta < 0:
+        raise ValueError(f"eta must be >= 0, got {eta}")
+
     gen = torch.Generator(device=device).manual_seed(seed)
     model = model.to(device).eval()
     if c_spec is not None:
