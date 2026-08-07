@@ -1,1 +1,1 @@
-bump a patch and push, use the "github" remote
+tag 0.5.4 already exists bump to v0.5.5
