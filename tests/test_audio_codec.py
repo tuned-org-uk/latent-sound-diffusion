@@ -192,8 +192,7 @@ class TestEnCodecEncoder:
         msgs = [
             str(w.message)
             for w in caught
-            if issubclass(w.category, FutureWarning)
-            and "weight_norm" in str(w.message)
+            if issubclass(w.category, FutureWarning) and "weight_norm" in str(w.message)
         ]
         assert not msgs, f"unexpected weight_norm FutureWarning(s): {msgs}"
 
@@ -210,9 +209,7 @@ class TestEnCodecEncoder:
         offenders = [
             type(m).__name__
             for m in enc._encodec.modules()
-            if any(
-                isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values()
-            )
+            if any(isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values())
         ]
         assert not offenders, (
             f"modules still carry deprecated weight_norm hook: {offenders}"

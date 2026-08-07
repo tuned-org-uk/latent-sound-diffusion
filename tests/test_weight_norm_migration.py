@@ -49,9 +49,7 @@ class TestMigrateWeightNorm:
 
         assert migrated == 1
         # The deprecated WeightNorm forward pre-hook must be gone.
-        assert not any(
-            isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values()
-        )
+        assert not any(isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values())
         # The new parametrization must be registered on "weight".
         assert "weight" in m.parametrizations
 

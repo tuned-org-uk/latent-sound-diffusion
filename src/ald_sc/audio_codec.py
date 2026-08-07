@@ -63,17 +63,13 @@ def _migrate_weight_norm(model: nn.Module) -> int:
     migrated = 0
     for module in model.modules():
         hooks = [
-            h
-            for h in module._forward_pre_hooks.values()
-            if isinstance(h, WeightNorm)
+            h for h in module._forward_pre_hooks.values() if isinstance(h, WeightNorm)
         ]
         for hook in hooks:
             name = hook.name
             dim = hook.dim
             torch.nn.utils.remove_weight_norm(module, name)
-            torch.nn.utils.parametrizations.weight_norm(
-                module, name=name, dim=dim
-            )
+            torch.nn.utils.parametrizations.weight_norm(module, name=name, dim=dim)
             migrated += 1
     return migrated
 
