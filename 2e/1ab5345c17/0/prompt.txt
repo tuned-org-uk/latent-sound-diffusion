@@ -1,0 +1,1 @@
+alwasy use local .venv with uv

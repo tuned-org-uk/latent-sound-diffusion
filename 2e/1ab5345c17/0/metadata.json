@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "2e1ab5345c17",
+  "session_id": "ses_02294b7bfffel0EmvmFxVhOW1w",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-07T18:53:29.74839Z",
+  "branch": "feat/dit-capacity-config-issue-24",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "scripts/train_audio_diffusion.py",
+    "scripts/train_audio_decoder.py",
+    "configs/audio_diffusion.yaml",
+    "docs/02.md",
+    "tests/test_script_cli.py",
+    "pyproject.toml"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.2",
+  "turn_id": "7b2afcb23d34",
+  "checkpoint_transcript_start": 164,
+  "transcript_lines_at_start": 164,
+  "compact_transcript_start": 164,
+  "token_usage": {
+    "input_tokens": 23324,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5516946,
+    "output_tokens": 6466,
+    "api_call_count": 46
+  },
+  "session_metrics": {
+    "turn_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-07T18:53:29.665691Z",
+    "agent_lines": 165,
+    "agent_removed": 13,
+    "human_added": 1,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 166,
+    "total_lines_changed": 180,
+    "agent_percentage": 98.88888888888889,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

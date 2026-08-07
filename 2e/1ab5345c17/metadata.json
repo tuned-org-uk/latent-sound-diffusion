@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "2e1ab5345c17",
+  "strategy": "manual-commit",
+  "branch": "feat/dit-capacity-config-issue-24",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "configs/audio_diffusion.yaml",
+    "docs/02.md",
+    "pyproject.toml",
+    "scripts/train_audio_decoder.py",
+    "scripts/train_audio_diffusion.py",
+    "tests/test_script_cli.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/2e/1ab5345c17/0/metadata.json",
+      "transcript": "/2e/1ab5345c17/0/full.jsonl",
+      "compact_transcript": "/2e/1ab5345c17/0/transcript.jsonl",
+      "content_hash": "/2e/1ab5345c17/0/content_hash.txt",
+      "prompt": "/2e/1ab5345c17/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 23324,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5516946,
+    "output_tokens": 6466,
+    "api_call_count": 46
+  }
+}
