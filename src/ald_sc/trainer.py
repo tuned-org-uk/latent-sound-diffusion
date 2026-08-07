@@ -128,30 +128,40 @@ def train_audio_diffusion(
     device: torch.device = torch.device("cpu"),
     cfg_dropout: float = 0.1,
 ) -> Iterator[dict[str, float]]:
-    """Phase 1 audio diffusion training loop.
+    """Phase 2 audio diffusion training loop.
 
     The VAE (encoder + trained decoder) and prior are frozen; only the
-    1-D DiT is trained. The DiT operates **unconditionally** (time-only
-    AdaLN) — c_spec is used by the decoder, not the DiT.
+    1-D DiT is trained.  The spectral-chart conditioning vector ``c_spec``
+    (derived from the frozen encoder's output) is passed to the DiT at
+    every step, enabling spectral-mode steering.
+
+    Classifier-free guidance (CFG) dropout is applied inside the DiT
+    itself when ``cfg_dropout > 0``: the DiT randomly zeros ``c_spec``
+    for a fraction of the batch, making the model learn both the
+    conditional and unconditional distributions simultaneously.  This
+    enables CFG-scaled inference without a second forward pass at
+    training time.
 
     Parameters
     ----------
     loader : DataLoader
         Audio dataloader yielding (B, 1, T) waveforms.
     audio_vae : nn.Module
-        Frozen AudioVAE (encoder used for z0 extraction).
+        Frozen AudioVAE (encoder used for z0 and c_spec extraction).
     dit : nn.Module
-        1-D DiT denoiser to train.
+        1-D DiT denoiser to train.  Must accept
+        ``dit(z_t, t, c_spec=c_spec)``.
     prior : ArrowSpacePrior
-        Frozen prior.
+        Frozen prior (used inside the encoder to derive ``c_spec``).
     schedule : CosineSchedule
         Noise schedule.
     epochs : int
     lr : float
     device : torch.device
     cfg_dropout : float
-        Probability of dropping c_spec (unused in unconditional Phase 1,
-        kept for future text/CLAP conditioning).
+        Probability of zeroing ``c_spec`` per batch element during
+        training (classifier-free guidance dropout).  0.0 disables
+        dropout; 0.1 is a reasonable default.
 
     Yields
     ------
@@ -167,6 +177,11 @@ def train_audio_diffusion(
     for p in prior.parameters():
         p.requires_grad_(False)
 
+    # Propagate cfg_dropout to the DiT so its internal CFG mask uses the
+    # same probability as the training loop intends.
+    if hasattr(dit, "cfg_dropout"):
+        dit.cfg_dropout = cfg_dropout
+
     optimizer = torch.optim.Adam(dit.parameters(), lr=lr)
 
     for epoch in range(epochs):
@@ -175,15 +190,17 @@ def train_audio_diffusion(
             optimizer.zero_grad()
 
             with torch.no_grad():
-                z0, A, c_spec = audio_vae.encoder.encode(x, prior)
+                z0, _A, c_spec = audio_vae.encoder.encode(x, prior)
 
             t = schedule.sample_batch(z0)
             noise = torch.randn_like(z0)
             z_t = schedule.add_noise(z0, t, noise)
             v_target = schedule.v_target(z0, t, noise)
 
-            # Unconditional: DiT uses time-only AdaLN (no c_spec)
-            v_pred = dit(z_t, t)
+            # Spectral-chart conditioned forward pass.  CFG dropout is
+            # handled inside the DiT (zeroes c_spec for a random fraction
+            # of the batch when self.cfg_dropout > 0 and self.training).
+            v_pred = dit(z_t, t, c_spec=c_spec)
 
             loss = (v_pred - v_target).pow(2).mean()
             loss.backward()
