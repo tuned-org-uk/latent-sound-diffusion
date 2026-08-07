@@ -4,9 +4,11 @@ Bundles a trained model (prior + DiT + decoder + encoder + schedule) and
 exposes the three producer-facing inference modes defined in
 ``docs/03.md``:
 
-- ``generate_sound_bank`` — unconditional baseline sound bank (mode A).
+- ``generate_sound_bank`` — unconditional or spectrally-conditioned sound
+  bank (mode A).  Pass ``target_c_spec`` to steer toward a spectral region.
 - ``condition_on_audio`` — produce novelty/variants of a producer sound
-  (mode B).
+  (mode B).  The source audio's ``c_spec`` is forwarded to the DiT so the
+  sampler is steered toward the source's spectral region.
 - ``synthesize_midi`` — render a MIDI note sequence using generated bank
   sounds (mode C).
 
@@ -167,14 +169,33 @@ class LSDModel:
         steps: int,
         temperature: float,
         z_init: Tensor | None = None,
+        c_spec_override: Tensor | None = None,
     ) -> Tensor:
-        """Sample (or use a provided) latent and decode it to a waveform."""
+        """Sample (or use a provided) latent and decode it to a waveform.
+
+        Parameters
+        ----------
+        seed : int
+        steps : int
+        temperature : float
+        z_init : Tensor, optional
+            If provided, skip sampling and decode this latent directly
+            (used by ``condition_on_audio`` for interpolated latents).
+        c_spec_override : Tensor (B, spec_dim), optional
+            Spectral-chart conditioning vector forwarded to the DiT
+            during sampling.  When ``None`` (default), ``c_spec`` is
+            derived post-hoc from the generated ``z`` (self-consistent,
+            unconditional-equivalent behaviour).  When provided, the
+            DiT is steered toward the specified spectral region during
+            the reverse diffusion process (target-mode sampling).
+        """
         device = next(self.dit.parameters()).device
 
         if z_init is None:
             z = sample_ddim(
                 self.dit,
                 self.schedule,
+                c_spec=c_spec_override,
                 batch_size=1,
                 steps=steps,
                 seed=seed,
@@ -202,8 +223,20 @@ class LSDModel:
         steps: int = 50,
         temperature: float = 1.0,
         seed: int | None = None,
+        target_c_spec: Tensor | None = None,
     ) -> list[Tensor]:
-        """Mode A: generate a bank of ``n`` unconditional baseline sounds.
+        """Mode A: generate a bank of ``n`` sounds.
+
+        Without ``target_c_spec`` the generation is unconditional
+        (self-consistent: ``c_spec`` is derived from each generated ``z``,
+        used only by the decoder).
+
+        Passing ``target_c_spec`` activates target-mode sampling: the same
+        spectral-chart vector steers the DiT during the reverse diffusion
+        process, biasing every sample in the bank toward the specified
+        spectral region.  A typical workflow is to encode a reference sound
+        with ``self.encoder.encode(ref_audio, self.prior)`` and pass the
+        resulting ``c_spec`` here.
 
         Parameters
         ----------
@@ -215,6 +248,9 @@ class LSDModel:
             Noise scaling (lower = more conservative).
         seed : int or None
             Reproducible seed, or ``None`` for a non-repeatable run.
+        target_c_spec : Tensor (1, spec_dim) or (B, spec_dim), optional
+            Spectral conditioning vector to steer the DiT.  If shape is
+            ``(1, spec_dim)`` it is used for every sample in the bank.
 
         Returns
         -------
@@ -225,10 +261,20 @@ class LSDModel:
         bank: list[Tensor] = []
         for i in range(n):
             clip = self._sample_and_decode(
-                seed=s + i, steps=steps, temperature=temperature
+                seed=s + i,
+                steps=steps,
+                temperature=temperature,
+                c_spec_override=target_c_spec,
             )
             bank.append(clip)
-        log.info("sound_bank", n=n, steps=steps, temperature=temperature, seed=s)
+        log.info(
+            "sound_bank",
+            n=n,
+            steps=steps,
+            temperature=temperature,
+            seed=s,
+            c_spec_conditioned=target_c_spec is not None,
+        )
         return bank
 
     @torch.no_grad()
@@ -243,10 +289,12 @@ class LSDModel:
     ) -> list[Tensor]:
         """Mode B: generate ``n`` novelty variants of a producer sound.
 
-        The conditioning audio is encoded to its EnCodec latent; each
-        variant is produced by interpolating from that latent toward a
-        fresh noise draw (``strength`` controls how far from the source),
-        then decoding with the graph decoder.
+        The conditioning audio is encoded to its EnCodec latent; the
+        resulting ``c_spec`` is forwarded to the DiT during sampling so the
+        reverse diffusion process is steered toward the source sound's
+        spectral region.  Each variant is produced by interpolating from
+        that latent toward a fresh noise draw (``strength`` controls how
+        far from the source), then decoding with the graph decoder.
 
         Parameters
         ----------
@@ -279,16 +327,22 @@ class LSDModel:
         strength = float(max(0.0, min(1.0, strength)))
         s = _resolve_seed(seed)
 
-        z_cond, _, _ = self.encoder.encode(audio, self.prior)
+        device = next(self.dit.parameters()).device
+        audio = audio.to(device)
+        z_cond, _, c_spec = self.encoder.encode(audio, self.prior)
 
         variants: list[Tensor] = []
         for i in range(n):
             noise = torch.randn_like(
-                z_cond, generator=torch.Generator().manual_seed(s + i)
+                z_cond, generator=torch.Generator(device=device).manual_seed(s + i)
             )
             z = (1.0 - strength) * z_cond + strength * noise
             clip = self._sample_and_decode(
-                seed=s + i, steps=steps, temperature=temperature, z_init=z
+                seed=s + i,
+                steps=steps,
+                temperature=temperature,
+                z_init=z,
+                c_spec_override=c_spec,
             )
             variants.append(clip)
         log.info(
