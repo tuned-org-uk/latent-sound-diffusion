@@ -17,19 +17,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 0.48459038596,
+    "cost": 0.50618343364,
     "tokens": {
-      "input": 367883,
-      "output": 14711,
+      "input": 369267,
+      "output": 16059,
       "reasoning": 9251,
       "cache": {
-        "read": 2404864,
+        "read": 2588096,
         "write": 0
       }
     },
     "time": {
       "created": 1786126223424,
-      "updated": 1786126765466
+      "updated": 1786126779368
     }
   },
   "messages": [
@@ -7984,21 +7984,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.00704746632,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 61221,
+          "input": 996,
+          "output": 257,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 59968
           }
         },
         "modelID": "z-ai/glm-5.2",
         "providerID": "openrouter",
         "time": {
-          "created": 1786126765465
+          "created": 1786126765465,
+          "completed": 1786126773234
         },
+        "finish": "tool-calls",
         "id": "msg_fdd738d99001bvZPTsJCYHVFAR",
         "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
       },
@@ -8015,15 +8018,20 @@
           "tool": "bash",
           "callID": "9bec426d-fa09-48af-a3bb-12674ebb2889",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add src/ald_sc/sampling.py src/ald_sc/inference.py tests/test_cfg_guidance.py && git commit -m \"feat: classifier-free guidance two-pass inference with guidance_scale (closes #23)\n\nAdd _cfg_forward helper implementing the standard CFG blend:\n  v = v_uncond + s * (v_cond - v_uncond)\nwith single-pass short-circuits for s=1.0 (pure conditional), s=0.0\n(pure unconditional), and c_spec=None (guidance irrelevant).\n\nWire guidance_scale: float = 1.0 through all four samplers\n(sample_euler, sample_ddim, sample_ddpm, sample_ddim_steps) and the\ninference layer (LSDModel._sample_and_decode → generate_sound_bank).\n\nTraining-side cfg_dropout is already handled by PR #30: trainer\npropagates dit.cfg_dropout = cfg_dropout and the DiT applies per-sample\nc_spec dropout internally during training.\n\nTests (16): _cfg_forward formula correctness, scale=0/1/>1 semantics,\nno-c_spec passthrough, all three samplers, and LSDModel plumbing.\" && git push github feat/cfg-guidance-scale-issue-23"
             },
+            "output": "[feat/cfg-guidance-scale-issue-23 9e8666c] feat: classifier-free guidance two-pass inference with guidance_scale (closes #23)\n 3 files changed, 353 insertions(+), 4 deletions(-)\n create mode 100644 tests/test_cfg_guidance.py\n[entire] Pushing entire/checkpoints/v1 to github.... done\nremote: \nremote: Create a pull request for 'feat/cfg-guidance-scale-issue-23' on GitHub by visiting:        \nremote:      https://github.com/tuned-org-uk/latent-sound-diffusion/pull/new/feat/cfg-guidance-scale-issue-23        \nremote: \nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+            "metadata": {
+              "output": "[feat/cfg-guidance-scale-issue-23 9e8666c] feat: classifier-free guidance two-pass inference with guidance_scale (closes #23)\n 3 files changed, 353 insertions(+), 4 deletions(-)\n create mode 100644 tests/test_cfg_guidance.py\n[entire] Pushing entire/checkpoints/v1 to github.... done\nremote: \nremote: Create a pull request for 'feat/cfg-guidance-scale-issue-23' on GitHub by visiting:        \nremote:      https://github.com/tuned-org-uk/latent-sound-diffusion/pull/new/feat/cfg-guidance-scale-issue-23        \nremote: \nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add src/ald_sc/sampling.py src/ald_sc/inference.py tests/test_cfg_guidance.py && git commit -m \"feat: classifier-free guidance two-pass inference with guidance_scale (closes #23)\n\nAdd _cfg_forward helper implementing the standard CFG blend:\n  v = v_uncond + s * (v_cond - v_uncond)\nwith single-pass short-circuits for s=1.0 (pure conditional), s=0.0\n(pure unconditional), and c_spec=None (guidance irrelevant).\n\nWire guidance_scale: float = 1.0 through all four samplers\n(sample_euler, sample_ddim, sample_ddpm, sample_ddim_steps) and the\ninference layer (LSDModel._sample_and_decode → generate_sound_bank).\n\nTraining-side cfg_dropout is already handled by PR #30: trainer\npropagates dit.cfg_dropout = cfg_dropout and the DiT applies per-sample\nc_spec dropout internally during training.\n\nTests (16): _cfg_forward formula correctness, scale=0/1/>1 semantics,\nno-c_spec passthrough, all three samplers, and LSDModel plumbing.\" && git push github feat/cfg-guidance-scale-issue-23",
             "time": {
-              "start": 1786126767367
+              "start": 1786126773094,
+              "end": 1786126773099
             }
           },
           "metadata": {
@@ -8034,6 +8042,186 @@
           "id": "prt_fdd73950300153GOOom3b0HT2k",
           "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
           "messageID": "msg_fdd738d99001bvZPTsJCYHVFAR"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "0a31fea0011bb943b80775964d84eb806b7fe4ea",
+          "type": "step-finish",
+          "tokens": {
+            "total": 61221,
+            "input": 996,
+            "output": 257,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 59968
+            }
+          },
+          "cost": 0.00704746632,
+          "id": "prt_fdd73abb5001BXWP1Y2BxDpHUI",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd738d99001bvZPTsJCYHVFAR"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd7235df001w14EaXE09eVZUE",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.007706479,
+        "tokens": {
+          "total": 62212,
+          "input": 295,
+          "output": 797,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 61120
+          }
+        },
+        "modelID": "z-ai/glm-5.2",
+        "providerID": "openrouter",
+        "time": {
+          "created": 1786126773237,
+          "completed": 1786126779358
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd73abf5001vwvkW1sNdqTsz6",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "0a31fea0011bb943b80775964d84eb806b7fe4ea",
+          "type": "step-start",
+          "id": "prt_fdd73bbfc001VdPQmKLFbGQ8xg",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73abf5001vwvkW1sNdqTsz6"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "cd8829bb-035d-4745-a855-928b572023c1",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --base main --head feat/cfg-guidance-scale-issue-23 --title \"feat: classifier-free guidance (CFG) two-pass inference with guidance_scale (closes #23)\" --body \"Closes #23.\n\n## Summary\n\nImplements classifier-free guidance (CFG) two-pass inference with a \\`guidance_scale\\` parameter across all samplers and the inference layer.\n\n### Changes\n\n**\\`src/ald_sc/sampling.py\\`** — new \\`_cfg_forward\\` helper implementing the standard CFG blend:\n\\`\\`\\`\nv = v_uncond + s * (v_cond - v_uncond)\n\\`\\`\\`\nSingle-pass short-circuits for efficiency:\n- \\`s=1.0\\` → pure conditional (single pass)\n- \\`s=0.0\\` → pure unconditional (single pass)\n- \\`c_spec=None\\` → unconditional (guidance irrelevant)\n\n\\`guidance_scale: float = 1.0\\` added to \\`sample_euler\\`, \\`sample_ddim\\`, \\`sample_ddpm\\`, \\`sample_ddim_steps\\`.\n\n**\\`src/ald_sc/inference.py\\`** — \\`guidance_scale\\` wired through \\`LSDModel._sample_and_decode\\` → \\`generate_sound_bank\\`, forwarded to \\`sample_ddim\\`.\n\n**Training side** — already handled by PR #30 (issue #22): \\`train_audio_diffusion\\` propagates \\`dit.cfg_dropout = cfg_dropout\\` and the DiT applies per-sample \\`c_spec\\` dropout internally during training. No additional trainer changes needed.\n\n### Acceptance criteria\n\n- [x] \\`MinimalDiT\\` supports \\`cfg_dropout > 0\\` (default 0.0; trainer sets it to 0.1)\n- [x] \\`train_audio_diffusion\\` uses \\`cfg_dropout\\` (PR #30: propagates to DiT which drops \\`c_spec\\` per-sample)\n- [x] \\`sample_ddim\\` / \\`sample_ddpm\\` accept \\`guidance_scale: float = 1.0\\` and perform two-pass inference\n- [x] Unit test: \\`guidance_scale=0.0\\` produces unconditional output; \\`guidance_scale=3.0\\` produces more directed output\n\n### Test coverage (16 new tests)\n\n\\`tests/test_cfg_guidance.py\\`:\n- \\`_cfg_forward\\` formula correctness (matches \\`v_uncond + s * (v_cond - v_uncond)\\`)\n- \\`s=0.0\\` → pure unconditional, \\`s=1.0\\` → pure conditional, \\`s>1.0\\` → amplified (differs from both)\n- No \\`c_spec\\` → \\`guidance_scale\\` ignored\n- All three samplers (\\`sample_ddim\\`, \\`sample_euler\\`, \\`sample_ddpm\\`): scale=0 matches uncond, scale=1 matches cond, scale=3 diverges from cond\n- \\`LSDModel.generate_sound_bank\\` forwards \\`guidance_scale\\` to the sampler\n\n### CI\n\n- 190 tests pass\n- \\`ruff check\\` clean\n- \\`ruff format --check\\` clean\n\n### Notes\n\n- Depends on PR #30 (issue #22) for the \\`c_spec\\` plumbing and \\`cfg_dropout\\` training-side support. Branch is based on \\`feat/c-spec-dit-conditioning-issue-22\\`.\n- LSD Studio worker (\\`lsd_worker.py\\`) exposure (\\`--guidance-scale\\` CLI arg) is listed as out-of-scope in the issue (\\\"Expose from the caller\\\") — that project lives in a separate repo.\" 2>&1"
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/31\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/31\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --base main --head feat/cfg-guidance-scale-issue-23 --title \"feat: classifier-free guidance (CFG) two-pass inference with guidance_scale (closes #23)\" --body \"Closes #23.\n\n## Summary\n\nImplements classifier-free guidance (CFG) two-pass inference with a \\`guidance_scale\\` parameter across all samplers and the inference layer.\n\n### Changes\n\n**\\`src/ald_sc/sampling.py\\`** — new \\`_cfg_forward\\` helper implementing the standard CFG blend:\n\\`\\`\\`\nv = v_uncond + s * (v_cond - v_uncond)\n\\`\\`\\`\nSingle-pass short-circuits for efficiency:\n- \\`s=1.0\\` → pure conditional (single pass)\n- \\`s=0.0\\` → pure unconditional (single pass)\n- \\`c_spec=None\\` → unconditional (guidance irrelevant)\n\n\\`guidance_scale: float = 1.0\\` added to \\`sample_euler\\`, \\`sample_ddim\\`, \\`sample_ddpm\\`, \\`sample_ddim_steps\\`.\n\n**\\`src/ald_sc/inference.py\\`** — \\`guidance_scale\\` wired through \\`LSDModel._sample_and_decode\\` → \\`generate_sound_bank\\`, forwarded to \\`sample_ddim\\`.\n\n**Training side** — already handled by PR #30 (issue #22): \\`train_audio_diffusion\\` propagates \\`dit.cfg_dropout = cfg_dropout\\` and the DiT applies per-sample \\`c_spec\\` dropout internally during training. No additional trainer changes needed.\n\n### Acceptance criteria\n\n- [x] \\`MinimalDiT\\` supports \\`cfg_dropout > 0\\` (default 0.0; trainer sets it to 0.1)\n- [x] \\`train_audio_diffusion\\` uses \\`cfg_dropout\\` (PR #30: propagates to DiT which drops \\`c_spec\\` per-sample)\n- [x] \\`sample_ddim\\` / \\`sample_ddpm\\` accept \\`guidance_scale: float = 1.0\\` and perform two-pass inference\n- [x] Unit test: \\`guidance_scale=0.0\\` produces unconditional output; \\`guidance_scale=3.0\\` produces more directed output\n\n### Test coverage (16 new tests)\n\n\\`tests/test_cfg_guidance.py\\`:\n- \\`_cfg_forward\\` formula correctness (matches \\`v_uncond + s * (v_cond - v_uncond)\\`)\n- \\`s=0.0\\` → pure unconditional, \\`s=1.0\\` → pure conditional, \\`s>1.0\\` → amplified (differs from both)\n- No \\`c_spec\\` → \\`guidance_scale\\` ignored\n- All three samplers (\\`sample_ddim\\`, \\`sample_euler\\`, \\`sample_ddpm\\`): scale=0 matches uncond, scale=1 matches cond, scale=3 diverges from cond\n- \\`LSDModel.generate_sound_bank\\` forwards \\`guidance_scale\\` to the sampler\n\n### CI\n\n- 190 tests pass\n- \\`ruff check\\` clean\n- \\`ruff format --check\\` clean\n\n### Notes\n\n- Depends on PR #30 (issue #22) for the \\`c_spec\\` plumbing and \\`cfg_dropout\\` training-side support. Branch is based on \\`feat/c-spec-dit-conditioning-issue-22\\`.\n- LSD Studio worker (\\`lsd_worker.py\\`) exposure (\\`--guidance-scale\\` CLI arg) is listed as out-of-scope in the issue (\\\"Expose from the caller\\\") — that project lives in a separate repo.\" 2>&1",
+            "time": {
+              "start": 1786126779237,
+              "end": 1786126779238
+            }
+          },
+          "metadata": {
+            "openrouter": {
+              "reasoning_details": []
+            }
+          },
+          "id": "prt_fdd73bbfd001wS6vC3ahPPsM0S",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73abf5001vwvkW1sNdqTsz6"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "0a31fea0011bb943b80775964d84eb806b7fe4ea",
+          "type": "step-finish",
+          "tokens": {
+            "total": 62212,
+            "input": 295,
+            "output": 797,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 61120
+            }
+          },
+          "cost": 0.007706479,
+          "id": "prt_fdd73c39f001xFCQ2V0n6sJ23T",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73abf5001vwvkW1sNdqTsz6"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd7235df001w14EaXE09eVZUE",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.00683910236,
+        "tokens": {
+          "total": 62531,
+          "input": 93,
+          "output": 294,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 62144
+          }
+        },
+        "modelID": "z-ai/glm-5.2",
+        "providerID": "openrouter",
+        "time": {
+          "created": 1786126779367,
+          "completed": 1786126781169
+        },
+        "finish": "stop",
+        "id": "msg_fdd73c3e70014JKzgKfJEkry3C",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "0a31fea0011bb943b80775964d84eb806b7fe4ea",
+          "type": "step-start",
+          "id": "prt_fdd73c71100115zL1NU1hcS9DJ",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73c3e70014JKzgKfJEkry3C"
+        },
+        {
+          "type": "text",
+          "text": "Done. PR #31 created: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/31\n\n**What was implemented:**\n\n1. **`sampling.py`** — `_cfg_forward` helper implementing the standard CFG blend `v = v_uncond + s * (v_cond - v_uncond)`, with single-pass short-circuits for `s=1.0` (pure conditional), `s=0.0` (pure unconditional), and `c_spec=None`. Added `guidance_scale: float = 1.0` to all four samplers (`sample_euler`, `sample_ddim`, `sample_ddpm`, `sample_ddim_steps`).\n\n2. **`inference.py`** — `guidance_scale` wired through `LSDModel._sample_and_decode` → `generate_sound_bank`, forwarded to `sample_ddim`.\n\n3. **Training side** — already handled by PR #30: `train_audio_diffusion` propagates `dit.cfg_dropout = cfg_dropout` and the DiT applies per-sample `c_spec` dropout internally. No additional trainer changes needed.\n\n4. **Tests** (16 new) — `_cfg_forward` formula correctness, scale semantics (0/1/>1), no-c_spec passthrough, all three samplers, and `LSDModel` plumbing. All 190 tests pass, lint + format clean.",
+          "time": {
+            "start": 1786126780179,
+            "end": 1786126781043
+          },
+          "id": "prt_fdd73c713001GZZVRFU4oXcdu4",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73c3e70014JKzgKfJEkry3C"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "0a31fea0011bb943b80775964d84eb806b7fe4ea",
+          "type": "step-finish",
+          "tokens": {
+            "total": 62531,
+            "input": 93,
+            "output": 294,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 62144
+            }
+          },
+          "cost": 0.00683910236,
+          "id": "prt_fdd73cab4001QArc7hG1jBdZYt",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd73c3e70014JKzgKfJEkry3C"
         }
       ]
     }
