@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "acb18b8baecf",
+  "strategy": "manual-commit",
+  "branch": "fix/c-spec-pr-review",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tests/test_c_spec_conditioning.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ac/b18b8baecf/0/metadata.json",
+      "transcript": "/ac/b18b8baecf/0/full.jsonl",
+      "compact_transcript": "/ac/b18b8baecf/0/transcript.jsonl",
+      "content_hash": "/ac/b18b8baecf/0/content_hash.txt",
+      "prompt": "/ac/b18b8baecf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 241922,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 515520,
+    "output_tokens": 3798,
+    "api_call_count": 29
+  }
+}
