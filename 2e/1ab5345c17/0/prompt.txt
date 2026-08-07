@@ -1,1 +1,1 @@
-alwasy use local .venv with uv
+Let;s implement https://github.com/tuned-org-uk/latent-sound-diffusion/issues/24 in a branch for next patch version

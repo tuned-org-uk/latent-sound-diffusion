@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 4.434974986279998,
+    "cost": 4.616571546279998,
     "tokens": {
-      "input": 995183,
-      "output": 36776,
+      "input": 997080,
+      "output": 38418,
       "reasoning": 9982,
       "cache": {
-        "read": 15082490,
+        "read": 15742936,
         "write": 0
       }
     },
     "time": {
       "created": 1786126223424,
-      "updated": 1786128802017
+      "updated": 1786128832511
     }
   },
   "messages": [
@@ -21310,21 +21310,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.03550936,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 131942,
+          "input": 76,
+          "output": 270,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 131596
           }
         },
         "modelID": "glm-5.2",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786128802017
+          "created": 1786128802017,
+          "completed": 1786128809906
         },
+        "finish": "tool-calls",
         "id": "msg_fdd92a0e1001Ua2XoEewjdzi0H",
         "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
       },
@@ -21341,20 +21344,441 @@
           "tool": "bash",
           "callID": "chatcmpl-tool-92bec977b02637c0",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git commit -m \"feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\n\nScripts:\n- train_audio_diffusion.py: add --cfg-dropout (forwards to\n  train_audio_diffusion cfg_dropout param, enabling CFG training)\n- train_audio_decoder.py: add --lambda-rec, --lambda-stft,\n  --lambda-chart, --lambda-smooth (loss weights were hardcoded; now\n  CLI-configurable so lambda_stft can be re-enabled for generation)\n\nDiT capacity knobs (dim, depth, num_heads, patch_size) and lr were\nalready CLI-configurable with generation-grade defaults (dim=256,\ndepth=4, lr=1e-4). Decoder base_channels was already configurable.\n\nDocs:\n- docs/02.md §3.6: new section documenting generation-grade vs\n  fast-iteration defaults with a trade-off table and rationale\n  (capacity is the hard ceiling on diversity)\n- configs/audio_diffusion.yaml: note cfg_dropout is now active (was\n  marked 'unused in unconditional Phase 1')\n\nTests (6): tests/test_script_cli.py verifies the new CLI flags are\npresent via subprocess --help invocation.\n\nBump version to 0.5.8.\""
             },
+            "output": "[feat/dit-capacity-config-issue-24 914ae04] feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\n 7 files changed, 166 insertions(+), 14 deletions(-)\n create mode 100644 tests/test_script_cli.py\n",
+            "metadata": {
+              "output": "[feat/dit-capacity-config-issue-24 914ae04] feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\n 7 files changed, 166 insertions(+), 14 deletions(-)\n create mode 100644 tests/test_script_cli.py\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git commit -m \"feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\n\nScripts:\n- train_audio_diffusion.py: add --cfg-dropout (forwards to\n  train_audio_diffusion cfg_dropout param, enabling CFG training)\n- train_audio_decoder.py: add --lambda-rec, --lambda-stft,\n  --lambda-chart, --lambda-smooth (loss weights were hardcoded; now\n  CLI-configurable so lambda_stft can be re-enabled for generation)\n\nDiT capacity knobs (dim, depth, num_heads, patch_size) and lr were\nalready CLI-configurable with generation-grade defaults (dim=256,\ndepth=4, lr=1e-4). Decoder base_channels was already configurable.\n\nDocs:\n- docs/02.md §3.6: new section documenting generation-grade vs\n  fast-iteration defaults with a trade-off table and rationale\n  (capacity is the hard ceiling on diversity)\n- configs/audio_diffusion.yaml: note cfg_dropout is now active (was\n  marked 'unused in unconditional Phase 1')\n\nTests (6): tests/test_script_cli.py verifies the new CLI flags are\npresent via subprocess --help invocation.\n\nBump version to 0.5.8.\"",
             "time": {
-              "start": 1786128807114
+              "start": 1786128809779,
+              "end": 1786128809781
             }
           },
           "id": "prt_fdd92a912001hQcdIRgPGtd2o4",
           "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
           "messageID": "msg_fdd92a0e1001Ua2XoEewjdzi0H"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-finish",
+          "tokens": {
+            "total": 131942,
+            "input": 76,
+            "output": 270,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 131596
+            }
+          },
+          "cost": 0.03550936,
+          "id": "prt_fdd92bf720016ZznqkG8zy7I66",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92a0e1001Ua2XoEewjdzi0H"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd8f968d001DblNhTZ3SNPQaH",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03482906,
+        "tokens": {
+          "total": 132040,
+          "input": 343,
+          "output": 26,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 131671
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786128809914,
+          "completed": 1786128817138
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd92bfba001Cy1HOql5RzW2UI",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-start",
+          "id": "prt_fdd92c9d8001PNCzii4MMGNIY4",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92bfba001Cy1HOql5RzW2UI"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "chatcmpl-tool-9af4eedc63324340",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git push github feat/dit-capacity-config-issue-24 2>&1"
+            },
+            "output": "[entire] Pushing entire/checkpoints/v1 to github.... done\nremote: \nremote: Create a pull request for 'feat/dit-capacity-config-issue-24' on GitHub by visiting:        \nremote:      https://github.com/tuned-org-uk/latent-sound-diffusion/pull/new/feat/dit-capacity-config-issue-24        \nremote: \nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/dit-capacity-config-issue-24 -> feat/dit-capacity-config-issue-24\n",
+            "metadata": {
+              "output": "[entire] Pushing entire/checkpoints/v1 to github.... done\nremote: \nremote: Create a pull request for 'feat/dit-capacity-config-issue-24' on GitHub by visiting:        \nremote:      https://github.com/tuned-org-uk/latent-sound-diffusion/pull/new/feat/dit-capacity-config-issue-24        \nremote: \nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/dit-capacity-config-issue-24 -> feat/dit-capacity-config-issue-24\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git push github feat/dit-capacity-config-issue-24 2>&1",
+            "time": {
+              "start": 1786128817013,
+              "end": 1786128817016
+            }
+          },
+          "id": "prt_fdd92c9da001F7k4ijMzlJphdF",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92bfba001Cy1HOql5RzW2UI"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-finish",
+          "tokens": {
+            "total": 132040,
+            "input": 343,
+            "output": 26,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 131671
+            }
+          },
+          "cost": 0.03482906,
+          "id": "prt_fdd92dbb7001SHFsRqJgYPkfj3",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92bfba001Cy1HOql5RzW2UI"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd8f968d001DblNhTZ3SNPQaH",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03809118,
+        "tokens": {
+          "total": 132975,
+          "input": 155,
+          "output": 807,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 132013
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786128817146,
+          "completed": 1786128828952
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd92dbfa001jfO6whY1BYYFw1",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-start",
+          "id": "prt_fdd92e5d4001ah61thspc88U73",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92dbfa001jfO6whY1BYYFw1"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "chatcmpl-tool-85f8382253bae5d3",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --base main --head feat/dit-capacity-config-issue-24 --title \"feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\" --body \"Closes #24.\n\n## Summary\n\nMakes DiT and decoder hyperparameters fully CLI-configurable and documents generation-grade vs fast-iteration defaults. The issue identified that the LSD Studio bake used drastically reduced capacity (dim=64, depth=2, lr=1e-3, lambda_stft=0.0) causing low sample diversity.\n\n### Changes\n\n**\\`scripts/train_audio_diffusion.py\\`** — added \\`--cfg-dropout\\` (forwards to \\`train_audio_diffusion\\` \\`cfg_dropout\\` param, enabling classifier-free guidance training). DiT capacity knobs (\\`--dim\\`, \\`--depth\\`, \\`--num-heads\\`, \\`--patch-size\\`) and \\`--lr\\` were already present with generation-grade defaults (dim=256, depth=4, lr=1e-4).\n\n**\\`scripts/train_audio_decoder.py\\`** — added \\`--lambda-rec\\`, \\`--lambda-stft\\`, \\`--lambda-chart\\`, \\`--lambda-smooth\\` (loss weights were hardcoded; now CLI-configurable so \\`lambda_stft\\` can be re-enabled for generation-grade training). \\`--base-channels\\` was already present.\n\n**\\`docs/02.md\\` §3.6** — new section documenting generation-grade vs fast-iteration defaults with a trade-off table:\n\n| Parameter | Fast iteration | Generation grade |\n|---|---|---|\n| dim | 64 | 256 |\n| depth | 2 | 4 |\n| base_channels | 32 | 64 |\n| latent_length | 75 (1s) | 375 (5s) |\n| epochs | 20 | 50+ |\n| lr | 1e-3 | 1e-4 |\n| lambda_stft | 0.0 | 1.0 |\n| cfg_dropout | 0.0 | 0.1 |\n\nExplains why capacity is the hard ceiling on diversity and that the fast-iteration profile is insufficient for diverse, high-quality audio.\n\n**\\`configs/audio_diffusion.yaml\\`** — updated \\`cfg_dropout\\` comment (was \\\"unused in unconditional Phase 1\\\", now active after PRs #30/#31).\n\n### Acceptance criteria\n\n- [x] DiT hyperparameters (dim, depth, num_heads, patch_size) are CLI-configurable\n- [x] Decoder hyperparameters (base_channels, lambda_stft) are CLI-configurable\n- [x] Documentation recommends generation-grade defaults separate from fast-iteration defaults\n- [x] lr is configurable (default 1e-4, not 1e-3)\n\n### Test coverage (6 new tests)\n\n\\`tests/test_script_cli.py\\` — verifies the CLI flags are present via subprocess \\`--help\\` invocation (the same entry point users use). Tests both scripts for capacity args, loss weight args, cfg_dropout, and lr.\n\n### CI\n\n- 198 tests pass\n- \\`ruff check src tests\\` clean\n- \\`ruff format --check src tests\\` clean\n\n### Notes\n\n- The \\`lsd_worker.py\\` CLI exposure (\\`--dim\\`, \\`--depth\\`, etc. in LSD Studio's Train panel) lives in the separate [\\`LSD-studio\\`](https://github.com/tuned-org-uk/LSD-studio) repo and is out of scope for this PR. This PR makes the in-repo scripts configurable; LSD Studio's worker consumes these scripts.\n- The scripts were also ruff-formatted (they predated the CI lint config).\" 2>&1"
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/32\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/32\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --base main --head feat/dit-capacity-config-issue-24 --title \"feat: expose DiT/decoder hyperparameters as CLI args + document generation-grade defaults (closes #24)\" --body \"Closes #24.\n\n## Summary\n\nMakes DiT and decoder hyperparameters fully CLI-configurable and documents generation-grade vs fast-iteration defaults. The issue identified that the LSD Studio bake used drastically reduced capacity (dim=64, depth=2, lr=1e-3, lambda_stft=0.0) causing low sample diversity.\n\n### Changes\n\n**\\`scripts/train_audio_diffusion.py\\`** — added \\`--cfg-dropout\\` (forwards to \\`train_audio_diffusion\\` \\`cfg_dropout\\` param, enabling classifier-free guidance training). DiT capacity knobs (\\`--dim\\`, \\`--depth\\`, \\`--num-heads\\`, \\`--patch-size\\`) and \\`--lr\\` were already present with generation-grade defaults (dim=256, depth=4, lr=1e-4).\n\n**\\`scripts/train_audio_decoder.py\\`** — added \\`--lambda-rec\\`, \\`--lambda-stft\\`, \\`--lambda-chart\\`, \\`--lambda-smooth\\` (loss weights were hardcoded; now CLI-configurable so \\`lambda_stft\\` can be re-enabled for generation-grade training). \\`--base-channels\\` was already present.\n\n**\\`docs/02.md\\` §3.6** — new section documenting generation-grade vs fast-iteration defaults with a trade-off table:\n\n| Parameter | Fast iteration | Generation grade |\n|---|---|---|\n| dim | 64 | 256 |\n| depth | 2 | 4 |\n| base_channels | 32 | 64 |\n| latent_length | 75 (1s) | 375 (5s) |\n| epochs | 20 | 50+ |\n| lr | 1e-3 | 1e-4 |\n| lambda_stft | 0.0 | 1.0 |\n| cfg_dropout | 0.0 | 0.1 |\n\nExplains why capacity is the hard ceiling on diversity and that the fast-iteration profile is insufficient for diverse, high-quality audio.\n\n**\\`configs/audio_diffusion.yaml\\`** — updated \\`cfg_dropout\\` comment (was \\\"unused in unconditional Phase 1\\\", now active after PRs #30/#31).\n\n### Acceptance criteria\n\n- [x] DiT hyperparameters (dim, depth, num_heads, patch_size) are CLI-configurable\n- [x] Decoder hyperparameters (base_channels, lambda_stft) are CLI-configurable\n- [x] Documentation recommends generation-grade defaults separate from fast-iteration defaults\n- [x] lr is configurable (default 1e-4, not 1e-3)\n\n### Test coverage (6 new tests)\n\n\\`tests/test_script_cli.py\\` — verifies the CLI flags are present via subprocess \\`--help\\` invocation (the same entry point users use). Tests both scripts for capacity args, loss weight args, cfg_dropout, and lr.\n\n### CI\n\n- 198 tests pass\n- \\`ruff check src tests\\` clean\n- \\`ruff format --check src tests\\` clean\n\n### Notes\n\n- The \\`lsd_worker.py\\` CLI exposure (\\`--dim\\`, \\`--depth\\`, etc. in LSD Studio's Train panel) lives in the separate [\\`LSD-studio\\`](https://github.com/tuned-org-uk/LSD-studio) repo and is out of scope for this PR. This PR makes the in-repo scripts configurable; LSD Studio's worker consumes these scripts.\n- The scripts were also ruff-formatted (they predated the CI lint config).\" 2>&1",
+            "time": {
+              "start": 1786128828811,
+              "end": 1786128828813
+            }
+          },
+          "id": "prt_fdd92e5d6001pRS6YRg4bJpBha",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92dbfa001jfO6whY1BYYFw1"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-finish",
+          "tokens": {
+            "total": 132975,
+            "input": 155,
+            "output": 807,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 132013
+            }
+          },
+          "cost": 0.03809118,
+          "id": "prt_fdd9309d4001Bwm8SUckj1k1jx",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd92dbfa001jfO6whY1BYYFw1"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd8f968d001DblNhTZ3SNPQaH",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03651522,
+        "tokens": {
+          "total": 133224,
+          "input": 833,
+          "output": 224,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 132167
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786128828975,
+          "completed": 1786128832504
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd930a2f001Yyfxq4EfvLRRBd",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-start",
+          "id": "prt_fdd930fac001OM7DJSEKHd6uoP",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd930a2f001Yyfxq4EfvLRRBd"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "chatcmpl-tool-9d3cc11811ac8fa9",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "Add --cfg-dropout to train_audio_diffusion.py script",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add --lambda-stft, --lambda-rec, --lambda-chart, --lambda-smooth to train_audio_decoder.py",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Verify lr defaults are 1e-4 across scripts",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Update configs/audio_diffusion.yaml: note cfg_dropout now active",
+                  "priority": "low",
+                  "status": "completed"
+                },
+                {
+                  "content": "Document generation-grade vs fast-iteration defaults in docs/02.md",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add tests verifying CLI arg plumbing for new params",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Bump patch version, commit, push, open PR",
+                  "priority": "high",
+                  "status": "completed"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"Add --cfg-dropout to train_audio_diffusion.py script\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add --lambda-stft, --lambda-rec, --lambda-chart, --lambda-smooth to train_audio_decoder.py\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Verify lr defaults are 1e-4 across scripts\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Update configs/audio_diffusion.yaml: note cfg_dropout now active\",\n    \"status\": \"completed\",\n    \"priority\": \"low\"\n  },\n  {\n    \"content\": \"Document generation-grade vs fast-iteration defaults in docs/02.md\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add tests verifying CLI arg plumbing for new params\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Bump patch version, commit, push, open PR\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "Add --cfg-dropout to train_audio_diffusion.py script",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add --lambda-stft, --lambda-rec, --lambda-chart, --lambda-smooth to train_audio_decoder.py",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Verify lr defaults are 1e-4 across scripts",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Update configs/audio_diffusion.yaml: note cfg_dropout now active",
+                  "status": "completed",
+                  "priority": "low"
+                },
+                {
+                  "content": "Document generation-grade vs fast-iteration defaults in docs/02.md",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add tests verifying CLI arg plumbing for new params",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Bump patch version, commit, push, open PR",
+                  "status": "completed",
+                  "priority": "high"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "0 todos",
+            "time": {
+              "start": 1786128832375,
+              "end": 1786128832377
+            }
+          },
+          "id": "prt_fdd930fc2001iNnPXFqsSDtJs4",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd930a2f001Yyfxq4EfvLRRBd"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-finish",
+          "tokens": {
+            "total": 133224,
+            "input": 833,
+            "output": 224,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 132167
+            }
+          },
+          "cost": 0.03651522,
+          "id": "prt_fdd9317bb001x1a53FrvIgjE45",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd930a2f001Yyfxq4EfvLRRBd"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd8f968d001DblNhTZ3SNPQaH",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03665174,
+        "tokens": {
+          "total": 133804,
+          "input": 490,
+          "output": 315,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 132999
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786128832510,
+          "completed": 1786128845197
+        },
+        "finish": "stop",
+        "id": "msg_fdd9317fe001zbiApmGkTDEjbo",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-start",
+          "id": "prt_fdd93325e001ZWfgiNsU1E3ApU",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd9317fe001zbiApmGkTDEjbo"
+        },
+        {
+          "type": "text",
+          "text": "PR #32 created: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/32\n\n**What was implemented for issue #24:**\n\n1. **`scripts/train_audio_diffusion.py`** — added `--cfg-dropout` (forwards to the trainer's `cfg_dropout` param, enabling CFG training). The DiT capacity knobs (`--dim`, `--depth`, `--num-heads`, `--patch-size`) and `--lr` were already present with generation-grade defaults (dim=256, depth=4, lr=1e-4).\n\n2. **`scripts/train_audio_decoder.py`** — added `--lambda-rec`, `--lambda-stft`, `--lambda-chart`, `--lambda-smooth` (loss weights were hardcoded; now CLI-configurable so `lambda_stft` can be re-enabled for generation).\n\n3. **`docs/02.md` §3.6** — new section with a generation-grade vs fast-iteration defaults trade-off table, explaining why capacity (dim/depth) is the hard ceiling on diversity.\n\n4. **`configs/audio_diffusion.yaml`** — updated the `cfg_dropout` comment (was \"unused in unconditional Phase 1\", now active after PRs #30/#31).\n\n5. **`tests/test_script_cli.py`** (6 tests) — verifies CLI flags are present via subprocess `--help`.\n\n198 tests pass, lint + format clean. Version bumped to 0.5.8.",
+          "time": {
+            "start": 1786128839264,
+            "end": 1786128845078
+          },
+          "id": "prt_fdd933260001zY4d5Gf1S3lDk7",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd9317fe001zbiApmGkTDEjbo"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "c03917a80fb516be4a03822da13bc9e4a2ac6187",
+          "type": "step-finish",
+          "tokens": {
+            "total": 133804,
+            "input": 490,
+            "output": 315,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 132999
+            }
+          },
+          "cost": 0.03665174,
+          "id": "prt_fdd934951001Hoti9bJLVmJyr1",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd9317fe001zbiApmGkTDEjbo"
         }
       ]
     }
