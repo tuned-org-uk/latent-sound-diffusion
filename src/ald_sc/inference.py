@@ -55,10 +55,23 @@ def _resolve_seed(seed: int | None) -> int:
     return int(seed)
 
 
-def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
-    if temperature == 1.0:
-        return z
-    return z * float(temperature)
+def _temperature_to_eta(temperature: float) -> float:
+    """Map the ``--temperature`` knob to the DDIM ``eta`` parameter.
+
+    ``temperature`` is the user-facing diversity knob (LSD Studio is wired
+    to the ``--temperature`` flag).  Internally it maps to the sampler's
+    ``eta`` — the principled noise-injection coefficient — clamped to
+    ``[0, 1]``:
+
+    - ``temperature <= 0`` → ``eta=0`` (deterministic DDIM, no noise)
+    - ``temperature = 0.5`` → ``eta=0.5`` (ancestral noise)
+    - ``temperature >= 1`` → ``eta=1`` (full DDPM-equivalent stochasticity)
+
+    This replaces the old post-hoc latent scaling
+    (``z = z_mean + (z - z_mean) * temperature``) which pushed latents
+    off-manifold (issue #27).
+    """
+    return float(max(0.0, min(1.0, temperature)))
 
 
 def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
@@ -179,6 +192,11 @@ class LSDModel:
         seed : int
         steps : int
         temperature : float
+            Diversity knob mapped to the DDIM ``eta`` parameter, clamped
+            to ``[0, 1]``: ``temperature <= 0`` → deterministic (eta=0),
+            ``temperature >= 1`` → full stochastic (eta=1, DDPM-equivalent).
+            No post-hoc latent scaling is applied — diversity comes purely
+            from noise injection during sampling (issue #27).
         z_init : Tensor, optional
             If provided, skip sampling and decode this latent directly
             (used by ``condition_on_audio`` for interpolated latents).
@@ -217,6 +235,7 @@ class LSDModel:
             )
 
         device = next(self.dit.parameters()).device
+        eta = _temperature_to_eta(temperature)
 
         if z_init is None:
             z = sample_ddim(
@@ -227,12 +246,12 @@ class LSDModel:
                 steps=steps,
                 seed=seed,
                 device=device,
+                eta=eta,
                 guidance_scale=guidance_scale,
             )
         else:
             z = z_init.to(device)
 
-        z = _apply_temperature(z, temperature)
         a = z.mean(dim=2)
         c_spec = self.prior.chart_energy_descriptor(a)
 
@@ -288,7 +307,9 @@ class LSDModel:
         steps : int
             DDIM sampling steps.
         temperature : float
-            Noise scaling (lower = more conservative).
+            Diversity knob mapped to the DDIM ``eta`` parameter, clamped
+            to ``[0, 1]``.  ``temperature <= 0`` → deterministic sampling
+            (eta=0); ``temperature >= 1`` → full stochastic (eta=1).
         seed : int or None
             Reproducible seed, or ``None`` for a non-repeatable run.
         target_c_spec : Tensor (1, spec_dim) or (B, spec_dim), optional
@@ -369,7 +390,8 @@ class LSDModel:
             0 < strength <= 1. Larger values push further from the source
             (more novelty); smaller values stay closer.
         temperature : float
-            Noise scaling applied after interpolation.
+            Diversity knob mapped to the DDIM ``eta`` parameter, clamped
+            to ``[0, 1]`` (noise injection during sampling).
         seed : int or None
             Reproducible seed, or ``None`` for a non-repeatable run.
 
