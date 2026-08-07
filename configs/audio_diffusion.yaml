@@ -21,7 +21,7 @@ training:
   batch_size: 4
   epochs: 50
   lr: 0.0001
-  cfg_dropout: 0.1  # unused in unconditional Phase 1
+  cfg_dropout: 0.1  # classifier-free guidance dropout (c_spec zeroed per-sample)
 
 # Sampling defaults
 sampling:

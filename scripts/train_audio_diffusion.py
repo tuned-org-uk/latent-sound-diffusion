@@ -3,6 +3,7 @@
 Usage:
     uv run python scripts/train_audio_diffusion.py --prior prior.pt --decoder decoder.pt --epochs 50
     uv run python scripts/train_audio_diffusion.py --toy --epochs 10
+    uv run python scripts/train_audio_diffusion.py --toy --dim 64 --depth 2 --cfg-dropout 0.0
 """
 
 from __future__ import annotations
@@ -33,9 +34,22 @@ def main() -> None:
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--num-heads", type=int, default=4)
     parser.add_argument("--q", type=int, default=8)
+    parser.add_argument(
+        "--base-channels",
+        type=int,
+        default=64,
+        help="Base channels for the fallback baseline decoder (only used when "
+        "--decoder is not provided)",
+    )
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument(
+        "--cfg-dropout",
+        type=float,
+        default=0.1,
+        help="Classifier-free guidance dropout (0 disables)",
+    )
     parser.add_argument("--num-steps", type=int, default=1000)
     parser.add_argument("--out", type=str, default="dit.pt")
     args = parser.parse_args()
@@ -80,8 +94,13 @@ def main() -> None:
     else:
         encoder = EnCodecEncoder()
 
+    # Fallback baseline decoder (only used when --decoder is not provided;
+    # the DiT trains against the frozen encoder's latents, so this decoder
+    # is just a placeholder for the AudioVAE wrapper).
     decoder = BaselineAudioDecoder(
-        latent_channels=args.latent_channels, out_channels=1, base_channels=64,
+        latent_channels=args.latent_channels,
+        out_channels=1,
+        base_channels=args.base_channels,
     )
     if args.decoder and Path(args.decoder).exists():
         decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
@@ -103,9 +122,19 @@ def main() -> None:
     sched = CosineSchedule(num_steps=args.num_steps)
 
     print(f"Training DiT for {args.epochs} epochs...")
-    losses = list(train_audio_diffusion(
-        loader, vae, dit, prior, sched, epochs=args.epochs, lr=args.lr, device=device,
-    ))
+    losses = list(
+        train_audio_diffusion(
+            loader,
+            vae,
+            dit,
+            prior,
+            sched,
+            epochs=args.epochs,
+            lr=args.lr,
+            cfg_dropout=args.cfg_dropout,
+            device=device,
+        )
+    )
     if losses:
         print(f"  Initial loss: {losses[0]['loss']:.4f}")
         print(f"  Final loss:   {losses[-1]['loss']:.4f}")

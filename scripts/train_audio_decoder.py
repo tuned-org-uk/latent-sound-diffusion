@@ -4,6 +4,7 @@ Usage:
     uv run python scripts/train_audio_decoder.py --prior prior.pt --graph --epochs 50
     uv run python scripts/train_audio_decoder.py --prior prior.pt --baseline --epochs 50
     uv run python scripts/train_audio_decoder.py --toy --epochs 10
+    uv run python scripts/train_audio_decoder.py --toy --base-channels 32 --lambda-stft 0.0
 """
 
 from __future__ import annotations
@@ -15,7 +16,12 @@ import torch
 
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.build_prior import build_arrow_prior
-from ald_sc.data import AudioFolderDataset, Esc50Dataset, ToyAudioDataset, build_audio_dataloader
+from ald_sc.data import (
+    AudioFolderDataset,
+    Esc50Dataset,
+    ToyAudioDataset,
+    build_audio_dataloader,
+)
 from ald_sc.graph_decoder import GraphDecoder
 from ald_sc.losses import ALDSCLoss
 from ald_sc.trainer import train_audio_decoder
@@ -36,6 +42,30 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument(
+        "--lambda-rec",
+        type=float,
+        default=1.0,
+        help="Weight for reconstruction (L1) loss",
+    )
+    parser.add_argument(
+        "--lambda-stft",
+        type=float,
+        default=1.0,
+        help="Weight for multi-scale STFT spectral loss",
+    )
+    parser.add_argument(
+        "--lambda-chart",
+        type=float,
+        default=0.5,
+        help="Weight for spectral chart consistency loss",
+    )
+    parser.add_argument(
+        "--lambda-smooth",
+        type=float,
+        default=0.1,
+        help="Weight for off-manifold smoothness penalty",
+    )
     parser.add_argument("--out", type=str, default="decoder.pt")
     args = parser.parse_args()
 
@@ -105,15 +135,18 @@ def main() -> None:
     vae = AudioVAE(encoder=encoder, decoder=decoder)
     loss_fn = ALDSCLoss(
         prior=prior,
-        lambda_rec=1.0,
-        lambda_stft=1.0,
-        lambda_chart=0.5,
-        lambda_smooth=0.1,
+        lambda_rec=args.lambda_rec,
+        lambda_stft=args.lambda_stft,
+        lambda_chart=args.lambda_chart,
+        lambda_smooth=args.lambda_smooth,
     )
 
     print(f"Training {decoder_type} decoder for {args.epochs} epochs...")
-    losses = list(train_audio_decoder(loader, vae, prior, loss_fn,
-                                       epochs=args.epochs, lr=args.lr, device=device))
+    losses = list(
+        train_audio_decoder(
+            loader, vae, prior, loss_fn, epochs=args.epochs, lr=args.lr, device=device
+        )
+    )
     if losses:
         print(f"  Initial loss: {losses[0]['loss']:.4f}")
         print(f"  Final loss:   {losses[-1]['loss']:.4f}")
