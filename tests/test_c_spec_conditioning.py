@@ -31,71 +31,21 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
-from ald_sc.graph_decoder import GraphDecoder
 from ald_sc.inference import LSDModel
 from ald_sc.schedule import CosineSchedule
 from ald_sc.trainer import train_audio_diffusion
 
-
-# ---------------------------------------------------------------------------
-# Shared fixtures
-# ---------------------------------------------------------------------------
-
-SPEC_DIM = 24
-LATENT_CH = 128
-LATENT_LEN = 16
-
-
-class StubEncoder(nn.Module):
-    def __init__(self, latent_dim: int = LATENT_CH, stride: int = 320) -> None:
-        super().__init__()
-        self.proj = nn.Conv1d(1, latent_dim, stride, stride=stride)
-
-    def encode(self, x: Tensor, prior) -> tuple[Tensor, Tensor, Tensor]:
-        z = self.proj(x).float()
-        a = z.mean(dim=2)
-        return z, a, prior.chart_energy_descriptor(a)
+from tests.conftest import (
+    LATENT_CH,
+    LATENT_LEN,
+    SPEC_DIM,
+    make_model,
+    perturb_adaln,
+)
 
 
 def _make_model() -> LSDModel:
-    torch.manual_seed(0)
-    embeddings = torch.randn(32, LATENT_CH)
-    prior = build_arrow_prior(embeddings, q=8, k=4)
-    encoder = StubEncoder()
-    decoder = GraphDecoder(LATENT_CH, 1, LATENT_CH, 16, prior, (2, 4, 5, 8))
-    dit = MinimalDiT(
-        latent_channels=LATENT_CH,
-        latent_length=LATENT_LEN,
-        patch_size=4,
-        dim=32,
-        depth=1,
-        num_heads=4,
-        spec_dim=SPEC_DIM,
-    )
-    sched = CosineSchedule(num_steps=100)
-    return LSDModel(
-        prior=prior,
-        dit=dit,
-        decoder=decoder,
-        encoder=encoder,
-        schedule=sched,
-        sample_rate=24000,
-    )
-
-
-def _perturb_adaln(dit: MinimalDiT) -> None:
-    """Make the conditioning path active on an untrained DiT.
-
-    ``AdaLN.proj`` is zero-initialized by design (so an untrained model's
-    AdaLN produces zero scale/shift and ``c_spec`` has no effect).  Perturb
-    the AdaLN weights so that the conditioning vector actually steers the
-    predicted velocity, mirroring the approach in ``test_dit.py``.  This
-    does not train the model — it only unlocks the conditioning path so we
-    can assert it is wired and responsive without a converged trajectory.
-    """
-    for block in dit.blocks:
-        nn.init.normal_(block.adaln.proj.weight, std=0.02)
-        nn.init.normal_(block.adaln.proj.bias, std=0.02)
+    return make_model()
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +67,7 @@ class TestCSpecConditioningDivergence:
     def test_conditioned_v_pred_differs_from_unconditioned(self) -> None:
         """dit(z, t, c_spec=X) diverges from dit(z, t, c_spec=None)."""
         m = _make_model()
-        _perturb_adaln(m.dit)
+        perturb_adaln(m.dit)
         m.dit.eval()
 
         z = torch.randn(1, LATENT_CH, LATENT_LEN)
@@ -136,7 +86,7 @@ class TestCSpecConditioningDivergence:
     def test_two_different_c_specs_produce_different_v_preds(self, seed: int) -> None:
         """Two distinct c_spec vectors must yield different v_preds (same z, t)."""
         m = _make_model()
-        _perturb_adaln(m.dit)
+        perturb_adaln(m.dit)
         m.dit.eval()
 
         torch.manual_seed(seed + 1)

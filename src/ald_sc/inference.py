@@ -305,6 +305,12 @@ class LSDModel:
             ``n`` peak-normalised waveforms of shape ``(1, T)``.
         """
         s = _resolve_seed(seed)
+        if target_c_spec is None and guidance_scale != 1.0:
+            log.warning(
+                "guidance_scale_ignored",
+                msg="guidance_scale has no effect without target_c_spec",
+                guidance_scale=guidance_scale,
+            )
         bank: list[Tensor] = []
         for i in range(n):
             clip = self._sample_and_decode(

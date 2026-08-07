@@ -24,10 +24,16 @@ from torch import Tensor, nn
 from ald_sc.schedule import CosineSchedule
 from ald_sc.spectral_schedule import SpectralSchedule
 
-__all__ = ["sample_euler", "sample_ddim", "sample_ddim_steps", "sample_ddpm"]
+__all__ = [
+    "sample_euler",
+    "sample_ddim",
+    "sample_ddim_steps",
+    "sample_ddpm",
+    "cfg_forward",
+]
 
 
-def _cfg_forward(
+def cfg_forward(
     model: nn.Module,
     x: Tensor,
     t: Tensor,
@@ -178,7 +184,7 @@ def sample_euler(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
+        v = cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -286,7 +292,7 @@ def sample_ddim(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
+        v = cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -396,7 +402,7 @@ def sample_ddpm(
                 break
         steps_used += 1
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
+        v = cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
@@ -478,7 +484,7 @@ def sample_ddim_steps(
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
                 break
         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)
-        v = _cfg_forward(model, x, t, c_spec, guidance_scale)
+        v = cfg_forward(model, x, t, c_spec, guidance_scale)
 
         ab = schedule.alpha_bar[int(sig)]
         ab_prev = schedule.alpha_bar[int(sig_prev)]
