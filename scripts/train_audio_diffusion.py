@@ -34,6 +34,13 @@ def main() -> None:
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--num-heads", type=int, default=4)
     parser.add_argument("--q", type=int, default=8)
+    parser.add_argument(
+        "--base-channels",
+        type=int,
+        default=64,
+        help="Base channels for the fallback baseline decoder (only used when "
+        "--decoder is not provided)",
+    )
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -87,10 +94,13 @@ def main() -> None:
     else:
         encoder = EnCodecEncoder()
 
+    # Fallback baseline decoder (only used when --decoder is not provided;
+    # the DiT trains against the frozen encoder's latents, so this decoder
+    # is just a placeholder for the AudioVAE wrapper).
     decoder = BaselineAudioDecoder(
         latent_channels=args.latent_channels,
         out_channels=1,
-        base_channels=64,
+        base_channels=args.base_channels,
     )
     if args.decoder and Path(args.decoder).exists():
         decoder.load_state_dict(torch.load(args.decoder, weights_only=False))

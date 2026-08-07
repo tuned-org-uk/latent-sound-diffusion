@@ -14,18 +14,23 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 
 
 def _help_output(script: str) -> str:
     """Run a script with --help and return its stdout."""
-    result = subprocess.run(
-        [sys.executable, str(SCRIPTS_DIR / script), "--help"],
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / script), "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+    except subprocess.CalledProcessError as e:
+        pytest.fail(f"{script} --help failed:\n{e.stderr}")
     return result.stdout
 
 
