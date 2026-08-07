@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "f1d43d5c1f03",
+  "strategy": "manual-commit",
+  "branch": "feat/cfg-guidance-scale-issue-23",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/ald_sc/inference.py",
+    "src/ald_sc/sampling.py",
+    "tests/test_cfg_guidance.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f1/d43d5c1f03/0/metadata.json",
+      "transcript": "/f1/d43d5c1f03/0/full.jsonl",
+      "compact_transcript": "/f1/d43d5c1f03/0/transcript.jsonl",
+      "content_hash": "/f1/d43d5c1f03/0/content_hash.txt",
+      "prompt": "/f1/d43d5c1f03/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 47197,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1324096,
+    "output_tokens": 9949,
+    "api_call_count": 27
+  }
+}
