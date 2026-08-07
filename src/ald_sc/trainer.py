@@ -128,7 +128,8 @@ def train_audio_diffusion(
     device: torch.device = torch.device("cpu"),
     cfg_dropout: float = 0.1,
 ) -> Iterator[dict[str, float]]:
-    """Phase 2 audio diffusion training loop.
+    """Phase 2 audio diffusion training loop (see docs/03.md §2 for the
+    two-phase protocol: Phase 1 = VAE/decoder, Phase 2 = DiT).
 
     The VAE (encoder + trained decoder) and prior are frozen; only the
     1-D DiT is trained.  The spectral-chart conditioning vector ``c_spec``
@@ -150,7 +151,9 @@ def train_audio_diffusion(
         Frozen AudioVAE (encoder used for z0 and c_spec extraction).
     dit : nn.Module
         1-D DiT denoiser to train.  Must accept
-        ``dit(z_t, t, c_spec=c_spec)``.
+        ``dit(z_t, t, c_spec=c_spec)`` and expose a ``cfg_dropout``
+        attribute (e.g. ``MinimalDiT``).  A ``TypeError`` is raised at
+        call time if the attribute is absent.
     prior : ArrowSpacePrior
         Frozen prior (used inside the encoder to derive ``c_spec``).
     schedule : CosineSchedule
@@ -167,7 +170,19 @@ def train_audio_diffusion(
     ------
     dict[str, float]
         Loss dict with 'epoch', 'loss'.
+
+    Raises
+    ------
+    TypeError
+        If ``dit`` does not expose a ``cfg_dropout`` attribute.
     """
+    if not hasattr(dit, "cfg_dropout"):
+        raise TypeError(
+            f"{type(dit).__name__} does not expose a 'cfg_dropout' attribute. "
+            "train_audio_diffusion requires a DiT that supports CFG dropout "
+            "(e.g. MinimalDiT). Wrap your model or add the attribute."
+        )
+
     audio_vae = audio_vae.to(device).eval()
     prior = prior.to(device)
     dit = dit.to(device)
@@ -179,8 +194,7 @@ def train_audio_diffusion(
 
     # Propagate cfg_dropout to the DiT so its internal CFG mask uses the
     # same probability as the training loop intends.
-    if hasattr(dit, "cfg_dropout"):
-        dit.cfg_dropout = cfg_dropout
+    dit.cfg_dropout = cfg_dropout
 
     optimizer = torch.optim.Adam(dit.parameters(), lr=lr)
 

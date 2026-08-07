@@ -188,7 +188,28 @@ class LSDModel:
             unconditional-equivalent behaviour).  When provided, the
             DiT is steered toward the specified spectral region during
             the reverse diffusion process (target-mode sampling).
+
+            Note: ``c_spec_override`` is only forwarded when ``z_init``
+            is ``None`` (i.e. when sampling actually runs).  If both are
+            provided a ``ValueError`` is raised, because the sampling step
+            would be skipped and the override would have no effect.
+
+        Raises
+        ------
+        ValueError
+            If both ``z_init`` and ``c_spec_override`` are provided.  The
+            two arguments are mutually exclusive: ``c_spec_override`` steers
+            the DiT *during* sampling, which is skipped when ``z_init`` is
+            given.  Pass ``c_spec_override=None`` when supplying ``z_init``.
         """
+        if z_init is not None and c_spec_override is not None:
+            raise ValueError(
+                "z_init and c_spec_override are mutually exclusive. "
+                "c_spec_override steers the DiT during sampling, but sampling "
+                "is skipped when z_init is provided. "
+                "Pass c_spec_override=None when supplying z_init."
+            )
+
         device = next(self.dit.parameters()).device
 
         if z_init is None:
@@ -238,6 +259,15 @@ class LSDModel:
         with ``self.encoder.encode(ref_audio, self.prior)`` and pass the
         resulting ``c_spec`` here.
 
+        .. note::
+            When ``target_c_spec`` is used, **all samples in the bank share
+            the same conditioning signal** — only the per-sample noise seed
+            varies.  This produces a cohesive but potentially less diverse
+            bank compared to unconditioned generation.  If variety within
+            the bank is important, generate multiple banks with different
+            ``target_c_spec`` vectors (e.g. drawn from different reference
+            sounds) and merge them.
+
         Parameters
         ----------
         n : int
@@ -250,7 +280,7 @@ class LSDModel:
             Reproducible seed, or ``None`` for a non-repeatable run.
         target_c_spec : Tensor (1, spec_dim) or (B, spec_dim), optional
             Spectral conditioning vector to steer the DiT.  If shape is
-            ``(1, spec_dim)`` it is used for every sample in the bank.
+            ``(1, spec_dim)`` it is broadcast across all samples in the bank.
 
         Returns
         -------
@@ -296,6 +326,12 @@ class LSDModel:
         that latent toward a fresh noise draw (``strength`` controls how
         far from the source), then decoding with the graph decoder.
 
+        Note: because ``condition_on_audio`` passes ``z_init`` (the
+        interpolated latent) to ``_sample_and_decode``, ``c_spec_override``
+        is not forwarded into the sampler — the interpolated latent is
+        decoded directly.  Spectral steering here therefore comes from the
+        latent interpolation itself, not from DiT conditioning.
+
         Parameters
         ----------
         audio : Tensor (1, 1, T_audio) or (1, T_audio)
@@ -329,7 +365,10 @@ class LSDModel:
 
         device = next(self.dit.parameters()).device
         audio = audio.to(device)
-        z_cond, _, c_spec = self.encoder.encode(audio, self.prior)
+        z_cond, _, _c_spec = self.encoder.encode(audio, self.prior)
+        # Defensive: ensure z_cond is on the model device even if the encoder
+        # returned it on a different device (e.g. CPU encoder, CUDA DiT).
+        z_cond = z_cond.to(device)
 
         variants: list[Tensor] = []
         for i in range(n):
@@ -337,12 +376,15 @@ class LSDModel:
                 z_cond, generator=torch.Generator(device=device).manual_seed(s + i)
             )
             z = (1.0 - strength) * z_cond + strength * noise
+            # z_init is provided, so c_spec_override must be None (the two are
+            # mutually exclusive in _sample_and_decode).  Spectral steering
+            # comes from the latent interpolation, not DiT conditioning.
             clip = self._sample_and_decode(
                 seed=s + i,
                 steps=steps,
                 temperature=temperature,
                 z_init=z,
-                c_spec_override=c_spec,
+                c_spec_override=None,
             )
             variants.append(clip)
         log.info(
