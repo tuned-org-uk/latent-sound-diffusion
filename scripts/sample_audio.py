@@ -39,6 +39,13 @@ def main() -> None:
     parser.add_argument("--q", type=int, default=8)
     parser.add_argument("--num-steps", type=int, default=1000)
     parser.add_argument("--sample-rate", type=int, default=24000)
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=1.0,
+        help="Diversity knob mapped to DDIM eta (clamped 0-1). "
+        "0 = deterministic, 1 = full stochastic (DDPM-equivalent).",
+    )
     parser.add_argument("--out", type=str, default="results/sample.wav")
     args = parser.parse_args()
 
@@ -68,8 +75,19 @@ def main() -> None:
     sched = CosineSchedule(num_steps=args.num_steps)
 
     # Sample latent
-    print(f"Sampling latent (steps={args.steps}, seed={args.seed})...")
-    z = sample_ddim(dit, sched, batch_size=1, steps=args.steps, seed=args.seed, device=device)
+    from ald_sc.inference import _temperature_to_eta
+
+    eta = _temperature_to_eta(args.temperature)
+    print(f"Sampling latent (steps={args.steps}, seed={args.seed}, eta={eta})...")
+    z = sample_ddim(
+        dit,
+        sched,
+        batch_size=1,
+        steps=args.steps,
+        seed=args.seed,
+        device=device,
+        eta=eta,
+    )
     print(f"Sampled z shape: {z.shape}")
 
     # Derive c_spec from z (self-consistent decoding)
