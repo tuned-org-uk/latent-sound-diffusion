@@ -8,6 +8,8 @@ the real model.
 
 from __future__ import annotations
 
+import warnings
+
 import pytest
 import torch
 from torch import Tensor, nn
@@ -169,3 +171,46 @@ class TestEnCodecEncoder:
         """EnCodec encoder must have no trainable parameters."""
         for p in encoder._encodec.parameters():
             assert not p.requires_grad
+
+    def test_load_emits_no_weight_norm_future_warning(self) -> None:
+        """Loading the EnCodec model must not surface the deprecated weight_norm warning.
+
+        The third-party ``encodec`` package constructs its conv stack with the
+        deprecated ``torch.nn.utils.weight_norm`` hook (emitting a
+        ``FutureWarning``). ``EnCodecEncoder._load_model`` suppresses that
+        construction-time warning and migrates modules to the new
+        parametrization API, so loading stays warning-free and survives the
+        eventual removal of the old hook API.
+        """
+        enc = EnCodecEncoder()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            try:
+                enc._load_model()
+            except Exception:
+                pytest.skip("EnCodec model not available (no network or weights)")
+        msgs = [
+            str(w.message)
+            for w in caught
+            if issubclass(w.category, FutureWarning) and "weight_norm" in str(w.message)
+        ]
+        assert not msgs, f"unexpected weight_norm FutureWarning(s): {msgs}"
+
+    def test_loaded_model_has_no_deprecated_weight_norm_hooks(self) -> None:
+        """After load, no module should carry the deprecated WeightNorm hook."""
+        from torch.nn.utils.weight_norm import WeightNorm
+
+        enc = EnCodecEncoder()
+        try:
+            enc._load_model()
+        except Exception:
+            pytest.skip("EnCodec model not available (no network or weights)")
+
+        offenders = [
+            type(m).__name__
+            for m in enc._encodec.modules()
+            if any(isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values())
+        ]
+        assert not offenders, (
+            f"modules still carry deprecated weight_norm hook: {offenders}"
+        )
