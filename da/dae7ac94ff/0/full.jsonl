@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 1.6319097262800004,
+    "cost": 1.7366953662800002,
     "tokens": {
-      "input": 935344,
-      "output": 23740,
+      "input": 936255,
+      "output": 24360,
       "reasoning": 9982,
       "cache": {
-        "read": 4844289,
+        "read": 5231913,
         "write": 0
       }
     },
     "time": {
       "created": 1786126223424,
-      "updated": 1786127844009
+      "updated": 1786127863115
     }
   },
   "messages": [
@@ -12058,21 +12058,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.02612314,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 96977,
+          "input": 122,
+          "output": 186,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 96669
           }
         },
         "modelID": "glm-5.2",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786127844008
+          "created": 1786127844008,
+          "completed": 1786127849559
         },
+        "finish": "tool-calls",
         "id": "msg_fdd8402a8001xSQ9hrZSbFXSfy",
         "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
       },
@@ -12089,20 +12092,346 @@
           "tool": "bash",
           "callID": "chatcmpl-tool-9acefc72c1f895f9",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git commit -m \"fix: address PR #31 review feedback\n\n- Promote _cfg_forward to public cfg_forward in __all__: the CFG blend\n  is a reusable building block, and direct formula testing is valuable.\n  Removes the fragile private-import contract.\n- Add log.warning in generate_sound_bank when guidance_scale != 1.0 and\n  target_c_spec is None, so the silent no-op is debuggable.\n- Add sample_ddim_steps test coverage (scale=0 matches uncond, scale=3\n  diverges from cond) — closes the gap noted in the review.\n- Extract duplicated _perturb_adaln, StubEncoder, make_dit, make_model\n  and shared constants to tests/conftest.py; both test files now import\n  from there.\n- Bump version to 0.5.6.\""
             },
+            "output": "[feat/cfg-guidance-scale-issue-23 311ed43] fix: address PR #31 review feedback\n 6 files changed, 194 insertions(+), 156 deletions(-)\n create mode 100644 tests/conftest.py\n",
+            "metadata": {
+              "output": "[feat/cfg-guidance-scale-issue-23 311ed43] fix: address PR #31 review feedback\n 6 files changed, 194 insertions(+), 156 deletions(-)\n create mode 100644 tests/conftest.py\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git commit -m \"fix: address PR #31 review feedback\n\n- Promote _cfg_forward to public cfg_forward in __all__: the CFG blend\n  is a reusable building block, and direct formula testing is valuable.\n  Removes the fragile private-import contract.\n- Add log.warning in generate_sound_bank when guidance_scale != 1.0 and\n  target_c_spec is None, so the silent no-op is debuggable.\n- Add sample_ddim_steps test coverage (scale=0 matches uncond, scale=3\n  diverges from cond) — closes the gap noted in the review.\n- Extract duplicated _perturb_adaln, StubEncoder, make_dit, make_model\n  and shared constants to tests/conftest.py; both test files now import\n  from there.\n- Bump version to 0.5.6.\"",
             "time": {
-              "start": 1786127847343
+              "start": 1786127849443,
+              "end": 1786127849445
             }
           },
           "id": "prt_fdd84089b001i0VA7ztOCHSWHx",
           "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
           "messageID": "msg_fdd8402a8001xSQ9hrZSbFXSfy"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-finish",
+          "tokens": {
+            "total": 96977,
+            "input": 122,
+            "output": 186,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 96669
+            }
+          },
+          "cost": 0.02612314,
+          "id": "prt_fdd84181d001R17VqU9tOHAhzQ",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8402a8001xSQ9hrZSbFXSfy"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd7db702001I6L4Vu8nEbFiAD",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.0256066,
+        "tokens": {
+          "total": 97058,
+          "input": 246,
+          "output": 22,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 96790
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786127849563,
+          "completed": 1786127857354
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd84185b001K8HtRPTQmw7Nsi",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-start",
+          "id": "prt_fdd841dce001X9ZC746FWBbEEL",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd84185b001K8HtRPTQmw7Nsi"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "chatcmpl-tool-bb2710ca3cc16127",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git push github feat/cfg-guidance-scale-issue-23"
+            },
+            "output": "[entire] Pushing entire/checkpoints/v1 to github..... done\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n   9e8666c..311ed43  feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+            "metadata": {
+              "output": "[entire] Pushing entire/checkpoints/v1 to github..... done\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n   9e8666c..311ed43  feat/cfg-guidance-scale-issue-23 -> feat/cfg-guidance-scale-issue-23\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git push github feat/cfg-guidance-scale-issue-23",
+            "time": {
+              "start": 1786127857213,
+              "end": 1786127857217
+            }
+          },
+          "id": "prt_fdd841dcf001ckppAOZ7CeCioK",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd84185b001K8HtRPTQmw7Nsi"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-finish",
+          "tokens": {
+            "total": 97058,
+            "input": 246,
+            "output": 22,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 96790
+            }
+          },
+          "cost": 0.0256066,
+          "id": "prt_fdd843684001eo5iGuDlkHlF1E",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd84185b001K8HtRPTQmw7Nsi"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd7db702001I6L4Vu8nEbFiAD",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.0262699,
+        "tokens": {
+          "total": 97337,
+          "input": 96,
+          "output": 206,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 97035
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786127857358,
+          "completed": 1786127863110
+        },
+        "finish": "tool-calls",
+        "id": "msg_fdd8436ce001baogy7dqtYHBDI",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-start",
+          "id": "prt_fdd84427e001mFK97IxdnsLcF8",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8436ce001baogy7dqtYHBDI"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "chatcmpl-tool-82b365fd4eb51975",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "Promote _cfg_forward to public cfg_forward in __all__ (resolves fragile private import)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add log.warning when guidance_scale != 1.0 and target_c_spec is None (generate_sound_bank / _sample_and_decode)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add test coverage for sample_ddim_steps with guidance_scale",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Extract _perturb_adaln + StubEncoder + shared fixtures to conftest.py",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Run full lint + test suite",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Bump patch version, commit, push to PR",
+                  "priority": "high",
+                  "status": "completed"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"Promote _cfg_forward to public cfg_forward in __all__ (resolves fragile private import)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add log.warning when guidance_scale != 1.0 and target_c_spec is None (generate_sound_bank / _sample_and_decode)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add test coverage for sample_ddim_steps with guidance_scale\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Extract _perturb_adaln + StubEncoder + shared fixtures to conftest.py\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Run full lint + test suite\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Bump patch version, commit, push to PR\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "Promote _cfg_forward to public cfg_forward in __all__ (resolves fragile private import)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add log.warning when guidance_scale != 1.0 and target_c_spec is None (generate_sound_bank / _sample_and_decode)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add test coverage for sample_ddim_steps with guidance_scale",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Extract _perturb_adaln + StubEncoder + shared fixtures to conftest.py",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Run full lint + test suite",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Bump patch version, commit, push to PR",
+                  "status": "completed",
+                  "priority": "high"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "0 todos",
+            "time": {
+              "start": 1786127862951,
+              "end": 1786127862952
+            }
+          },
+          "id": "prt_fdd844280001NjMxjzJUQQ1E9a",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8436ce001baogy7dqtYHBDI"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-finish",
+          "tokens": {
+            "total": 97337,
+            "input": 96,
+            "output": 206,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 97035
+            }
+          },
+          "cost": 0.0262699,
+          "id": "prt_fdd844d0f0016jDBXhdd9GuZGQ",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd8436ce001baogy7dqtYHBDI"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_fdd7db702001I6L4Vu8nEbFiAD",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.026786,
+        "tokens": {
+          "total": 97783,
+          "input": 447,
+          "output": 206,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 97130
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786127863115,
+          "completed": 1786127869873
+        },
+        "finish": "stop",
+        "id": "msg_fdd844d4b001lqEw5xq9EsCIM5",
+        "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w"
+      },
+      "parts": [
+        {
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-start",
+          "id": "prt_fdd846236001yj5hVJNBdrQiG0",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd844d4b001lqEw5xq9EsCIM5"
+        },
+        {
+          "type": "text",
+          "text": "Pushed `311ed43` to PR #31. All review feedback addressed:\n\n1. **`_cfg_forward` → public `cfg_forward`** in `__all__` — the CFG blend is a reusable building block; direct formula testing is now a stable contract, not a fragile private import.\n2. **`log.warning`** in `generate_sound_bank` when `guidance_scale != 1.0` and `target_c_spec is None` — the silent no-op is now debuggable.\n3. **`sample_ddim_steps` test coverage** — 2 new tests (scale=0 matches uncond, scale=3 diverges from cond).\n4. **Deduplicated** `_perturb_adaln`, `StubEncoder`, `make_dit`, `make_model`, and shared constants into `tests/conftest.py`; both test files import from there.\n\n192 tests pass, lint + format clean. Version bumped to 0.5.6.",
+          "time": {
+            "start": 1786127868472,
+            "end": 1786127869740
+          },
+          "id": "prt_fdd846238001rrUZUK7eR1XMhK",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd844d4b001lqEw5xq9EsCIM5"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "7f20ec87a20ff35e325e481a2537ff42f33b2a92",
+          "type": "step-finish",
+          "tokens": {
+            "total": 97783,
+            "input": 447,
+            "output": 206,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 97130
+            }
+          },
+          "cost": 0.026786,
+          "id": "prt_fdd84676e0018mYLg8RvGxL8nk",
+          "sessionID": "ses_02294b7bfffel0EmvmFxVhOW1w",
+          "messageID": "msg_fdd844d4b001lqEw5xq9EsCIM5"
         }
       ]
     }
