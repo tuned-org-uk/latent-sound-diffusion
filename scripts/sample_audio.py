@@ -31,7 +31,14 @@ def main() -> None:
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--seed", type=int, default=3407)
     parser.add_argument("--latent-channels", type=int, default=128)
-    parser.add_argument("--latent-length", type=int, default=75)
+    parser.add_argument("--audio-length", type=int, default=24000)
+    parser.add_argument(
+        "--latent-length",
+        type=int,
+        default=None,
+        help="Latent length (frames). If not given, derived as "
+        "audio_length // 320 (EnCodec stride).",
+    )
     parser.add_argument("--patch-size", type=int, default=8)
     parser.add_argument("--dim", type=int, default=256)
     parser.add_argument("--depth", type=int, default=4)
@@ -53,10 +60,30 @@ def main() -> None:
         help="Classifier-free guidance scale. 1.0 = pure conditional, "
         "0.0 = unconditional, >1.0 = amplified conditioning.",
     )
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        default=1,
+        help="Number of samples to generate. Outputs are saved as "
+        "sample_00.wav, sample_01.wav, etc. (or sample.wav if n=1).",
+    )
+    parser.add_argument(
+        "--per-sample-conditioning",
+        action="store_true",
+        default=False,
+        help="Resample c_spec independently for each generated sample. "
+        "Produces a more varied sound bank at the cost of spectral "
+        "coherence across samples. Default: shared c_spec (coherent bank).",
+    )
     parser.add_argument("--out", type=str, default="results/sample.wav")
     args = parser.parse_args()
 
     device = torch.device("cpu")
+
+    # Derive latent_length from audio_length if not explicitly set (#28 #4).
+    latent_length = args.latent_length
+    if latent_length is None:
+        latent_length = args.audio_length // 320
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
@@ -69,7 +96,7 @@ def main() -> None:
     # Build DiT
     dit = MinimalDiT(
         latent_channels=args.latent_channels,
-        latent_length=args.latent_length,
+        latent_length=latent_length,
         patch_size=args.patch_size,
         dim=args.dim,
         depth=args.depth,
@@ -81,45 +108,17 @@ def main() -> None:
     dit = dit.to(device).eval()
     sched = CosineSchedule(num_steps=args.num_steps)
 
-    # Sample latent
     from ald_sc.inference import _temperature_to_eta
 
     eta = _temperature_to_eta(args.temperature)
 
-    # Compute a c_spec conditioning vector from a probe latent so the
-    # DiT runs conditionally and --guidance-scale has an effect (issue #36
-    # finding #1).  Without this, cfg_forward short-circuits to
-    # unconditional and guidance_scale is a no-op.
+    # Compute shared c_spec probe (used unless --per-sample-conditioning).
     with torch.no_grad():
-        z_probe = torch.randn(
-            1, args.latent_channels, args.latent_length, device=device
-        )
+        z_probe = torch.randn(1, args.latent_channels, latent_length, device=device)
         a_probe = z_probe.mean(dim=2)
-        c_spec_cond = prior.chart_energy_descriptor(a_probe)
+        c_spec_shared = prior.chart_energy_descriptor(a_probe)
 
-    print(
-        f"Sampling latent (steps={args.steps}, seed={args.seed}, "
-        f"eta={eta}, guidance_scale={args.guidance_scale})..."
-    )
-    z = sample_ddim(
-        dit,
-        sched,
-        c_spec=c_spec_cond,
-        batch_size=1,
-        steps=args.steps,
-        seed=args.seed,
-        device=device,
-        eta=eta,
-        guidance_scale=args.guidance_scale,
-    )
-    print(f"Sampled z shape: {z.shape}")
-
-    # Derive c_spec from z (self-consistent decoding)
-    a = z.mean(dim=2)
-    c_spec = prior.chart_energy_descriptor(a)
-    print(f"c_spec shape: {c_spec.shape}")
-
-    # Decode
+    # Decode setup
     if args.graph:
         decoder = GraphDecoder(
             latent_channels=args.latent_channels,
@@ -139,26 +138,69 @@ def main() -> None:
         decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
     decoder = decoder.to(device).eval()
 
-    with torch.no_grad():
-        if isinstance(decoder, BaselineAudioDecoder):
-            audio = decoder(z)
-        else:
-            audio = decoder(z, c_spec)
-
-    print(f"Audio shape: {audio.shape}")
-
-    # Normalize and save
-    audio = audio.squeeze(0)  # (1, T) -> (T,) or keep (1, T)
-    if audio.dim() == 1:
-        audio = audio.unsqueeze(0)  # (1, T)
-    peak = audio.abs().max()
-    if peak > 0:
-        audio = audio / peak
-
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    soundfile.write(str(out_path), audio.squeeze(0).numpy(), args.sample_rate)
-    print(f"Saved audio to {out_path} ({audio.shape[1] / args.sample_rate:.2f}s)")
+
+    print(
+        f"Generating {args.num_samples} sample(s) "
+        f"(steps={args.steps}, seed={args.seed}, eta={eta}, "
+        f"guidance_scale={args.guidance_scale}, "
+        f"per_sample_conditioning={args.per_sample_conditioning})..."
+    )
+
+    for idx in range(args.num_samples):
+        sample_seed = args.seed + idx
+
+        if args.per_sample_conditioning:
+            g = torch.Generator(device=device).manual_seed(sample_seed + 1000)
+            z_probe_i = torch.randn(
+                1, args.latent_channels, latent_length, device=device, generator=g
+            )
+            c_spec_i = prior.chart_energy_descriptor(z_probe_i.mean(dim=2))
+        else:
+            c_spec_i = c_spec_shared
+
+        with torch.no_grad():
+            z = sample_ddim(
+                dit,
+                sched,
+                c_spec=c_spec_i,
+                batch_size=1,
+                steps=args.steps,
+                seed=sample_seed,
+                device=device,
+                eta=eta,
+                guidance_scale=args.guidance_scale,
+            )
+
+            # Derive c_spec from z for self-consistent decoding
+            a = z.mean(dim=2)
+            c_spec = prior.chart_energy_descriptor(a)
+
+            if isinstance(decoder, BaselineAudioDecoder):
+                audio = decoder(z)
+            else:
+                audio = decoder(z, c_spec)
+
+        # Normalize
+        audio = audio.squeeze(0)
+        if audio.dim() == 1:
+            audio = audio.unsqueeze(0)
+        peak = audio.abs().max()
+        if peak > 0:
+            audio = audio / peak
+
+        if args.num_samples == 1:
+            fname = out_path
+        else:
+            fname = out_path.parent / f"{out_path.stem}_{idx:02d}{out_path.suffix}"
+
+        soundfile.write(str(fname), audio.squeeze(0).numpy(), args.sample_rate)
+        print(
+            f"  [{idx + 1}/{args.num_samples}] Saved to {fname} ({audio.shape[1] / args.sample_rate:.2f}s)"
+        )
+
+    print("Done.")
 
 
 if __name__ == "__main__":
