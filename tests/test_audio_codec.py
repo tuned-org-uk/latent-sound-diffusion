@@ -38,7 +38,9 @@ class StubEncoder(nn.Module):
         self.latent_dim = latent_dim
         self.proj = nn.Conv1d(1, latent_dim, 320, stride=320)
 
-    def encode(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor]:
+    def encode(
+        self, x: Tensor, prior: ArrowSpacePrior
+    ) -> tuple[Tensor, Tensor, Tensor]:
         z = self.proj(x).float()
         a = z.mean(dim=2)
         c_spec = prior.chart_energy_descriptor(a)
@@ -133,9 +135,7 @@ class TestExtractFeatures:
     def test_extract_features_shape(self) -> None:
         """Extract features from a stub encoder."""
         encoder = StubEncoder(latent_dim=128)
-        loader = torch.utils.data.DataLoader(
-            torch.randn(8, 1, 320 * 4), batch_size=4
-        )
+        loader = torch.utils.data.DataLoader(torch.randn(8, 1, 320 * 4), batch_size=4)
         features = extract_encodec_features(loader, encoder)  # type: ignore
         assert features.shape == (8, 128)
 

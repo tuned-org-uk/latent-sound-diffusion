@@ -95,11 +95,17 @@ class ALDSCLoss:
             hop = n_fft // 4
             window = self._windows[n_fft].to(device=x.device, dtype=x.dtype)
             spec_x = torch.stft(
-                x, n_fft, hop_length=hop, return_complex=True,
+                x,
+                n_fft,
+                hop_length=hop,
+                return_complex=True,
                 window=window,
             )
             spec_xhat = torch.stft(
-                x_hat, n_fft, hop_length=hop, return_complex=True,
+                x_hat,
+                n_fft,
+                hop_length=hop,
+                return_complex=True,
                 window=window,
             )
 

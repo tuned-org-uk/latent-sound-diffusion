@@ -51,8 +51,12 @@ def _init_noise(
         )
     latent_size = getattr(model, "latent_size", 32)
     return torch.randn(
-        batch_size, latent_channels, latent_size, latent_size,
-        device=device, generator=gen,
+        batch_size,
+        latent_channels,
+        latent_size,
+        latent_size,
+        device=device,
+        generator=gen,
     )
 
 
