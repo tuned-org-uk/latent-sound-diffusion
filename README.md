@@ -181,6 +181,12 @@ cd latent-sound-diffusion
 uv sync
 ```
 
+Enable the pre-commit hook (lint + format with ruff):
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Usage
 
 ```bash

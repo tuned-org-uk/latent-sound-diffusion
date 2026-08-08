@@ -87,8 +87,7 @@ class TestChartLossNonZero:
         assert len(records) > 0
         chart_values = [r["chart"] for r in records]
         assert any(c > 1e-6 for c in chart_values), (
-            f"chart_loss is always zero — A_hat == A.detach(). "
-            f"Values: {chart_values}"
+            f"chart_loss is always zero — A_hat == A.detach(). Values: {chart_values}"
         )
 
     def test_chart_loss_reflects_reconstruction_quality(self) -> None:
@@ -158,22 +157,32 @@ class TestSNRWeighting:
 
         losses_none = list(
             train_audio_diffusion(
-                loader, vae, dit_none, prior, sched, epochs=1, lr=1e-3,
+                loader,
+                vae,
+                dit_none,
+                prior,
+                sched,
+                epochs=1,
+                lr=1e-3,
                 loss_weighting="none",
             )
         )
         losses_snr = list(
             train_audio_diffusion(
-                loader, vae, dit_snr, prior, sched, epochs=1, lr=1e-3,
+                loader,
+                vae,
+                dit_snr,
+                prior,
+                sched,
+                epochs=1,
+                lr=1e-3,
                 loss_weighting="snr",
             )
         )
         assert len(losses_none) > 0
         assert len(losses_snr) > 0
         # Per-batch loss values differ because of the per-timestep weight.
-        diffs = [
-            abs(a["loss"] - b["loss"]) for a, b in zip(losses_none, losses_snr)
-        ]
+        diffs = [abs(a["loss"] - b["loss"]) for a, b in zip(losses_none, losses_snr)]
         assert any(d > 1e-6 for d in diffs), (
             f"SNR weighting produces same loss as unweighted: {diffs}"
         )
@@ -201,7 +210,13 @@ class TestSNRWeighting:
 
         losses = list(
             train_audio_diffusion(
-                loader, vae, dit, prior, sched, epochs=5, lr=1e-3,
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=5,
+                lr=1e-3,
                 loss_weighting="snr",
             )
         )
@@ -232,7 +247,12 @@ class TestSNRWeighting:
         raised = False
         try:
             it = train_audio_diffusion(
-                loader, vae, dit, prior, sched, epochs=1,
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=1,
                 loss_weighting="bogus",
             )
             next(it)
@@ -281,7 +301,13 @@ class TestGradientClipping:
         # Run with large LR and clipping — check that gradients don't explode.
         records = list(
             _tad(
-                loader, vae, dit, prior, sched, epochs=1, lr=1.0,
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=1,
+                lr=1.0,
                 grad_clip=1.0,
             )
         )
@@ -316,7 +342,13 @@ class TestGradientClipping:
         )
         records = list(
             train_audio_diffusion(
-                loader, vae, dit, prior, sched, epochs=1, lr=1e-3,
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=1,
+                lr=1e-3,
                 grad_clip=0.0,
             )
         )

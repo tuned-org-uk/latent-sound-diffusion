@@ -1,0 +1,37 @@
+#!/bin/sh
+# Pre-commit hook: lint and format with ruff.
+# Runs `ruff check --fix` (auto-fix lint errors) and `ruff format`.
+# Aborts the commit if lint errors remain after auto-fix.
+#
+# Setup: git config core.hooksPath .githooks
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+cd "$REPO_ROOT" || exit 1
+
+if command -v ruff >/dev/null 2>&1; then
+    RUFF_BIN="ruff"
+elif command -v uv >/dev/null 2>&1; then
+    RUFF_BIN="uv run ruff"
+else
+    echo "[pre-commit] ruff not found, skipping lint/format." >&2
+    exit 0
+fi
+
+echo "[pre-commit] Running ruff format..."
+$RUFF_BIN format src tests scripts
+if [ $? -ne 0 ]; then
+    echo "[pre-commit] ruff format failed." >&2
+    exit 1
+fi
+
+echo "[pre-commit] Running ruff check --fix..."
+$RUFF_BIN check --fix src tests scripts
+if [ $? -ne 0 ]; then
+    echo "[pre-commit] ruff check failed — lint errors remain after auto-fix." >&2
+    exit 1
+fi
+
+git add src tests scripts
+
+echo "[pre-commit] Lint and format passed."

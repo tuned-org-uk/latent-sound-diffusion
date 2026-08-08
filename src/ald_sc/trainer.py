@@ -104,9 +104,7 @@ def train_audio_decoder(
             # Derive A_hat from the reconstruction (not A.detach(), which
             # would make chart_loss a no-op — issue #36 finding #2).
             with torch.no_grad():
-                A_hat = audio_vae.encoder.extract_features(
-                    x_hat.detach()
-                ).mean(dim=2)
+                A_hat = audio_vae.encoder.extract_features(x_hat.detach()).mean(dim=2)
             losses = loss_fn(x, x_hat, A, A_hat)
 
             losses["total"].backward()
@@ -205,8 +203,7 @@ def train_audio_diffusion(
     valid_weightings = {"snr", "none"}
     if loss_weighting not in valid_weightings:
         raise ValueError(
-            f"loss_weighting must be one of {valid_weightings}, "
-            f"got {loss_weighting!r}"
+            f"loss_weighting must be one of {valid_weightings}, got {loss_weighting!r}"
         )
 
     audio_vae = audio_vae.to(device).eval()
@@ -242,8 +239,8 @@ def train_audio_diffusion(
             # of the batch when self.cfg_dropout > 0 and self.training).
             v_pred = dit(z_t, t, c_spec=c_spec)
 
-            per_element = (v_pred - v_target).pow(2).mean(
-                dim=tuple(range(1, v_pred.dim()))
+            per_element = (
+                (v_pred - v_target).pow(2).mean(dim=tuple(range(1, v_pred.dim())))
             )  # (B,)
 
             if loss_weighting == "snr":
