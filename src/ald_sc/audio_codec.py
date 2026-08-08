@@ -32,6 +32,48 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+def _migrate_weight_norm(model: nn.Module) -> int:
+    """Convert deprecated ``weight_norm`` hooks to the new parametrization API.
+
+    PyTorch deprecated ``torch.nn.utils.weight_norm`` (a forward pre-hook that
+    materialises ``weight_g``/``weight_v``) in favour of
+    ``torch.nn.utils.parametrizations.weight_norm`` (a proper parametrization).
+    The third-party ``encodec`` package still constructs its conv stack with
+    the old hook, which emits a ``FutureWarning`` on every load and will raise
+    a hard error once PyTorch removes the old API.
+
+    This iterates every module carrying the deprecated ``WeightNorm`` forward
+    pre-hook, removes it (merging ``weight_g``/``weight_v`` back into
+    ``weight``) and re-applies the new parametrization with the same ``name``
+    and ``dim``. The effective weights are preserved (the round-trip is the
+    identity up to floating point), so model outputs are unchanged.
+
+    Parameters
+    ----------
+    model : nn.Module
+        Model whose modules may carry the deprecated hook.
+
+    Returns
+    -------
+    int
+        Number of modules migrated (``0`` means nothing to do).
+    """
+    from torch.nn.utils.weight_norm import WeightNorm
+
+    migrated = 0
+    for module in model.modules():
+        hooks = [
+            h for h in module._forward_pre_hooks.values() if isinstance(h, WeightNorm)
+        ]
+        for hook in hooks:
+            name = hook.name
+            dim = hook.dim
+            torch.nn.utils.remove_weight_norm(module, name)
+            torch.nn.utils.parametrizations.weight_norm(module, name=name, dim=dim)
+            migrated += 1
+    return migrated
+
+
 class EnCodecEncoder(nn.Module):
     """Frozen EnCodec encoder wrapper for audio latent extraction.
 
@@ -62,14 +104,38 @@ class EnCodecEncoder(nn.Module):
         self._loaded = False
 
     def _load_model(self) -> None:
-        """Lazily load the EnCodec model (deferred to avoid import on init)."""
+        """Lazily load the EnCodec model (deferred to avoid import on init).
+
+        The third-party ``encodec`` package builds its conv stack with the
+        deprecated ``torch.nn.utils.weight_norm`` hook, which raises a
+        ``FutureWarning`` on construction and will become a hard error once
+        PyTorch removes that API (see issue #33). We suppress that
+        construction-time warning and immediately migrate every affected
+        module to the new ``torch.nn.utils.parametrizations.weight_norm``
+        parametrization, so the effective weights are preserved but the
+        model no longer depends on the deprecated hook at inference time.
+        """
         if self._loaded:
             return
         try:
+            import warnings
+
             from encodec import EncodecModel
 
-            self._encodec = EncodecModel.encodec_model_24khz()
-            self._encodec.set_target_bandwidth(self.bandwidth)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=r".*weight_norm.*deprecated.*",
+                    category=FutureWarning,
+                )
+                self._encodec = EncodecModel.encodec_model_24khz()
+                self._encodec.set_target_bandwidth(self.bandwidth)
+                migrated = _migrate_weight_norm(self._encodec)
+            if migrated:
+                logger.debug(
+                    "migrated %d weight_norm hook(s) to parametrization API",
+                    migrated,
+                )
             for p in self._encodec.parameters():
                 p.requires_grad_(False)
             self._encodec.eval()
