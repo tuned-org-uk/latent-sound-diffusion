@@ -60,6 +60,9 @@ class ALDSCLoss:
         self.lambda_smooth = lambda_smooth
         self.lambda_kl = lambda_kl
         self.stft_fft_sizes = stft_fft_sizes
+        self._windows: dict[int, Tensor] = {
+            n: torch.hann_window(n) for n in stft_fft_sizes
+        }
 
     def rec_loss(self, x: Tensor, x_hat: Tensor) -> Tensor:
         """L1 reconstruction loss."""
@@ -90,13 +93,14 @@ class ALDSCLoss:
         total_loss = torch.tensor(0.0, device=x.device, dtype=x.dtype)
         for n_fft in self.stft_fft_sizes:
             hop = n_fft // 4
+            window = self._windows[n_fft].to(device=x.device, dtype=x.dtype)
             spec_x = torch.stft(
                 x, n_fft, hop_length=hop, return_complex=True,
-                window=torch.hann_window(n_fft, device=x.device),
+                window=window,
             )
             spec_xhat = torch.stft(
                 x_hat, n_fft, hop_length=hop, return_complex=True,
-                window=torch.hann_window(n_fft, device=x.device),
+                window=window,
             )
 
             mag_x = spec_x.abs().clamp(min=1e-7)
