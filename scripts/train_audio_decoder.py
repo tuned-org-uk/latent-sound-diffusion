@@ -10,6 +10,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -153,6 +154,30 @@ def main() -> None:
 
     torch.save(decoder.state_dict(), args.out)
     print(f"Saved decoder to {args.out}")
+
+    # Export safetensors for trainable components (issue #28 #3).
+    from safetensors.torch import save_file
+
+    safe_path = str(Path(args.out).with_suffix(".safetensors"))
+    save_file(decoder.state_dict(), safe_path)
+    print(f"Exported decoder safetensors to {safe_path}")
+
+    # Save architecture config alongside checkpoint (issue #28 #5).
+    config = {
+        "decoder_type": decoder_type,
+        "latent_channels": args.latent_channels,
+        "out_channels": 1,
+        "feature_dim": args.feature_dim,
+        "base_channels": args.base_channels,
+        "q": args.q,
+        "k": 4,
+        "upsample_strides": [2, 4, 5, 8],
+        "audio_length": args.audio_length,
+        "sample_rate": 24000,
+    }
+    config_path = Path(args.out).with_suffix("").parent / "config.json"
+    config_path.write_text(json.dumps(config, indent=2))
+    print(f"Saved config to {config_path}")
 
 
 if __name__ == "__main__":
