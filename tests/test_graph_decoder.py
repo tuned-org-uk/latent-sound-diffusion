@@ -12,7 +12,6 @@ analogue of the VAE reparameterization trick.
 from __future__ import annotations
 
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.graph_decoder import GraphDecoder, WaveReconstructionBlock
@@ -139,9 +138,7 @@ class TestGraphDecoder:
             prior=prior,
             upsample_strides=(2, 2),
         )
-        wave_blocks = [
-            m for m in decoder.modules() if isinstance(m, WaveReconstructionBlock)
-        ]
+        wave_blocks = [m for m in decoder.modules() if isinstance(m, WaveReconstructionBlock)]
         assert len(wave_blocks) >= 1, "Decoder must use WaveReconstructionBlock"
 
     def test_prior_buffers_not_trained(self) -> None:

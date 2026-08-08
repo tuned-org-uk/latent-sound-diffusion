@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.losses import ALDSCLoss

@@ -46,9 +46,7 @@ def _init_noise(
     # Fallback for models without latent_shape
     latent_length = getattr(model, "latent_length", None)
     if latent_length is not None:
-        return torch.randn(
-            batch_size, latent_channels, latent_length, device=device, generator=gen
-        )
+        return torch.randn(batch_size, latent_channels, latent_length, device=device, generator=gen)
     latent_size = getattr(model, "latent_size", 32)
     return torch.randn(
         batch_size,
@@ -112,6 +110,8 @@ def sample_euler(
     steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
         if spectral_schedule is not None:
+            if hasattr(spectral_schedule, "update"):
+                spectral_schedule.update(x)
             t_frac = sig / schedule.num_steps
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
                 break
@@ -181,6 +181,8 @@ def sample_ddim(
     steps_used = 0
     for sig, sig_prev in _pairwise(sigmas.tolist()):
         if spectral_schedule is not None:
+            if hasattr(spectral_schedule, "update"):
+                spectral_schedule.update(x)
             t_frac = sig / schedule.num_steps
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
                 break
@@ -230,6 +232,8 @@ def sample_ddim_steps(
 
     for sig, sig_prev in _pairwise(sigmas.tolist()):
         if spectral_schedule is not None:
+            if hasattr(spectral_schedule, "update"):
+                spectral_schedule.update(x)
             t_frac = sig / schedule.num_steps
             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):
                 break

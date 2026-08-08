@@ -62,9 +62,7 @@ def _migrate_weight_norm(model: nn.Module) -> int:
 
     migrated = 0
     for module in model.modules():
-        hooks = [
-            h for h in module._forward_pre_hooks.values() if isinstance(h, WeightNorm)
-        ]
+        hooks = [h for h in module._forward_pre_hooks.values() if isinstance(h, WeightNorm)]
         for hook in hooks:
             name = hook.name
             dim = hook.dim
@@ -144,9 +142,7 @@ class EnCodecEncoder(nn.Module):
             logger.warning("Failed to load EnCodec model: %s", e)
             raise
 
-    def encode(
-        self, x: Tensor, prior: ArrowSpacePrior
-    ) -> tuple[Tensor, Tensor, Tensor]:
+    def encode(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor]:
         """Encode audio waveform to (z, A, c_spec).
 
         Parameters
@@ -273,9 +269,7 @@ class BaselineAudioDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(
-            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
-        )
+        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
 
     def forward(self, z: Tensor) -> Tensor:
         """Decode 1-D latent to waveform (no spectral conditioning).
@@ -320,9 +314,7 @@ class AudioVAE(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(
-        self, x: Tensor, prior: ArrowSpacePrior
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    def forward(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         """Full encode-decode pass.
 
         Parameters

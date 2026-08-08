@@ -60,9 +60,7 @@ class ALDSCLoss:
         self.lambda_smooth = lambda_smooth
         self.lambda_kl = lambda_kl
         self.stft_fft_sizes = stft_fft_sizes
-        self._windows: dict[int, Tensor] = {
-            n: torch.hann_window(n) for n in stft_fft_sizes
-        }
+        self._windows: dict[int, Tensor] = {n: torch.hann_window(n) for n in stft_fft_sizes}
 
     def rec_loss(self, x: Tensor, x_hat: Tensor) -> Tensor:
         """L1 reconstruction loss."""

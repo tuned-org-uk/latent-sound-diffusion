@@ -25,7 +25,6 @@ from pathlib import Path
 
 import soundfile
 import structlog
-
 import torch
 import torchaudio
 from torch import Tensor, nn
@@ -33,8 +32,8 @@ from torch import Tensor, nn
 from ald_sc._logging import configure_logging
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.audio_codec import BaselineAudioDecoder, EnCodecEncoder
-from ald_sc.schedule import CosineSchedule
 from ald_sc.sampling import sample_ddim
+from ald_sc.schedule import CosineSchedule
 
 configure_logging()
 
@@ -62,9 +61,7 @@ def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
 def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
     """Resample a 1-D (T,) waveform to a target length (mono, no batch)."""
     wave = wave.unsqueeze(0)  # (1, T)
-    resampler = torchaudio.transforms.Resample(
-        orig_freq=wave.shape[-1], new_freq=new_length
-    )
+    resampler = torchaudio.transforms.Resample(orig_freq=wave.shape[-1], new_freq=new_length)
     return resampler(wave).squeeze(0)
 
 
@@ -128,9 +125,7 @@ class LSDModel:
         """
         root_dir = Path(root_dir)
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-        safe_slug = (
-            "".join(c if c.isalnum() or c in "-_" else "-" for c in slug) or "model"
-        )
+        safe_slug = "".join(c if c.isalnum() or c in "-_" else "-" for c in slug) or "model"
         model_dir = root_dir / f"{ts}-{safe_slug}"
         model_dir.mkdir(parents=True, exist_ok=True)
 
@@ -145,9 +140,7 @@ class LSDModel:
             "sample_rate": self.sample_rate,
             "latent_channels": latent_channels,
             "latent_length": latent_length,
-            "decoder_type": type(self.decoder).__module__
-            + "."
-            + type(self.decoder).__name__,
+            "decoder_type": type(self.decoder).__module__ + "." + type(self.decoder).__name__,
             "schedule_num_steps": schedule_steps,
             "hyperparameters": dict(hyperparams) if hyperparams else {},
         }
@@ -224,9 +217,7 @@ class LSDModel:
         s = _resolve_seed(seed)
         bank: list[Tensor] = []
         for i in range(n):
-            clip = self._sample_and_decode(
-                seed=s + i, steps=steps, temperature=temperature
-            )
+            clip = self._sample_and_decode(seed=s + i, steps=steps, temperature=temperature)
             bank.append(clip)
         log.info("sound_bank", n=n, steps=steps, temperature=temperature, seed=s)
         return bank
@@ -272,9 +263,7 @@ class LSDModel:
         if audio.dim() == 2:
             audio = audio.unsqueeze(0)
         if audio.dim() != 3 or audio.shape[1] != 1:
-            raise ValueError(
-                f"audio must be (1, 1, T) or (1, T); got {tuple(audio.shape)}"
-            )
+            raise ValueError(f"audio must be (1, 1, T) or (1, T); got {tuple(audio.shape)}")
 
         strength = float(max(0.0, min(1.0, strength)))
         s = _resolve_seed(seed)
@@ -283,9 +272,7 @@ class LSDModel:
 
         variants: list[Tensor] = []
         for i in range(n):
-            noise = torch.randn_like(
-                z_cond, generator=torch.Generator().manual_seed(s + i)
-            )
+            noise = torch.randn_like(z_cond, generator=torch.Generator().manual_seed(s + i))
             z = (1.0 - strength) * z_cond + strength * noise
             clip = self._sample_and_decode(
                 seed=s + i, steps=steps, temperature=temperature, z_init=z
@@ -391,12 +378,10 @@ class Bank:
         ISO timestamp of generation; defaults to now.
     """
 
-    model: "LSDModel"
+    model: LSDModel
     clips: list[Tensor]
     name: str = "bank"
-    generated_at: str = field(
-        default_factory=lambda: datetime.now().isoformat(timespec="seconds")
-    )
+    generated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
 
     def __post_init__(self) -> None:
         if not self.clips:
@@ -439,15 +424,13 @@ class Bank:
     @classmethod
     def from_generation(
         cls,
-        model: "LSDModel",
+        model: LSDModel,
         n: int = 8,
         steps: int = 50,
         temperature: float = 1.0,
         seed: int | None = None,
         name: str = "bank",
-    ) -> "Bank":
+    ) -> Bank:
         """Generate a bank and wrap it in a Bank."""
-        clips = model.generate_sound_bank(
-            n=n, steps=steps, temperature=temperature, seed=seed
-        )
+        clips = model.generate_sound_bank(n=n, steps=steps, temperature=temperature, seed=seed)
         return cls(model=model, clips=clips, name=name)

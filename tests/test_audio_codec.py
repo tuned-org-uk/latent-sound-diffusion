@@ -12,16 +12,15 @@ import warnings
 
 import pytest
 import torch
-from torch import Tensor, nn
-
 from ald_sc.arrow_prior import ArrowSpacePrior
-from ald_sc.build_prior import build_arrow_prior
 from ald_sc.audio_codec import (
     AudioVAE,
     BaselineAudioDecoder,
     EnCodecEncoder,
     extract_encodec_features,
 )
+from ald_sc.build_prior import build_arrow_prior
+from torch import Tensor, nn
 
 
 def _make_prior(f: int = 32, q: int = 8) -> ArrowSpacePrior:
@@ -38,9 +37,7 @@ class StubEncoder(nn.Module):
         self.latent_dim = latent_dim
         self.proj = nn.Conv1d(1, latent_dim, 320, stride=320)
 
-    def encode(
-        self, x: Tensor, prior: ArrowSpacePrior
-    ) -> tuple[Tensor, Tensor, Tensor]:
+    def encode(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor]:
         z = self.proj(x).float()
         a = z.mean(dim=2)
         c_spec = prior.chart_energy_descriptor(a)
@@ -211,6 +208,4 @@ class TestEnCodecEncoder:
             for m in enc._encodec.modules()
             if any(isinstance(h, WeightNorm) for h in m._forward_pre_hooks.values())
         ]
-        assert not offenders, (
-            f"modules still carry deprecated weight_norm hook: {offenders}"
-        )
+        assert not offenders, f"modules still carry deprecated weight_norm hook: {offenders}"

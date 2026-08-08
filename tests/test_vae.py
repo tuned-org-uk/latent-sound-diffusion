@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.vae import SpectralVAE
@@ -59,9 +58,7 @@ class TestSpectralVAE:
         x2 = torch.randn(2, 3, 32, 32)
         _, _, c1, _ = vae(x1, prior)
         _, _, c2, _ = vae(x2, prior)
-        assert not torch.allclose(c1, c2, atol=1e-6), (
-            "c_spec must change with different inputs"
-        )
+        assert not torch.allclose(c1, c2, atol=1e-6), "c_spec must change with different inputs"
 
     def test_kl_loss(self) -> None:
         prior = _make_prior(f=32, q=8)

@@ -109,9 +109,7 @@ class ArrowSpacePrior(nn.Module):
             A_pooled = A.mean(dim=1)
         else:
             A_pooled = A
-        return (A_pooled @ self.U_q).pow(2) / (
-            A_pooled.pow(2).sum(dim=-1, keepdim=True) + 1e-8
-        )
+        return (A_pooled @ self.U_q).pow(2) / (A_pooled.pow(2).sum(dim=-1, keepdim=True) + 1e-8)
 
     def chart_energy_descriptor(self, A: Tensor) -> Tensor:
         """Full spectral conditioning vector c_spec = [e_tilde, lambda_chart, nu].

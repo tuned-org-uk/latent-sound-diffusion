@@ -82,7 +82,7 @@ class WireGraph:
         seed: int = 3407,
         mode: str = "feature",
         graph_params: dict | None = None,
-    ) -> "WireGraph":
+    ) -> WireGraph:
         """Build a graph Laplacian via ArrowSpace.
 
         Parameters
@@ -158,9 +158,7 @@ class WireGraph:
 
         L = torch.from_numpy(L_np)
         lambdas = (
-            torch.from_numpy(lambdas_np.astype(np.float32))
-            if lambdas_np is not None
-            else None
+            torch.from_numpy(lambdas_np.astype(np.float32)) if lambdas_np is not None else None
         )
         return L, lambdas
 

@@ -178,9 +178,7 @@ class GraphDecoder(nn.Module):
             in_ch = channel_steps[i]
             out_ch = channel_steps[i + 1]
             self.wave_blocks.append(
-                WaveReconstructionBlock(
-                    channels=in_ch, feature_dim=feature_dim, prior=prior
-                )
+                WaveReconstructionBlock(channels=in_ch, feature_dim=feature_dim, prior=prior)
             )
             self.dec_stages.append(
                 nn.Sequential(
@@ -190,9 +188,7 @@ class GraphDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(
-            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
-        )
+        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
 
     def forward(self, z: Tensor, c_spec: Tensor) -> Tensor:
         """Decode 1-D latent under graph-structured reconstruction.
@@ -281,9 +277,7 @@ class ClockGatedGraphDecoder(nn.Module):
             in_ch = channel_steps[i]
             out_ch = channel_steps[i + 1]
             self.wave_blocks.append(
-                WaveReconstructionBlock(
-                    channels=in_ch, feature_dim=feature_dim, prior=prior
-                )
+                WaveReconstructionBlock(channels=in_ch, feature_dim=feature_dim, prior=prior)
             )
             self.dec_stages.append(
                 nn.Sequential(
@@ -293,9 +287,7 @@ class ClockGatedGraphDecoder(nn.Module):
                 )
             )
 
-        self.dec_out = nn.Conv1d(
-            channel_steps[len(upsample_strides)], out_channels, 3, padding=1
-        )
+        self.dec_out = nn.Conv1d(channel_steps[len(upsample_strides)], out_channels, 3, padding=1)
 
     def forward(
         self,

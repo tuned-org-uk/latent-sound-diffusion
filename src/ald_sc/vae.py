@@ -99,9 +99,7 @@ class SpectralVAE(nn.Module):
 
     def _get_spectral_gate(self, c_spec_dim: int, device: torch.device) -> nn.Linear:
         if self._spectral_gate is None:
-            self._spectral_gate = nn.Linear(c_spec_dim, self.base_channels * 4).to(
-                device
-            )
+            self._spectral_gate = nn.Linear(c_spec_dim, self.base_channels * 4).to(device)
             nn.init.zeros_(self._spectral_gate.bias)
         return self._spectral_gate
 
@@ -170,9 +168,7 @@ class SpectralVAE(nn.Module):
         x_hat = self.dec_out(h)
         return x_hat
 
-    def forward(
-        self, x: Tensor, prior: ArrowSpacePrior
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    def forward(self, x: Tensor, prior: ArrowSpacePrior) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         """Full encode-decode pass.
 
         Returns

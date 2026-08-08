@@ -7,7 +7,6 @@ from pathlib import Path
 
 import soundfile
 import torch
-
 from ald_sc.data import (
     AudioFolderDataset,
     MusicSynthDataset,
@@ -151,9 +150,7 @@ class TestAudioFolderDataset:
             for i in range(3):
                 t = torch.arange(24000, dtype=torch.float32) / 24000
                 waveform = torch.sin(2 * torch.pi * 440.0 * t).unsqueeze(0)
-                soundfile.write(
-                    str(tmp_path / f"clip_{i}.wav"), waveform.T.numpy(), 24000
-                )
+                soundfile.write(str(tmp_path / f"clip_{i}.wav"), waveform.T.numpy(), 24000)
             ds = AudioFolderDataset(tmp_path, audio_length=24000, sample_rate=24000)
             assert len(ds) == 3
             assert ds[0].shape == (1, 24000)

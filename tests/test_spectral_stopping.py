@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import torch
-
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
-from ald_sc.schedule import CosineSchedule
 from ald_sc.sampling import sample_ddim
+from ald_sc.schedule import CosineSchedule
 from ald_sc.spectral_schedule import SpectralSchedule
 
 
-def _make_dit(
-    latent_channels: int = 4, latent_length: int = 16, spec_dim: int = 12
-) -> MinimalDiT:
+def _make_dit(latent_channels: int = 4, latent_length: int = 16, spec_dim: int = 12) -> MinimalDiT:
     return MinimalDiT(
         latent_channels=latent_channels,
         latent_length=latent_length,
@@ -130,6 +127,4 @@ class TestSpectralStopping:
 
         metric_start = spec_sched.heat_death_metric(torch.tensor(0.99))
         metric_end = spec_sched.heat_death_metric(torch.tensor(0.01))
-        assert metric_end > metric_start, (
-            "Metric should be higher when modes are active (t near 0)"
-        )
+        assert metric_end > metric_start, "Metric should be higher when modes are active (t near 0)"

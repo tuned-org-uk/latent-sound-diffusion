@@ -8,7 +8,6 @@ reconstruction is complete.
 from __future__ import annotations
 
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.graph_decoder import ClockGatedGraphDecoder, WaveReconstructionBlock
@@ -132,9 +131,7 @@ class TestClockGatedGraphDecoder:
             spectral_schedule=sched,
             upsample_strides=(2, 2),
         )
-        wave_blocks = [
-            m for m in decoder.modules() if isinstance(m, WaveReconstructionBlock)
-        ]
+        wave_blocks = [m for m in decoder.modules() if isinstance(m, WaveReconstructionBlock)]
         assert len(wave_blocks) >= 2
 
     def test_diffusion_time_default_works(self) -> None:

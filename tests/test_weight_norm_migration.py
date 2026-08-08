@@ -21,9 +21,8 @@ from __future__ import annotations
 import warnings
 
 import torch
-from torch import nn
-
 from ald_sc.audio_codec import _migrate_weight_norm
+from torch import nn
 
 
 def _make_old_wn_module() -> nn.Conv1d:
@@ -40,9 +39,7 @@ class TestMigrateWeightNorm:
         from torch.nn.utils.weight_norm import WeightNorm
 
         m = _make_old_wn_module()
-        old_hooks = [
-            h for h in m._forward_pre_hooks.values() if isinstance(h, WeightNorm)
-        ]
+        old_hooks = [h for h in m._forward_pre_hooks.values() if isinstance(h, WeightNorm)]
         assert old_hooks, "sanity: old weight_norm hook present before migration"
 
         migrated = _migrate_weight_norm(m)

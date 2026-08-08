@@ -9,7 +9,6 @@ of the item-space into the feature-space graph Laplacian.
 from __future__ import annotations
 
 import torch
-
 from ald_sc.dual_space import DualSpaceMatrix
 from ald_sc.wire_graph import WireGraph
 

@@ -17,7 +17,6 @@ import argparse
 from pathlib import Path
 
 import torch
-
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.data import ToyAudioDataset, build_audio_dataloader
@@ -104,8 +103,9 @@ def main() -> None:
             return self.proj(x).float()
 
     encoder = StubEncoder()
-    loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=1.0,
-                        lambda_chart=0.5, lambda_smooth=0.1)
+    loss_fn = ALDSCLoss(
+        prior=prior, lambda_rec=1.0, lambda_stft=1.0, lambda_chart=0.5, lambda_smooth=0.1
+    )
 
     results: dict[str, dict[str, float]] = {}
 
@@ -121,8 +121,9 @@ def main() -> None:
 
     # Evaluate graph decoder
     if args.graph_decoder and Path(args.graph_decoder).exists():
-        decoder = GraphDecoder(latent_channels=128, out_channels=1,
-                               feature_dim=128, base_channels=64, prior=prior)
+        decoder = GraphDecoder(
+            latent_channels=128, out_channels=1, feature_dim=128, base_channels=64, prior=prior
+        )
         decoder.load_state_dict(torch.load(args.graph_decoder, weights_only=False))
         vae = AudioVAE(encoder=encoder, decoder=decoder)
         print("\nEvaluating graph decoder...")
@@ -132,6 +133,7 @@ def main() -> None:
 
         # λ_ED ablation: with vs without c_spec gating
         print("\nEvaluating graph decoder (no c_spec / λ_ED ablation)...")
+
         # Override c_spec to zeros
         class NoCSPecVAE(AudioVAE):
             def forward(self, x, prior):
@@ -150,8 +152,10 @@ def main() -> None:
 
     print("\n=== Summary ===")
     for name, metrics in results.items():
-        print(f"{name}: rec={metrics['rec']:.4f} stft={metrics['stft']:.4f} "
-              f"chart={metrics['chart']:.4f} smooth={metrics['smooth']:.4f}")
+        print(
+            f"{name}: rec={metrics['rec']:.4f} stft={metrics['stft']:.4f} "
+            f"chart={metrics['chart']:.4f} smooth={metrics['smooth']:.4f}"
+        )
 
 
 if __name__ == "__main__":

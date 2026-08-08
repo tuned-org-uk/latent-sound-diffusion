@@ -71,9 +71,7 @@ class CosineSchedule:
 
     def sample_sigmas(self, steps: int) -> Tensor:
         """Subsample timesteps for deterministic samplers (DDIM-style)."""
-        indices = (
-            self.num_steps * (1 - torch.arange(steps) / steps)
-        ).round().long() - 1
+        indices = (self.num_steps * (1 - torch.arange(steps) / steps)).round().long() - 1
         return indices.clamp(0, self.num_steps - 1)
 
 
@@ -126,7 +124,5 @@ class LinearSchedule:
 
     def sample_sigmas(self, steps: int) -> Tensor:
         """Subsample timesteps for deterministic samplers (DDIM-style)."""
-        indices = (
-            self.num_steps * (1 - torch.arange(steps) / steps)
-        ).round().long() - 1
+        indices = (self.num_steps * (1 - torch.arange(steps) / steps)).round().long() - 1
         return indices.clamp(0, self.num_steps - 1)

@@ -57,9 +57,7 @@ def build_feature_laplacian(embeddings: Tensor, k: int = 8) -> tuple[Tensor, Ten
     return L, W
 
 
-def build_projector(
-    L_F: Tensor, q: int, drop_constant: bool = True
-) -> tuple[Tensor, Tensor]:
+def build_projector(L_F: Tensor, q: int, drop_constant: bool = True) -> tuple[Tensor, Tensor]:
     """Compute the leading q eigenvectors of the Laplacian.
 
     Parameters

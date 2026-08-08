@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-
 import json
 from pathlib import Path
 
 import pytest
 import torch
-from torch import Tensor, nn
-
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.graph_decoder import GraphDecoder
 from ald_sc.inference import Bank, LSDModel
 from ald_sc.schedule import CosineSchedule
+from torch import Tensor, nn
 
 
 class StubEncoder(nn.Module):
@@ -189,9 +187,7 @@ class TestStoreModel:
 class TestBankStore:
     def test_store_writes_wavs_and_manifest(self, tmp_path) -> None:
         m = _make_model(latent_length=16)
-        bank = Bank(
-            model=m, clips=m.generate_sound_bank(n=3, steps=2, seed=3407), name="tight"
-        )
+        bank = Bank(model=m, clips=m.generate_sound_bank(n=3, steps=2, seed=3407), name="tight")
         out = Path(tmp_path) / "modeldir"
         out.mkdir()
         bank_dir = bank.store(out_dir=out)

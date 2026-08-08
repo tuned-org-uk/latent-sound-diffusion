@@ -161,9 +161,7 @@ class MinimalDiT(nn.Module):
         self.cond_fuse = nn.Linear(sum(cond_parts), dim)
 
         # Transformer blocks
-        self.blocks = nn.ModuleList(
-            [DiTBlock(dim, num_heads, cond_dim=dim) for _ in range(depth)]
-        )
+        self.blocks = nn.ModuleList([DiTBlock(dim, num_heads, cond_dim=dim) for _ in range(depth)])
 
         # Output
         self.final_norm = nn.LayerNorm(dim)

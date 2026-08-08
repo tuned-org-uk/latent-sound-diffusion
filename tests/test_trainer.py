@@ -5,18 +5,16 @@ Uses a stub encoder to avoid downloading EnCodec weights in tests.
 
 from __future__ import annotations
 
-import torch
-from torch import Tensor, nn
-from torch.utils.data import DataLoader, TensorDataset
-
 import structlog
-
+import torch
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
 from ald_sc.trainer import log_training, train_audio_decoder, train_audio_diffusion
+from torch import Tensor, nn
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class StubEncoder(nn.Module):
@@ -68,9 +66,7 @@ class TestTrainAudioDecoder:
         )
         loader = _make_dataloader(n=8, audio_length=320 * 16)
 
-        losses = list(
-            train_audio_decoder(loader, vae, prior, loss_fn, epochs=3, lr=1e-3)
-        )
+        losses = list(train_audio_decoder(loader, vae, prior, loss_fn, epochs=3, lr=1e-3))
         assert len(losses) > 0
         assert "loss" in losses[0]
         first = losses[0]["loss"]
@@ -108,9 +104,7 @@ class TestTrainAudioDecoder:
         )
         loader = _make_dataloader(n=4, audio_length=320 * 16)
 
-        losses = list(
-            train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3)
-        )
+        losses = list(train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3))
         assert len(losses) > 0
         for d in losses:
             assert "epoch" in d
@@ -130,16 +124,12 @@ class TestTrainAudioDecoder:
 
         torch.manual_seed(7)
         vae1 = _make_vae()
-        losses_default = list(
-            train_audio_decoder(loader, vae1, prior, loss_fn, epochs=1, lr=1e-3)
-        )
+        losses_default = list(train_audio_decoder(loader, vae1, prior, loss_fn, epochs=1, lr=1e-3))
 
         torch.manual_seed(7)
         vae2 = _make_vae()
         losses_zero = list(
-            train_audio_decoder(
-                loader, vae2, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.0
-            )
+            train_audio_decoder(loader, vae2, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.0)
         )
         assert len(losses_default) == len(losses_zero)
         for d1, d2 in zip(losses_default, losses_zero):
@@ -154,9 +144,7 @@ class TestTrainAudioDecoder:
         loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
         loader = _make_dataloader(n=8, audio_length=320 * 16)
         losses = list(
-            train_audio_decoder(
-                loader, vae, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.1
-            )
+            train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3, noise_std=0.1)
         )
         assert len(losses) > 0
         for d in losses:
@@ -187,9 +175,7 @@ class TestTrainAudioDiffusion:
             spec_dim=24,
         )
 
-        losses = list(
-            train_audio_diffusion(loader, vae, dit, prior, sched, epochs=3, lr=1e-3)
-        )
+        losses = list(train_audio_diffusion(loader, vae, dit, prior, sched, epochs=3, lr=1e-3))
         assert len(losses) > 0
         assert "loss" in losses[0]
 

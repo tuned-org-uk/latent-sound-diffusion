@@ -16,7 +16,6 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 import structlog
-
 import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader

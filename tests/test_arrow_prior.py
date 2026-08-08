@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 
@@ -31,9 +30,7 @@ class TestArrowSpacePrior:
     def test_buffers_exist(self) -> None:
         prior = _make_toy_prior()
         buffers = list(prior.buffers())
-        assert len(buffers) >= 4, (
-            "Must have at least L_F, U_q, eigvals_q, lambdas_ed as buffers"
-        )
+        assert len(buffers) >= 4, "Must have at least L_F, U_q, eigvals_q, lambdas_ed as buffers"
 
     def test_project_to_chart_idempotent(self) -> None:
         """Pi^2 = Pi: projecting twice should equal projecting once."""

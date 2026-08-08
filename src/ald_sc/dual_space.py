@@ -15,8 +15,6 @@ Ported from ESDM's ``esdm/graphs/laplacian.py``, adapted for ALD-SC.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -50,7 +48,7 @@ class DualSpaceMatrix(nn.Module):
         V: Tensor,
         L_F: Tensor,
         *,
-        device: Optional[torch.device] = None,
+        device: torch.device | None = None,
     ) -> None:
         """Compute and cache M_N from corpus embeddings V and L_F.
 
@@ -70,9 +68,7 @@ class DualSpaceMatrix(nn.Module):
 
         N, F = V.shape
         if L.shape != (F, F):
-            raise ValueError(
-                f"L_F shape {tuple(L.shape)} does not match V feature dim F={F}."
-            )
+            raise ValueError(f"L_F shape {tuple(L.shape)} does not match V feature dim F={F}.")
 
         G = V @ V.T
         S = (V @ L) @ V.T

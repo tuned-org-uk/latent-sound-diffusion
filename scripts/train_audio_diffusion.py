@@ -12,11 +12,10 @@ import json
 from pathlib import Path
 
 import torch
-
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.build_prior import build_arrow_prior
-from ald_sc.dit import MinimalDiT
 from ald_sc.data import ToyAudioDataset, build_audio_dataloader
+from ald_sc.dit import MinimalDiT
 from ald_sc.schedule import CosineSchedule
 from ald_sc.trainer import train_audio_diffusion
 
@@ -92,7 +91,9 @@ def main() -> None:
         encoder = EnCodecEncoder()
 
     decoder = BaselineAudioDecoder(
-        latent_channels=args.latent_channels, out_channels=1, base_channels=64,
+        latent_channels=args.latent_channels,
+        out_channels=1,
+        base_channels=64,
     )
     if args.decoder and Path(args.decoder).exists():
         decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
@@ -114,9 +115,18 @@ def main() -> None:
     sched = CosineSchedule(num_steps=args.num_steps)
 
     print(f"Training DiT for {args.epochs} epochs...")
-    losses = list(train_audio_diffusion(
-        loader, vae, dit, prior, sched, epochs=args.epochs, lr=args.lr, device=device,
-    ))
+    losses = list(
+        train_audio_diffusion(
+            loader,
+            vae,
+            dit,
+            prior,
+            sched,
+            epochs=args.epochs,
+            lr=args.lr,
+            device=device,
+        )
+    )
     if losses:
         print(f"  Initial loss: {losses[0]['loss']:.4f}")
         print(f"  Final loss:   {losses[-1]['loss']:.4f}")

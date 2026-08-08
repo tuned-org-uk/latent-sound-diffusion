@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import torch
-
 from ald_sc.schedule import CosineSchedule, LinearSchedule
 
 

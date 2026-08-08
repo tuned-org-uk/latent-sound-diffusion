@@ -10,15 +10,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import torch
 import soundfile
-
+import torch
 from ald_sc.audio_codec import BaselineAudioDecoder
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.dit import MinimalDiT
 from ald_sc.graph_decoder import GraphDecoder
-from ald_sc.schedule import CosineSchedule
 from ald_sc.sampling import sample_ddim
+from ald_sc.schedule import CosineSchedule
 
 
 def main() -> None:
@@ -40,6 +39,24 @@ def main() -> None:
     parser.add_argument("--num-steps", type=int, default=1000)
     parser.add_argument("--sample-rate", type=int, default=24000)
     parser.add_argument("--out", type=str, default="results/sample.wav")
+    parser.add_argument(
+        "--entropic-clock",
+        action="store_true",
+        help="Enable dynamic Barontini entropic clock (issue #41). "
+        "Default: frozen SpectralSchedule stub.",
+    )
+    parser.add_argument(
+        "--clock-eps",
+        type=float,
+        default=1e-3,
+        help="Heat-death threshold ε for the entropic clock (default: 1e-3).",
+    )
+    parser.add_argument(
+        "--tau-warmup",
+        type=int,
+        default=5,
+        help="Number of warm-up steps for τ_max estimation (default: 5).",
+    )
     args = parser.parse_args()
 
     device = torch.device("cpu")
@@ -67,9 +84,29 @@ def main() -> None:
     dit = dit.to(device).eval()
     sched = CosineSchedule(num_steps=args.num_steps)
 
+    # Build spectral schedule (frozen stub or dynamic entropic clock).
+    spectral_schedule = None
+    if args.entropic_clock:
+        from ald_sc.spectral_schedule import DynamicEntropicClock
+
+        spectral_schedule = DynamicEntropicClock(
+            prior, eps=args.clock_eps, tau_warmup=args.tau_warmup
+        )
+        print(
+            f"Dynamic entropic clock enabled (eps={args.clock_eps}, tau_warmup={args.tau_warmup})"
+        )
+
     # Sample latent
     print(f"Sampling latent (steps={args.steps}, seed={args.seed})...")
-    z = sample_ddim(dit, sched, batch_size=1, steps=args.steps, seed=args.seed, device=device)
+    z = sample_ddim(
+        dit,
+        sched,
+        batch_size=1,
+        steps=args.steps,
+        seed=args.seed,
+        device=device,
+        spectral_schedule=spectral_schedule,
+    )
     print(f"Sampled z shape: {z.shape}")
 
     # Derive c_spec from z (self-consistent decoding)

@@ -10,9 +10,7 @@ spectrum):
 
 from __future__ import annotations
 
-
 import torch
-
 from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.spectral_schedule import SpectralSchedule
@@ -141,9 +139,7 @@ class TestSpectralSchedule:
         ts = torch.linspace(0.01, 0.99, 20)
         metrics = [sched.heat_death_metric(t).item() for t in ts]
         for i in range(1, len(metrics)):
-            assert metrics[i] <= metrics[i - 1] + 1e-6, (
-                "Metric should be non-increasing"
-            )
+            assert metrics[i] <= metrics[i - 1] + 1e-6, "Metric should be non-increasing"
 
     def test_entropy_rate(self) -> None:
         """dS_k/dt = -ν_k (the entropy exchange rate per mode)."""

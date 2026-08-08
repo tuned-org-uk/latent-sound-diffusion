@@ -13,7 +13,6 @@ import json
 from pathlib import Path
 
 import torch
-
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.build_prior import build_arrow_prior
 from ald_sc.data import AudioFolderDataset, Esc50Dataset, ToyAudioDataset, build_audio_dataloader
@@ -113,8 +112,11 @@ def main() -> None:
     )
 
     print(f"Training {decoder_type} decoder for {args.epochs} epochs...")
-    losses = list(train_audio_decoder(loader, vae, prior, loss_fn,
-                                       epochs=args.epochs, lr=args.lr, device=device))
+    losses = list(
+        train_audio_decoder(
+            loader, vae, prior, loss_fn, epochs=args.epochs, lr=args.lr, device=device
+        )
+    )
     if losses:
         print(f"  Initial loss: {losses[0]['loss']:.4f}")
         print(f"  Final loss:   {losses[-1]['loss']:.4f}")
