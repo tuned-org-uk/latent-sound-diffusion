@@ -8,6 +8,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -27,7 +28,13 @@ def main() -> None:
     parser.add_argument("--toy", action="store_true")
     parser.add_argument("--audio-length", type=int, default=24000)
     parser.add_argument("--latent-channels", type=int, default=128)
-    parser.add_argument("--latent-length", type=int, default=75)
+    parser.add_argument(
+        "--latent-length",
+        type=int,
+        default=None,
+        help="Latent length (frames). If not given, derived as "
+        "audio_length // 320 (EnCodec stride).",
+    )
     parser.add_argument("--patch-size", type=int, default=8)
     parser.add_argument("--dim", type=int, default=256)
     parser.add_argument("--depth", type=int, default=4)
@@ -41,6 +48,10 @@ def main() -> None:
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    latent_length = args.latent_length
+    if latent_length is None:
+        latent_length = args.audio_length // 320
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
@@ -93,7 +104,7 @@ def main() -> None:
     # Build DiT
     dit = MinimalDiT(
         latent_channels=args.latent_channels,
-        latent_length=args.latent_length,
+        latent_length=latent_length,
         patch_size=args.patch_size,
         dim=args.dim,
         depth=args.depth,
@@ -112,6 +123,29 @@ def main() -> None:
 
     torch.save(dit.state_dict(), args.out)
     print(f"Saved DiT to {args.out}")
+
+    from safetensors.torch import save_file
+
+    safe_path = str(Path(args.out).with_suffix(".safetensors"))
+    save_file(dit.state_dict(), safe_path)
+    print(f"Exported DiT safetensors to {safe_path}")
+
+    config = {
+        "dim": args.dim,
+        "depth": args.depth,
+        "num_heads": args.num_heads,
+        "patch_size": args.patch_size,
+        "latent_channels": args.latent_channels,
+        "latent_length": latent_length,
+        "spec_dim": 3 * args.q,
+        "q": args.q,
+        "k": 4,
+        "num_steps": args.num_steps,
+        "audio_length": args.audio_length,
+    }
+    config_path = Path(args.out).with_suffix("").parent / "config.json"
+    config_path.write_text(json.dumps(config, indent=2))
+    print(f"Saved config to {config_path}")
 
 
 if __name__ == "__main__":
