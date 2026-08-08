@@ -46,6 +46,13 @@ def main() -> None:
         help="Diversity knob mapped to DDIM eta (clamped 0-1). "
         "0 = deterministic, 1 = full stochastic (DDPM-equivalent).",
     )
+    parser.add_argument(
+        "--guidance-scale",
+        type=float,
+        default=1.0,
+        help="Classifier-free guidance scale. 1.0 = pure conditional, "
+        "0.0 = unconditional, >1.0 = amplified conditioning.",
+    )
     parser.add_argument("--out", type=str, default="results/sample.wav")
     args = parser.parse_args()
 
@@ -78,15 +85,32 @@ def main() -> None:
     from ald_sc.inference import _temperature_to_eta
 
     eta = _temperature_to_eta(args.temperature)
-    print(f"Sampling latent (steps={args.steps}, seed={args.seed}, eta={eta})...")
+
+    # Compute a c_spec conditioning vector from a probe latent so the
+    # DiT runs conditionally and --guidance-scale has an effect (issue #36
+    # finding #1).  Without this, cfg_forward short-circuits to
+    # unconditional and guidance_scale is a no-op.
+    with torch.no_grad():
+        z_probe = torch.randn(
+            1, args.latent_channels, args.latent_length, device=device
+        )
+        a_probe = z_probe.mean(dim=2)
+        c_spec_cond = prior.chart_energy_descriptor(a_probe)
+
+    print(
+        f"Sampling latent (steps={args.steps}, seed={args.seed}, "
+        f"eta={eta}, guidance_scale={args.guidance_scale})..."
+    )
     z = sample_ddim(
         dit,
         sched,
+        c_spec=c_spec_cond,
         batch_size=1,
         steps=args.steps,
         seed=args.seed,
         device=device,
         eta=eta,
+        guidance_scale=args.guidance_scale,
     )
     print(f"Sampled z shape: {z.shape}")
 

@@ -181,6 +181,12 @@ cd latent-sound-diffusion
 uv sync
 ```
 
+Enable the pre-commit hook (lint + format with ruff):
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Usage
 
 ```bash
@@ -210,6 +216,17 @@ uv run python scripts/eval_audio.py --graph-decoder decoder.pt --baseline-decode
 # Run the end-to-end notebook
 uv run jupyter notebook notebooks/01_sound_generation.ipynb
 ```
+
+#### DiT capacity recommendations
+
+The `--dim` (hidden dimension) should be **at least `--latent-channels`** (128 for EnCodec).
+A smaller `dim` creates an information bottleneck at the patchify layer (`Conv1d(128, dim, ...)`),
+discarding channel information before the transformer sees it. For generation-grade output:
+
+| Use case | `--dim` | `--depth` | Params |
+|----------|---------|-----------|--------|
+| Fast iteration / toy | 128 | 2 | ~600K |
+| Production | 256 | 4 | ~2.5M |
 
 ### Notebooks
 

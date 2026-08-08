@@ -101,7 +101,10 @@ def train_audio_decoder(
 
             x_hat = decode(z) if is_baseline else decode(z, c_spec)
 
-            A_hat = A.detach()
+            # Derive A_hat from the reconstruction (not A.detach(), which
+            # would make chart_loss a no-op — issue #36 finding #2).
+            with torch.no_grad():
+                A_hat = audio_vae.encoder.extract_features(x_hat.detach()).mean(dim=2)
             losses = loss_fn(x, x_hat, A, A_hat)
 
             losses["total"].backward()
@@ -127,6 +130,8 @@ def train_audio_diffusion(
     lr: float = 1e-4,
     device: torch.device = torch.device("cpu"),
     cfg_dropout: float = 0.1,
+    loss_weighting: str = "snr",
+    grad_clip: float = 1.0,
 ) -> Iterator[dict[str, float]]:
     """Phase 2 audio diffusion training loop (see docs/03.md §2 for the
     two-phase protocol: Phase 1 = VAE/decoder, Phase 2 = DiT).
@@ -165,6 +170,17 @@ def train_audio_diffusion(
         Probability of zeroing ``c_spec`` per batch element during
         training (classifier-free guidance dropout).  0.0 disables
         dropout; 0.1 is a reasonable default.
+    loss_weighting : str
+        Per-timestep loss weighting strategy.  ``"snr"`` (default) applies
+        Min-SNR weighting — upweighting clean-side timesteps so high-noise
+        steps don't dominate the gradient (issue #36 finding #4).  ``"none"``
+        uses plain unweighted MSE (backward compatible).  Any other value
+        raises ``ValueError``.
+    grad_clip : float
+        Maximum gradient norm for clipping before ``optimizer.step()``.
+        ``0.0`` disables clipping.  Default ``1.0``.  Prevents gradient
+        explosions early in training with high-variance timestep sampling
+        (issue #36).
 
     Yields
     ------
@@ -175,12 +191,19 @@ def train_audio_diffusion(
     ------
     TypeError
         If ``dit`` does not expose a ``cfg_dropout`` attribute.
+    ValueError
+        If ``loss_weighting`` is not ``"snr"`` or ``"none"``.
     """
     if not hasattr(dit, "cfg_dropout"):
         raise TypeError(
             f"{type(dit).__name__} does not expose a 'cfg_dropout' attribute. "
             "train_audio_diffusion requires a DiT that supports CFG dropout "
             "(e.g. MinimalDiT). Wrap your model or add the attribute."
+        )
+    valid_weightings = {"snr", "none"}
+    if loss_weighting not in valid_weightings:
+        raise ValueError(
+            f"loss_weighting must be one of {valid_weightings}, got {loss_weighting!r}"
         )
 
     audio_vae = audio_vae.to(device).eval()
@@ -216,8 +239,22 @@ def train_audio_diffusion(
             # of the batch when self.cfg_dropout > 0 and self.training).
             v_pred = dit(z_t, t, c_spec=c_spec)
 
-            loss = (v_pred - v_target).pow(2).mean()
+            per_element = (
+                (v_pred - v_target).pow(2).mean(dim=tuple(range(1, v_pred.dim())))
+            )  # (B,)
+
+            if loss_weighting == "snr":
+                ab = schedule.alpha_bar[t].to(v_pred.device)
+                snr = ab / (1 - ab + 1e-8)
+                weight = snr.clamp(max=5.0)
+                weight = weight / (weight.mean() + 1e-8)
+                loss = (weight * per_element).mean()
+            else:
+                loss = per_element.mean()
+
             loss.backward()
+            if grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_(dit.parameters(), grad_clip)
             optimizer.step()
 
             yield {

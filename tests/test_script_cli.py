@@ -67,3 +67,17 @@ class TestTrainAudioDecoderCLI:
     def test_lr_arg_present(self) -> None:
         help_text = _help_output("train_audio_decoder.py")
         assert "--lr" in help_text
+
+
+class TestSampleAudioCLI:
+    """CLI args for the generation script (issue #36 finding #1)."""
+
+    def test_guidance_scale_arg_present(self) -> None:
+        help_text = _help_output("sample_audio.py")
+        assert "--guidance-scale" in help_text, (
+            "--guidance-scale missing from sample_audio CLI"
+        )
+
+    def test_temperature_arg_present(self) -> None:
+        help_text = _help_output("sample_audio.py")
+        assert "--temperature" in help_text
