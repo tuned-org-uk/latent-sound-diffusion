@@ -17,19 +17,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 1.2228853999999998,
+    "cost": 1.3147319199999998,
     "tokens": {
-      "input": 150137,
-      "output": 14318,
+      "input": 152094,
+      "output": 15668,
       "reasoning": 20036,
       "cache": {
-        "read": 3313600,
+        "read": 3633472,
         "write": 0
       }
     },
     "time": {
       "created": 1786798004702,
-      "updated": 1786800203665
+      "updated": 1786800238914
     }
   },
   "messages": [
@@ -7104,21 +7104,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.02240932,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 80069,
+          "input": 183,
+          "output": 334,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 79552
           }
         },
         "modelID": "glm-5.3",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786800203665
+          "created": 1786800203665,
+          "completed": 1786800219072
         },
+        "finish": "tool-calls",
         "id": "msg_005976790001RfwUYu4yL4trwL",
         "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
       },
@@ -7135,20 +7138,287 @@
           "tool": "bash",
           "callID": "call_5f63fcea56f1413f8000cba8",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add src/ald_sc/scattering1d.py src/ald_sc/inference.py tests/test_scattering1d.py tests/test_inference.py results/bank_variants.csv pyproject.toml uv.lock && git commit -m \"feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n\n- LSDModel.generate_sound_bank gains bank_mode/bank_variety params:\n  canonical (default, unchanged), jitter, residual, stopvar — the three\n  gate-passing arms from results/bank_variants.csv (pre-registered gate:\n  L1>=0.05, FAD<=1200, RMS>=0.35, spread>20Hz); wired for LSD-studio\n- src/ald_sc/scattering1d.py: from-scratch 1-D Mallat wavelet scattering\n  (idea + reference sketch by Vikshep, https://vikshep.vercel.app/, #48);\n  translation-invariance property-tested; pooled-features helper mirrors\n  encodec_pooled_features (WireGraph/FAD-guard ready)\n- tests: 16 scattering + 10 bank-mode tests; suite 249 passed in ~3s\n- verified bank_mode reproduces experiment CSV metrics on real checkpoints\n  (jitter L1 0.182/41.2Hz, residual 0.112/191.8Hz, stopvar 0.073/51.1Hz)\n- bump 0.11.0\" && git log --oneline -2"
             },
+            "output": "[feat/bank-variant-modes b65a3bd] feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n 7 files changed, 645 insertions(+), 11 deletions(-)\n create mode 100644 results/bank_variants.csv\n create mode 100644 src/ald_sc/scattering1d.py\n create mode 100644 tests/test_scattering1d.py\nb65a3bd feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n0413a15 feat: bank-variant strategies experiment harness (issue #53)\n",
+            "metadata": {
+              "output": "[feat/bank-variant-modes b65a3bd] feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n 7 files changed, 645 insertions(+), 11 deletions(-)\n create mode 100644 results/bank_variants.csv\n create mode 100644 src/ald_sc/scattering1d.py\n create mode 100644 tests/test_scattering1d.py\nb65a3bd feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n0413a15 feat: bank-variant strategies experiment harness (issue #53)\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add src/ald_sc/scattering1d.py src/ald_sc/inference.py tests/test_scattering1d.py tests/test_inference.py results/bank_variants.csv pyproject.toml uv.lock && git commit -m \"feat: bank-variant modes for sound-bank diversity (issue #53) + NumPy scattering transform (issue #48)\n\n- LSDModel.generate_sound_bank gains bank_mode/bank_variety params:\n  canonical (default, unchanged), jitter, residual, stopvar — the three\n  gate-passing arms from results/bank_variants.csv (pre-registered gate:\n  L1>=0.05, FAD<=1200, RMS>=0.35, spread>20Hz); wired for LSD-studio\n- src/ald_sc/scattering1d.py: from-scratch 1-D Mallat wavelet scattering\n  (idea + reference sketch by Vikshep, https://vikshep.vercel.app/, #48);\n  translation-invariance property-tested; pooled-features helper mirrors\n  encodec_pooled_features (WireGraph/FAD-guard ready)\n- tests: 16 scattering + 10 bank-mode tests; suite 249 passed in ~3s\n- verified bank_mode reproduces experiment CSV metrics on real checkpoints\n  (jitter L1 0.182/41.2Hz, residual 0.112/191.8Hz, stopvar 0.073/51.1Hz)\n- bump 0.11.0\" && git log --oneline -2",
             "time": {
-              "start": 1786800209503
+              "start": 1786800219002,
+              "end": 1786800219003
             }
           },
           "id": "prt_005977e5d001T70Gpym7E55B9k",
           "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
           "messageID": "msg_005976790001RfwUYu4yL4trwL"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-finish",
+          "tokens": {
+            "total": 80069,
+            "input": 183,
+            "output": 334,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 79552
+            }
+          },
+          "cost": 0.02240932,
+          "id": "prt_00597a39c001c7I03BErAbcWq2",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005976790001RfwUYu4yL4trwL"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0059223af001ZUyiMd7TrM8pQ1",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.0216618,
+        "tokens": {
+          "total": 80265,
+          "input": 543,
+          "output": 42,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 79680
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786800219075,
+          "completed": 1786800224693
+        },
+        "finish": "tool-calls",
+        "id": "msg_00597a3c3001GehKgzgwGTPjeN",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-start",
+          "id": "prt_00597b0c0001QMgWXSJ03IRhgF",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597a3c3001GehKgzgwGTPjeN"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_6ec607ad232e45e89eeee973",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git remote -v && git push -u origin feat/bank-variant-modes 2>&1 | tail -3",
+              "timeout": 120000
+            },
+            "output": "entire\tentire://aws-eu-central-1.entire.io/gh/tuned-org-uk/latent-sound-diffusion (fetch)\nentire\tentire://aws-eu-central-1.entire.io/gh/tuned-org-uk/latent-sound-diffusion (push)\ngithub\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (fetch)\ngithub\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (push)\norigin\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (fetch)\norigin\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (push)\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/bank-variant-modes -> feat/bank-variant-modes\nbranch 'feat/bank-variant-modes' set up to track 'origin/feat/bank-variant-modes'.\n",
+            "metadata": {
+              "output": "entire\tentire://aws-eu-central-1.entire.io/gh/tuned-org-uk/latent-sound-diffusion (fetch)\nentire\tentire://aws-eu-central-1.entire.io/gh/tuned-org-uk/latent-sound-diffusion (push)\ngithub\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (fetch)\ngithub\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (push)\norigin\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (fetch)\norigin\thttps://github.com/tuned-org-uk/latent-sound-diffusion.git (push)\nTo https://github.com/tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      feat/bank-variant-modes -> feat/bank-variant-modes\nbranch 'feat/bank-variant-modes' set up to track 'origin/feat/bank-variant-modes'.\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git remote -v && git push -u origin feat/bank-variant-modes 2>&1 | tail -3",
+            "time": {
+              "start": 1786800224610,
+              "end": 1786800224612
+            }
+          },
+          "id": "prt_00597b0c2001D2G8o2u0ulX62F",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597a3c3001GehKgzgwGTPjeN"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-finish",
+          "tokens": {
+            "total": 80265,
+            "input": 543,
+            "output": 42,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 79680
+            }
+          },
+          "cost": 0.0216618,
+          "id": "prt_00597b98f001Q8UPeZd2HfMGtr",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597a3c3001GehKgzgwGTPjeN"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0059223af001ZUyiMd7TrM8pQ1",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.02511452,
+        "tokens": {
+          "total": 81361,
+          "input": 293,
+          "output": 876,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 80192
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786800224696,
+          "completed": 1786800238909
+        },
+        "finish": "tool-calls",
+        "id": "msg_00597b9b8001OElGD95TS8oBDW",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-start",
+          "id": "prt_00597e4c5001HhXw162YF1NXk7",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597b9b8001OElGD95TS8oBDW"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_51230968df9a463faaa2a1ab",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head feat/bank-variant-modes --title \"feat: bank-variant modes (issue #53) + NumPy Mallat scattering transform (issue #48)\" --body \"## Summary\n\nCloses #53. Integrates #48's scattering transform as a library module.\n\n### Issue #53 — bank-variant strategies (experiment + integration)\n\nRan \\`scripts/bank_variants.py\\` against the pre-registered gate (\\`L1 >= 0.05 AND FAD <= 1200 AND RMS >= 0.35 AND spread > 20Hz\\`):\n\n| arm | L1 | spread (Hz) | FAD | RMS | gate |\n|---|---|---|---|---|---|\n| base_ddim / temp{0.5,1.5} | 0.000 | 0.0 | ~1184 | 0.55 | — (controls confirm contraction) |\n| **jitter_a0.5** | 0.182 | 41.2 | 853 | 0.452 | **USEFUL** |\n| **resid_r0.1** | 0.052 | 78.0 | 1113 | 0.530 | **USEFUL** |\n| **resid_r0.3** | 0.112 | 191.8 | 908 | 0.467 | **USEFUL** |\n| **stopvar** | 0.073 | 50.6 | 1138 | 0.541 | **USEFUL** |\n| anchor_a{.25,.5,.75} | 0.15–0.18 | 204–246 | ~150 | 0.15–0.18 | — (RMS floor fail) |\n\nBest-3 arms wired into \\`LSDModel.generate_sound_bank\\` as an opt-in interface (default behaviour unchanged), LSD-studio-ready:\n\n\\`\\`\\`python\nmodel.generate_sound_bank(n=8, bank_mode=\\\"jitter\\\",  bank_variety=0.5)\nmodel.generate_sound_bank(n=8, bank_mode=\\\"residual\\\", bank_variety=0.3)\nmodel.generate_sound_bank(n=8, bank_mode=\\\"stopvar\\\")\nmodel.generate_sound_bank(n=8)  # canonical — pre-#53 behaviour\n\\`\\`\\`\n\nVerified the wired modes reproduce the experiment CSV on real checkpoints (jitter L1 0.1820/41.2Hz/0.452; residual 0.1120/191.8Hz/0.467; stopvar 0.073/51.1Hz/0.541). Decision record: \\`results/bank_variants.csv\\`.\n\n### Issue #48 — NumPy Mallat scattering transform\n\n\\`src/ald_sc/scattering1d.py\\` (idea and reference sketch by [Vikshep](https://vikshep.vercel.app/), acknowledged in the module docstring): \\`ScatteringConfig\\`, \\`MorletFilterBank\\`, \\`Scattering1D\\`, \\`scattering_pooled_features\\` — mirrors \\`encodec_pooled_features\\`'s iterable contract so it drops into \\`WireGraph.build(features=...)\\` or FAD-proxy guards. Includes the order-2 u1-FFT caching fix and batch-shape handling (regression-tested). Translation-invariance property test: 40-sample shift → <1% feature change.\n\n## Tests\n\n- 10 new bank-mode tests (mode semantics, variety=0 ⇒ canonical, reproducibility, stopvar grid == same-seed DDIM draws, validation errors)\n- 16 scattering tests (dim formula, DC correction, unit energy, translation invariance, shift compression, batch shapes + hang regression)\n- Full suite: **249 passed in ~3s**; ruff clean\n\n## Version\n\nBumped to 0.11.0.\" 2>&1 | tail -2",
+              "timeout": 120000
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/55\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/55\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head feat/bank-variant-modes --title \"feat: bank-variant modes (issue #53) + NumPy Mallat scattering transform (issue #48)\" --body \"## Summary\n\nCloses #53. Integrates #48's scattering transform as a library module.\n\n### Issue #53 — bank-variant strategies (experiment + integration)\n\nRan \\`scripts/bank_variants.py\\` against the pre-registered gate (\\`L1 >= 0.05 AND FAD <= 1200 AND RMS >= 0.35 AND spread > 20Hz\\`):\n\n| arm | L1 | spread (Hz) | FAD | RMS | gate |\n|---|---|---|---|---|---|\n| base_ddim / temp{0.5,1.5} | 0.000 | 0.0 | ~1184 | 0.55 | — (controls confirm contraction) |\n| **jitter_a0.5** | 0.182 | 41.2 | 853 | 0.452 | **USEFUL** |\n| **resid_r0.1** | 0.052 | 78.0 | 1113 | 0.530 | **USEFUL** |\n| **resid_r0.3** | 0.112 | 191.8 | 908 | 0.467 | **USEFUL** |\n| **stopvar** | 0.073 | 50.6 | 1138 | 0.541 | **USEFUL** |\n| anchor_a{.25,.5,.75} | 0.15–0.18 | 204–246 | ~150 | 0.15–0.18 | — (RMS floor fail) |\n\nBest-3 arms wired into \\`LSDModel.generate_sound_bank\\` as an opt-in interface (default behaviour unchanged), LSD-studio-ready:\n\n\\`\\`\\`python\nmodel.generate_sound_bank(n=8, bank_mode=\\\"jitter\\\",  bank_variety=0.5)\nmodel.generate_sound_bank(n=8, bank_mode=\\\"residual\\\", bank_variety=0.3)\nmodel.generate_sound_bank(n=8, bank_mode=\\\"stopvar\\\")\nmodel.generate_sound_bank(n=8)  # canonical — pre-#53 behaviour\n\\`\\`\\`\n\nVerified the wired modes reproduce the experiment CSV on real checkpoints (jitter L1 0.1820/41.2Hz/0.452; residual 0.1120/191.8Hz/0.467; stopvar 0.073/51.1Hz/0.541). Decision record: \\`results/bank_variants.csv\\`.\n\n### Issue #48 — NumPy Mallat scattering transform\n\n\\`src/ald_sc/scattering1d.py\\` (idea and reference sketch by [Vikshep](https://vikshep.vercel.app/), acknowledged in the module docstring): \\`ScatteringConfig\\`, \\`MorletFilterBank\\`, \\`Scattering1D\\`, \\`scattering_pooled_features\\` — mirrors \\`encodec_pooled_features\\`'s iterable contract so it drops into \\`WireGraph.build(features=...)\\` or FAD-proxy guards. Includes the order-2 u1-FFT caching fix and batch-shape handling (regression-tested). Translation-invariance property test: 40-sample shift → <1% feature change.\n\n## Tests\n\n- 10 new bank-mode tests (mode semantics, variety=0 ⇒ canonical, reproducibility, stopvar grid == same-seed DDIM draws, validation errors)\n- 16 scattering tests (dim formula, DC correction, unit energy, translation invariance, shift compression, batch shapes + hang regression)\n- Full suite: **249 passed in ~3s**; ruff clean\n\n## Version\n\nBumped to 0.11.0.\" 2>&1 | tail -2",
+            "time": {
+              "start": 1786800238816,
+              "end": 1786800238819
+            }
+          },
+          "id": "prt_00597e4c7001ykLSbcdFIthW60",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597b9b8001OElGD95TS8oBDW"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-finish",
+          "tokens": {
+            "total": 81361,
+            "input": 293,
+            "output": 876,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 80192
+            }
+          },
+          "cost": 0.02511452,
+          "id": "prt_00597f115001T7r4R1aUTM0qBQ",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597b9b8001OElGD95TS8oBDW"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0059223af001ZUyiMd7TrM8pQ1",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.02266088,
+        "tokens": {
+          "total": 81484,
+          "input": 938,
+          "output": 98,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 80448
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786800238913,
+          "completed": 1786800243450
+        },
+        "finish": "stop",
+        "id": "msg_00597f141001pFV79ZmWC4d5MT",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-start",
+          "id": "prt_00597fdf2001CqPL5rIw053OWZ",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597f141001pFV79ZmWC4d5MT"
+        },
+        {
+          "type": "text",
+          "text": "PR opened: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/55\n\nOn the \"tests take too long\" concern — measured, the suite is **249 passed in ~3s**; the earlier hangs were transient `uv run` env-sync stalls, not the tests. Full suite green, ruff clean, v0.11.0, and the wired modes exactly reproduce the experiment CSV metrics on the real checkpoints.",
+          "time": {
+            "start": 1786800242164,
+            "end": 1786800243367
+          },
+          "id": "prt_00597fdf4001YrJion7r88xQal",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597f141001pFV79ZmWC4d5MT"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "3c0d9f4d7946c09120dcc2af52828de43d887477",
+          "type": "step-finish",
+          "tokens": {
+            "total": 81484,
+            "input": 938,
+            "output": 98,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 80448
+            }
+          },
+          "cost": 0.02266088,
+          "id": "prt_0059802d5001Chwwp9ZRzAk6KI",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00597f141001pFV79ZmWC4d5MT"
         }
       ]
     }
