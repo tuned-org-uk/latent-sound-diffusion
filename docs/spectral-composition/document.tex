@@ -724,7 +724,8 @@ exposes three methods that directly implement Stages~2--4:
 
 LSD-Studio~\cite{lsdstudio} is the producer-facing realisation of this
 contract, and is proprietary and undisclosed; we describe its
-producer-visible surface only. It is a self-contained desktop
+producer-visible surface only (illustrated in
+Appendix~\ref{app:studio}). It is a self-contained desktop
 application that wraps the entire workflow — archive ingestion, model
 baking and training on the producer's sound archive, sound-bank
 generation, symbolic (MIDI) generation and materialisation, ADSR
@@ -1433,6 +1434,34 @@ were used for drafting the manuscript and for the design and execution
 of the experiments. \textbf{Qwen3.8 Max} and \textbf{Kimi 3} were used
 for review. All scientific claims, the evaluation methodology, and the
 final text remain the responsibility of the author.
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\appendix
+\section{LSD-Studio interface}
+\label{app:studio}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+Figure~\ref{fig:studio} shows the shipped Train surface of
+LSD-Studio~\cite{lsdstudio}. Generation and shaping modes are exposed
+as tabs --- LSD, LSD+ENV, MIDI-GPT, MIDI+ENV, Playback --- alongside
+training controls over the producer's own archive. The stored-models
+list records, for every baked model, its provenance: creation date,
+epoch count, final loss, training corpus, and LSD version. This is the
+surface through which the data-sovereignty property of
+Section~\ref{sec:discussion} is exercised: every generated artefact can
+be traced to the archive and checkpoint it was dehydrated from, and no
+material leaves the machine. LSD-Studio is proprietary; the screenshot
+is included to illustrate the producer-visible surface only.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/LSD-studio-screen.png}
+\caption{LSD-Studio, Train surface (shipped): training controls on the
+producer's archive, dataset and model-version selection, and the
+stored-models list with per-model provenance metadata.}
+\label{fig:studio}
+\end{figure}
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
