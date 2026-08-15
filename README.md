@@ -327,4 +327,13 @@ See [`AGENTS.md`](AGENTS.md) §6 for the full design constraints.
 
 ## License
 
-MIT
+The **software** in this repository is the reference implementation of the
+Spectral Composition paper and is licensed for **replication of the paper's
+results only** — see [`LICENSE`](./LICENSE). It may be downloaded, installed,
+and executed solely to reproduce and verify the published results; commercial
+use, reuse in other products, and redistribution of derivatives are not
+permitted. Numerical results of replication attempts may be published with
+citation to the paper.
+
+The **paper text and figures** (`docs/spectral-composition/`) are licensed
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

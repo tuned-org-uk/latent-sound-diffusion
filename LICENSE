@@ -1,0 +1,72 @@
+Latent Sound Diffusion (LSD) — Reference Implementation License
+Copyright © 2026 tuned.org.uk / Genefold AI Ltd. All rights reserved.
+
+1. Grant
+
+   The copyright holder grants you a limited, non-exclusive,
+   non-transferable, revocable license to download, install, configure,
+   and execute this software, and to make the modifications strictly
+   necessary to do so, for the sole purpose of reproducing and
+   verifying the results reported in the associated paper,
+   "Spectral Composition: A New Paradigm for Sample-Based Music
+   Creation via Latent Diffusion" (the "Paper",
+   https://github.com/tuned-org-uk/latent-sound-diffusion/tree/main/
+   docs/spectral-composition).
+
+2. Restrictions
+
+   You may not:
+
+   (a) use the software, or any part of it, for any purpose other than
+       replication and verification of the Paper's results, including
+       without limitation any commercial purpose, product development,
+       sound generation for release, or the training or serving of
+       models for any other application;
+
+   (b) redistribute, sublicense, publish, or make available the
+       software or any derivative work of it, except that you may share
+       verbatim, unmodified copies of this repository's source together
+       with this license text for the sole purpose of enabling
+       replication of the Paper;
+
+   (c) use the software, its outputs, or any part of it to train,
+       fine-tune, distil, or otherwise improve any other model or
+       system.
+
+3. Datasets and third-party material
+
+   Third-party datasets referenced by this software (including NSynth,
+   ESC-50, Clotho, and FSD50K) are governed by their own licences and
+   are not covered by this license. Third-party software dependencies
+   are governed by their own licences.
+
+4. Publication of results
+
+   You may publish the numerical results and findings of your
+   replication attempts, provided you cite the Paper.
+
+5. No warranty
+
+   The software is provided "as is", without warranty of any kind,
+   express or implied, including but not limited to the warranties of
+   merchantability, fitness for a particular purpose, and
+   noninfringement. In no event shall the copyright holder be liable
+   for any claim, damages, or other liability arising from, out of, or
+   in connection with the software or its use.
+
+6. Reservation of rights
+
+   All rights not expressly granted to you herein are reserved by the
+   copyright holder.
+
+7. Termination
+
+   This license terminates automatically if you breach any of its
+   conditions. Upon termination you must cease all use of the software
+   and delete all copies in your possession or control.
+
+---
+
+The Paper's text and figures (docs/spectral-composition/) are licensed
+separately under Creative Commons Attribution 4.0 International
+(CC BY 4.0).
