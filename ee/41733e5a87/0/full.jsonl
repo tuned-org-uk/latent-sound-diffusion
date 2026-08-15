@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 9.69290168,
+    "cost": 9.88082436,
     "tokens": {
-      "input": 493832,
-      "output": 71250,
-      "reasoning": 64875,
+      "input": 495921,
+      "output": 72384,
+      "reasoning": 64897,
       "cache": {
-        "read": 30518656,
+        "read": 31210624,
         "write": 0
       }
     },
     "time": {
       "created": 1786784753145,
-      "updated": 1786791568105
+      "updated": 1786791587875
     }
   },
   "messages": [
@@ -25079,21 +25079,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.06212384,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 230950,
+          "input": 420,
+          "output": 386,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 230144
           }
         },
         "modelID": "glm-5.3",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786791568104
+          "created": 1786791568104,
+          "completed": 1786791579932
         },
+        "finish": "tool-calls",
         "id": "msg_00513a2e8002yZSxukoeA1sMU8",
         "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT"
       },
@@ -25110,20 +25113,337 @@
           "tool": "bash",
           "callID": "call_a692befaa9a04e71878ae106",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add .gitignore src/ald_sc/eval.py src/ald_sc/inference.py scripts/run_evaluation.py scripts/build_eval_notebook.py tests/test_eval.py notebooks/07_evaluation_metrics.ipynb results/ autoresearch/evals-260815-0945/ && git commit -m \"feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n\n- eval.py: band_energy_retention, spectral_rolloff, true recursive\n  variant drift (condition_on_audio -> synthesize_midi, R rounds),\n  eps_sweep; +11 tests (test_eval.py 41 total)\n- run_evaluation.py: --ablation-q/-noise/-eps sweep modes, --tag dataset\n  prefix, results/artifacts checkpoints, retention + true recursion\n  integrated; condition_on_audio made device-safe\n- All paper tables re-run on MPS (graph v2 + grad clip): graph <=\n  baseline on L1 everywhere (NSynth + ESC-50); true-recursion drift\n  0 -> 0.095; q sweep flat; noise sweep 0.1116 -> 0.1212; eps sweep\n  (absolute units, Sum(nu)=5.67) cuts compute 2-4x and improves the\n  FAD-proxy mid-range\n- ESC-50 (600 MB, CC BY 4.0) 256-subset tagged run\n- notebook 07 rebuilt + executed with new sections + calibration note\n- honest negatives retained: FAD-proxy favours baseline; lambda_ED\n  ~no-op; coherence r ~ 0 (resampling artefacts)\n\n223 tests green, ruff clean. stop-at-verified; no push.\""
             },
+            "output": "[main d2da651] feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n 29 files changed, 1852 insertions(+), 301 deletions(-)\n create mode 100644 autoresearch/evals-260815-0945/handoff.json\n create mode 100644 autoresearch/evals-260815-0945/plan.md\n create mode 100644 autoresearch/evals-260815-0945/summary.md\n create mode 100644 results/esc50_fig_variant_diversity.png\n create mode 100644 results/esc50_recursive_variants.csv\n create mode 100644 results/esc50_table1_reconstruction.csv\n create mode 100644 results/esc50_table2_ablation.csv\n create mode 100644 results/esc50_table3_fad_clap.csv\n create mode 100644 results/esc50_table4_compression.csv\n create mode 100644 results/esc50_table5_coherence.csv\n create mode 100644 results/esc50_table6_band_retention.csv\n create mode 100644 results/recursive_variants.csv\n create mode 100644 results/sweep_eps.csv\n create mode 100644 results/sweep_noise.csv\n create mode 100644 results/sweep_q.csv\n create mode 100644 results/table6_band_retention.csv\n delete mode 100644 results/variant_diversity.csv\n",
+            "metadata": {
+              "output": "[main d2da651] feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n 29 files changed, 1852 insertions(+), 301 deletions(-)\n create mode 100644 autoresearch/evals-260815-0945/handoff.json\n create mode 100644 autoresearch/evals-260815-0945/plan.md\n create mode 100644 autoresearch/evals-260815-0945/summary.md\n create mode 100644 results/esc50_fig_variant_diversity.png\n create mode 100644 results/esc50_recursive_variants.csv\n create mode 100644 results/esc50_table1_reconstruction.csv\n create mode 100644 results/esc50_table2_ablation.csv\n create mode 100644 results/esc50_table3_fad_clap.csv\n create mode 100644 results/esc50_table4_compression.csv\n create mode 100644 results/esc50_table5_coherence.csv\n create mode 100644 results/esc50_table6_band_retention.csv\n create mode 100644 results/recursive_variants.csv\n create mode 100644 results/sweep_eps.csv\n create mode 100644 results/sweep_noise.csv\n create mode 100644 results/sweep_q.csv\n create mode 100644 results/table6_band_retention.csv\n delete mode 100644 results/variant_diversity.csv\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add .gitignore src/ald_sc/eval.py src/ald_sc/inference.py scripts/run_evaluation.py scripts/build_eval_notebook.py tests/test_eval.py notebooks/07_evaluation_metrics.ipynb results/ autoresearch/evals-260815-0945/ && git commit -m \"feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n\n- eval.py: band_energy_retention, spectral_rolloff, true recursive\n  variant drift (condition_on_audio -> synthesize_midi, R rounds),\n  eps_sweep; +11 tests (test_eval.py 41 total)\n- run_evaluation.py: --ablation-q/-noise/-eps sweep modes, --tag dataset\n  prefix, results/artifacts checkpoints, retention + true recursion\n  integrated; condition_on_audio made device-safe\n- All paper tables re-run on MPS (graph v2 + grad clip): graph <=\n  baseline on L1 everywhere (NSynth + ESC-50); true-recursion drift\n  0 -> 0.095; q sweep flat; noise sweep 0.1116 -> 0.1212; eps sweep\n  (absolute units, Sum(nu)=5.67) cuts compute 2-4x and improves the\n  FAD-proxy mid-range\n- ESC-50 (600 MB, CC BY 4.0) 256-subset tagged run\n- notebook 07 rebuilt + executed with new sections + calibration note\n- honest negatives retained: FAD-proxy favours baseline; lambda_ED\n  ~no-op; coherence r ~ 0 (resampling artefacts)\n\n223 tests green, ruff clean. stop-at-verified; no push.\"",
             "time": {
-              "start": 1786791576383
+              "start": 1786791579835,
+              "end": 1786791579837
             }
           },
           "id": "prt_00513c33b001d6ingO2RDZZVeR",
           "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
           "messageID": "msg_00513a2e8002yZSxukoeA1sMU8"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "cdb5f1280f4217676af1b2f24d8cdb4ff86c046d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 230950,
+            "input": 420,
+            "output": 386,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 230144
+            }
+          },
+          "cost": 0.06212384,
+          "id": "prt_00513d0e9001JNRPrqJrpaN0g9",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513a2e8002yZSxukoeA1sMU8"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_004f1e979001boXRiW3ksBUdMF",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.06268148,
+        "tokens": {
+          "total": 231676,
+          "input": 769,
+          "output": 357,
+          "reasoning": 22,
+          "cache": {
+            "write": 0,
+            "read": 230528
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786791579940,
+          "completed": 1786791587865
+        },
+        "finish": "tool-calls",
+        "id": "msg_00513d124002J5mTYoOcp1603R",
+        "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT"
+      },
+      "parts": [
+        {
+          "snapshot": "cdb5f1280f4217676af1b2f24d8cdb4ff86c046d",
+          "type": "step-start",
+          "id": "prt_00513e5ce001aBQWyA9qqZKgkw",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513d124002J5mTYoOcp1603R"
+        },
+        {
+          "type": "reasoning",
+          "text": "Both commits landed. Update the todo list and give the final report. Also verify the working tree is clean.",
+          "time": {
+            "start": 1786791585232,
+            "end": 1786791585607
+          },
+          "id": "prt_00513e5d0001IsxrBUbhDNXke9",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513d124002J5mTYoOcp1603R"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_20ddbae68c3d4c5cbf3118bc",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git status --short && git log --oneline -4"
+            },
+            "output": "d2da651 feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n19a2953 fix: per-time-step graph filter in wave block + reverse-process heat-death criterion (issue #51 root cause)\n55d9e8d fix: harden decoder training and lock in MPS parity (issue #51)\n2bcc15d docs: replace docs/paper with spectral-composition paper draft (document.tex + compiled pdf); ignore LaTeX build artifacts\n",
+            "metadata": {
+              "output": "d2da651 feat: issue #50 Phase 1 — eval extensions, MPS rerun with sweeps, ESC-50 (autoresearch evals-260815-0945)\n19a2953 fix: per-time-step graph filter in wave block + reverse-process heat-death criterion (issue #51 root cause)\n55d9e8d fix: harden decoder training and lock in MPS parity (issue #51)\n2bcc15d docs: replace docs/paper with spectral-composition paper draft (document.tex + compiled pdf); ignore LaTeX build artifacts\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git status --short && git log --oneline -4",
+            "time": {
+              "start": 1786791585657,
+              "end": 1786791585658
+            }
+          },
+          "id": "prt_00513e748001QS4aWFSgqVqQn5",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513d124002J5mTYoOcp1603R"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "call_0f7655aa302348bda386ec4a",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "Round-0: dry-run predicate commands, create run dir + plan.md",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "eval.py: band_energy_retention, spectral_rolloff, true recursive rehydration, sweep helpers + tests",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "run_evaluation.py: --ablation-q/noise/eps modes, artifacts checkpoints, integrate new metrics",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Download ESC-50 (~600MB) and verify dataset class",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Run main NSynth eval on MPS (retention+rolloff+recursion)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Run q / NOISE / ε sweeps on MPS",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Run ESC-50 256-subset pipeline on MPS",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Rebuild notebook 07 with new tables; calibrated summary/handoff",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Verify predicate (tests, lint, artifacts), report verdict",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "BONUS: root-cause + fix the MPS divergence (wave block v2), correct issue #51 record",
+                  "priority": "high",
+                  "status": "completed"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"Round-0: dry-run predicate commands, create run dir + plan.md\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"eval.py: band_energy_retention, spectral_rolloff, true recursive rehydration, sweep helpers + tests\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"run_evaluation.py: --ablation-q/noise/eps modes, artifacts checkpoints, integrate new metrics\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Download ESC-50 (~600MB) and verify dataset class\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Run main NSynth eval on MPS (retention+rolloff+recursion)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Run q / NOISE / ε sweeps on MPS\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Run ESC-50 256-subset pipeline on MPS\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Rebuild notebook 07 with new tables; calibrated summary/handoff\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Verify predicate (tests, lint, artifacts), report verdict\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"BONUS: root-cause + fix the MPS divergence (wave block v2), correct issue #51 record\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "Round-0: dry-run predicate commands, create run dir + plan.md",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "eval.py: band_energy_retention, spectral_rolloff, true recursive rehydration, sweep helpers + tests",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "run_evaluation.py: --ablation-q/noise/eps modes, artifacts checkpoints, integrate new metrics",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Download ESC-50 (~600MB) and verify dataset class",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Run main NSynth eval on MPS (retention+rolloff+recursion)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Run q / NOISE / ε sweeps on MPS",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Run ESC-50 256-subset pipeline on MPS",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Rebuild notebook 07 with new tables; calibrated summary/handoff",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Verify predicate (tests, lint, artifacts), report verdict",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "BONUS: root-cause + fix the MPS divergence (wave block v2), correct issue #51 record",
+                  "status": "completed",
+                  "priority": "high"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "0 todos",
+            "time": {
+              "start": 1786791587736,
+              "end": 1786791587738
+            }
+          },
+          "id": "prt_00513ef89001vpao767Wb44thE",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513d124002J5mTYoOcp1603R"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "cdb5f1280f4217676af1b2f24d8cdb4ff86c046d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 231676,
+            "input": 769,
+            "output": 357,
+            "reasoning": 22,
+            "cache": {
+              "write": 0,
+              "read": 230528
+            }
+          },
+          "cost": 0.06268148,
+          "id": "prt_00513efe1001fg5q7S0fIRtzw2",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513d124002J5mTYoOcp1603R"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_004f1e979001boXRiW3ksBUdMF",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.06311736,
+        "tokens": {
+          "total": 232587,
+          "input": 900,
+          "output": 391,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 231296
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786791587874,
+          "completed": 1786791638815
+        },
+        "finish": "stop",
+        "id": "msg_00513f022002SKwfCvevbigQsM",
+        "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT"
+      },
+      "parts": [
+        {
+          "snapshot": "cdb5f1280f4217676af1b2f24d8cdb4ff86c046d",
+          "type": "step-start",
+          "id": "prt_00514a78b001hllKr6KoKdqBnX",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513f022002SKwfCvevbigQsM"
+        },
+        {
+          "type": "text",
+          "text": "`[autoresearch] evals-260815-0945 → CONVERGED (stop-at-verified)` — working tree clean, 2 commits.\n\n**The big unplanned finding**: the MPS rerun *reproduced* the issue #51 divergence, and root-caused it — the wave block's pooled **time-constant `U_q` delta** through GroupNorm carries 1/σ³ gradients (knife-edge decided by device RNG stream; clip/eps/warmup all failed). Fixed with a **per-time-step graph filter** (`19a2953`); correction posted on #51. Result: MPS training is now stable **and the graph decoder beats the baseline on L1** on every NSynth and ESC-50 split.\n\n**Loop deliverables** (`d2da651`, all runs on MPS):\n- Eval extensions: band retention, rolloff, true R-round recursion, ε sweep (+11 tests; 223 total green)\n- New tables: `table6_band_retention`, `recursive_variants`, `sweep_q/noise/eps`, `esc50_*` (8 tagged tables)\n- Calibrated numbers for the paradigm framing: q sweep flat (0.109–0.114), noise dial weak-but-present, ε stopping cuts compute 2–4× *and* improves FAD-proxy (858 vs 1154), recursion drifts-then-saturates (0→0.095); honest negatives kept (FAD-proxy favours baseline, λ_ED no-op, coherence ≈ 0)\n- Heat-death criterion fixed to reverse-process semantics (old one fired at sampling start)\n- Notebook 07 rebuilt + executed; summary/handoff in `autoresearch/evals-260815-0945/`\n\nReady for the Phase 2/3 paper-writing loop whenever you are.",
+          "time": {
+            "start": 1786791634828,
+            "end": 1786791638707
+          },
+          "id": "prt_00514a78c001CDSVDNwwMBYRB3",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513f022002SKwfCvevbigQsM"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "cdb5f1280f4217676af1b2f24d8cdb4ff86c046d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 232587,
+            "input": 900,
+            "output": 391,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 231296
+            }
+          },
+          "cost": 0.06311736,
+          "id": "prt_00514b6e9001p1UKions2uRHG5",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_00513f022002SKwfCvevbigQsM"
         }
       ]
     }
