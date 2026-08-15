@@ -3,7 +3,7 @@
   "checkpoint_id": "ec4dff1680fc",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "README.md",
     "autoresearch/evals-260815-1100/handoff.json",
@@ -20,13 +20,20 @@
       "compact_transcript": "/ec/4dff1680fc/0/transcript.jsonl",
       "content_hash": "/ec/4dff1680fc/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/ec/4dff1680fc/1/metadata.json",
+      "transcript": "/ec/4dff1680fc/1/full.jsonl",
+      "compact_transcript": "/ec/4dff1680fc/1/transcript.jsonl",
+      "content_hash": "/ec/4dff1680fc/1/content_hash.txt",
+      "prompt": "/ec/4dff1680fc/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
+    "input_tokens": 77367,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "cache_read_tokens": 13212800,
+    "output_tokens": 21060,
+    "api_call_count": 55
   }
 }

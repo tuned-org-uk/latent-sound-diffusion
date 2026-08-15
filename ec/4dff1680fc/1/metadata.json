@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "ec4dff1680fc",
+  "session_id": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-15T11:12:02.502769Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "autoresearch/evals-260815-1100/plan.md",
+    "docs/spectral-composition/document.tex",
+    "README.md",
+    "autoresearch/evals-260815-1100/handoff.json",
+    "autoresearch/evals-260815-1100/summary.md"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.3",
+  "turn_id": "926bcab4ecc4",
+  "checkpoint_transcript_start": 242,
+  "transcript_lines_at_start": 242,
+  "compact_transcript_start": 242,
+  "token_usage": {
+    "input_tokens": 77367,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 13212800,
+    "output_tokens": 21060,
+    "api_call_count": 55
+  },
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-15T11:12:02.379621Z",
+    "agent_lines": 1014,
+    "agent_removed": 116,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1014,
+    "total_lines_changed": 1130,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
