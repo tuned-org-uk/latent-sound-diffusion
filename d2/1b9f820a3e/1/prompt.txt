@@ -1,0 +1,1 @@
+I have added an LSD-studio screenshot in the figures directory, please include it in the right section (maybe an appendix)
