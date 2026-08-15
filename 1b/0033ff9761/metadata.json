@@ -3,8 +3,11 @@
   "checkpoint_id": "1b0033ff9761",
   "strategy": "manual-commit",
   "branch": "docs/bank-variant-paper-calibration",
-  "checkpoints_count": 10,
-  "files_touched": null,
+  "checkpoints_count": 11,
+  "files_touched": [
+    "docs/spectral-composition/document.pdf",
+    "docs/spectral-composition/document.tex"
+  ],
   "sessions": [
     {
       "metadata": "/1b/0033ff9761/0/metadata.json",
@@ -12,6 +15,13 @@
       "compact_transcript": "/1b/0033ff9761/0/transcript.jsonl",
       "content_hash": "/1b/0033ff9761/0/content_hash.txt",
       "prompt": "/1b/0033ff9761/0/prompt.txt"
+    },
+    {
+      "metadata": "/1b/0033ff9761/1/metadata.json",
+      "transcript": "/1b/0033ff9761/1/full.jsonl",
+      "compact_transcript": "/1b/0033ff9761/1/transcript.jsonl",
+      "content_hash": "/1b/0033ff9761/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
