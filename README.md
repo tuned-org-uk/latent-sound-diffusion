@@ -163,7 +163,7 @@ isolates graph structure as the only variable.
 ### Open issues (limitations)
 
 - [#1](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/1) — Sound generation: end-to-end audio synthesis via ALD-SC
-- FAD computation (`fadtk` removed due to dependency conflicts; multi-scale STFT used as fallback)
+- FAD computation: `fadtk` removed due to dependency conflicts; the evaluation pipeline (`src/ald_sc/eval.py`) computes a documented **FAD-proxy** (exact Fréchet formula on frozen EnCodec pooled features instead of VGGish) and a **CLAP-proxy** (deterministic hashing text embedding); methodology recorded in each CSV's `*_method` columns
 - Real-data experiments on ESC-50 with real EnCodec (notebooks 05 and 06 use real EnCodec; notebook 01 is a CPU demo)
 - [#51](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/51) — graph-decoder training instability: root-caused to the wave block's time-constant `U_q` delta broadcast through GroupNorm (1/σ³ gradient knife-edge, device-noise-stream dependent); fixed with a per-time-step graph filter (1×1 convs + einsum through `U_q`), plus grad clipping and a non-finite guard in `train_audio_decoder`; CPU/MPS parity locked in by `tests/test_device_parity.py` + `scripts/repro_mps_divergence.py`
 

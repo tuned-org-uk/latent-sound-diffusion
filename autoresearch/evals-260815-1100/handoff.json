@@ -1,0 +1,30 @@
+{
+  "run_id": "paper-260815-1100",
+  "mode": "orchestrator",
+  "archetype": "build-feature",
+  "goal": "Issue #50 Phase 2/3: fill all 23 \\placeholder{} macros in docs/spectral-composition/document.tex with data-grounded results (from evals-260815-0945) and calibrated prose; novel-paradigm framing (honest preliminary-scale numbers, no benchmark claims).",
+  "predicate": {
+    "command": "grep -c 'placeholder{' docs/spectral-composition/document.tex (expect 0 uses) && pdflatex -interaction=nonstopmode document.tex x3 (exit 0, 0 undefined refs) && uv run pytest tests/ -q && uv run ruff check src tests scripts",
+    "expected": "exit 0"
+  },
+  "terminal_choice": "stop-at-verified",
+  "decisions": {
+    "group_a": "7 data-grounded fills: §3.1 compression table, §5.3 hyperparameter table + measured MPS times, §6.1 recursion results + Figure + proposed listening protocol, §6.2 Table 1 (L1+STFT, NSynth+ESC-50) + retention table + FAD/CLAP proxy honesty + scale hypotheses, §6.3 four ablations (CFG deferred one sentence), §6.4 seven concrete limitations, §9 findings summary",
+    "group_b": "16 prose fills incl. §2.1 related models, §2.3 Connes-Rovelli/Barontini (ported from old ald-sc.tex via git history), §3 training loss with honest trainer disclosure, §3.3.1 GPT-MIDI as design spec, §4.3 rewritten to v2 per-time-step graph filter + instability postmortem, §4.5 TikZ IPC diagram",
+    "bib": "+14 entries (Jukebox, AudioLM, MusicLM, MusicGen, Riffusion, AudioLDM2, Stable Audio, Mousai, ConnesRovelli1994, DDIM, DPM-Solver, FAD, CLAP)",
+    "figure": "fig_variant_diversity.png copied to docs/spectral-composition/figures/",
+    "placeholder_macro": "definition removed after last use dropped to zero"
+  },
+  "artifacts_dir": "docs/spectral-composition",
+  "status": "done",
+  "verdict": "CONVERGED",
+  "compile": "pdflatex exit 0, 23 pages, 0 undefined references, ~9850 words",
+  "tests": "pytest green; ruff clean (no src changes)",
+  "follow_ups": [
+    "execute the specified listening study (protocol in §6.1)",
+    "scale-up run (N/epochs/capacity) to test the FAD-proxy hypothesis in §6.2",
+    "pitch-preserving materialiser for Stage 3 (limitations §6.4 item 5)",
+    "LSD Phase 2: text/CLAP conditioning per §8.1"
+  ],
+  "prev_run": "evals-260815-0945"
+}

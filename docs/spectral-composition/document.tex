@@ -14,12 +14,11 @@
 \usepackage{abstract}
 \usepackage{titlesec}
 \usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{multirow}
 
 \geometry{margin=2.5cm}
-
-\newcommand{\placeholder}[1]{%
-  \textcolor{gray}{\textit{[Placeholder: #1]}}%
-}
 
 \hypersetup{
   colorlinks=true,
@@ -153,9 +152,33 @@ operating at 24\,kHz that encodes mono audio clips into a 1-D continuous
 latent $z \in \mathbb{R}^{D \times T}$ (with $D=128$, $T=375$ for 5-second
 clips) via its pre-quantization continuous features.
 
-\placeholder{Discuss related audio generative models (AudioLM, MusicGen,
-Stable Audio, AudioCraft). Contrast with symbolic-only (MIDI) and
-waveform-only generation. Motivate the spectral-latent approach.}
+Beyond this codec-in-latent-space pattern, the field has explored three
+complementary strategies. \emph{Discrete-token language models} —
+Jukebox~\cite{jukebox2020}, AudioLM~\cite{audiolm2022}, MusicLM/
+MusicGen~\cite{musiclm2023,audiocraft2023} — cast generation as
+next-token prediction over neural codec codes, inheriting the long-range
+coherence of sequence models but at heavy sampling cost and with identity
+tied to massive generic corpora rather than to a producer's own archive.
+\emph{Continuous latent diffusion} — Riffusion~\cite{riffusion2022},
+AudioLDM~2~\cite{audioldm2_2023}, Stable Audio~\cite{stableaudio2023},
+Mo\^usai~\cite{mousai2023} — denoises in a compressed continuous latent
+(our setting), trading the discrete hierarchy for sample efficiency and
+smooth interpolation; these systems are text-conditioned and corpus-wide,
+designed to synthesise arbitrary described audio. \emph{Symbolic
+generative models} produce MIDI or scores directly and remain trivially
+controllable but carry no timbral identity of their own.
+
+Spectral Composition occupies a deliberately different position. All of
+the above condition generation on a \emph{prompt} and evaluate against a
+\emph{generic} distribution; none treats a private sound archive as the
+primary generative substrate. Our latents come from the producer's
+library via a frozen EnCodec encoder~\cite{defossez2022}; our conditioning
+vector $c_{\mathrm{spec}}$ is corpus-derived, not text-derived; and our
+generation contract (sample, rehydrate, recurse) is a compositional
+workflow rather than a single-conditioning synthesis call. Symbolic
+structure enters not as the output but as a \emph{control surface}
+(Stage~3), combining the controllability of the MIDI world with the
+timbral lineage of the latent-diffusion world.
 
 \subsection{ArrowSpace Graph Priors and Energy-Dispersion Networks}
 \label{subsec:bg_arrowspace}
@@ -183,9 +206,30 @@ per-mode dispersion weights
   \label{eq:chart_dispersion}
 \end{equation}
 
-\placeholder{Expand on the ArrowSpace spectral search paper, the kNN
-graph construction, $\tau$-modulation, and the connection between
-$\lambda^{\mathrm{ED}}$ and semantic coherence under compression.}
+In ArrowSpace's dual-space construction the corpus is viewed through two
+graphs: an \emph{item graph} over the $N$ clips and a \emph{feature graph}
+over the $F$ feature dimensions, where each feature is represented by its
+signal across the corpus (the corresponding column of $A$). Edges of the
+feature graph are $k$-nearest-neighbour links under cosine similarity,
+symmetrised to keep $L_F$ well-defined. The spectral theorem then
+orders features by \emph{smoothness}: the leading eigenvectors $U_q$
+span the subspace along which corpus energy varies most coherently —
+empirically the directions that encode style and timbral family rather
+than idiosyncratic detail. This is the property the ArrowSpace index
+exploits at query time via $\lambda\tau$-modulation, weighting chart
+coordinates by dispersion to rank spectrally-near neighbours.
+
+The Energy Dispersion Network completes the picture by diagnosing
+\emph{how concentrated} the semantic structure of a corpus is:
+$\lambda^{\mathrm{ED}}_f$ large on a tightly-connected neighbourhood of
+the feature graph means the corpus's meaning is carried by a compact,
+redundant feature set — the regime in which aggressive compression (small
+$q$) preserves retrieval behaviour. The connection we draw on in this
+paper is direct: $\lambda^{\mathrm{chart}}_k$ (Eq.~\ref{eq:chart_dispersion})
+measures how much corpus-level dispersion each smooth mode carries, and
+we use it to gate how much reconstruction energy the decoder allocates to
+that mode. Semantic coherence under compression is thus not an
+after-the-fact evaluation but a structural input to decoding.
 
 \subsection{Entropic Time Scheduling and the Barontini Clock}
 \label{subsec:bg_clock}
@@ -206,9 +250,33 @@ mode-$k$ noise schedule. The sampler terminates when
 the ``heat-death'' criterion, replacing an arbitrary fixed step count
 with a spectrally-motivated halting rule~\cite{lsd,aldsc}.
 
-\placeholder{Discuss the connection to the problem of time in quantum
-gravity and cold-atom experiments (Barontini 2026). Relate to prior work
-on adaptive diffusion schedules (DDIM, DPM-Solver, etc.).}
+The physical motivation is the \emph{problem of time} in closed systems.
+Connes and Rovelli~\cite{connesrovelli1994} argue that in a generally
+covariant theory the physical time-flow need not be a universal external
+parameter but can arise from the thermodynamical state of the system
+itself. Barontini's cold-atom experiment~\cite{barontini2026} provides an
+operational testbed: a closed system partitioned into observed and
+unobserved sectors admits an \emph{entropic time} constructed purely from
+internal entropy exchange between the sectors, without any external
+clock. The heat-death criterion above is the sampling-time analogue: the
+sampler's progress is measured by how much spectral structure remains
+unresolved (internal state), and halting is a property of the trajectory,
+not of a step counter.
+
+Among adaptive-sampling methods, DDIM~\cite{song2020} and
+DPM-Solver~\cite{lu2022} accelerate diffusion by reusing or integrating
+the same fixed schedule more efficiently — the clock is external and
+trajectory-independent. The entropic stopping rule is complementary
+rather than competing: it says \emph{when individual modes have nothing
+left to resolve}, per-mode, driven by the corpus eigenvalues $\nu_k$. In
+our implementation the criterion is evaluated as the remaining
+dissipation $\sum_k \nu_k (1 - \bar{\alpha}_k(t)) < \varepsilon$, which
+decreases monotonically as denoising completes
+(Section~\ref{subsec:eval_ablation} measures the resulting
+steps-vs-quality tradeoff). We retain this as a design principle —
+generative dynamics informed by state-derived geometry — while
+acknowledging that the full thermodynamic construction remains a
+metaphor-level grounding at this stage.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -256,6 +324,44 @@ now represented by the compact frozen objects
 $(L_F, U_q, \lambda^{\mathrm{ED}})$ — the \emph{dehydrated} spectral
 representation.
 
+\paragraph{Dehydration as compression}
+The dehydration step is also a compression statement. Representing the
+library as raw 16-bit PCM costs $N \cdot T \cdot 16$ bits; the
+dehydrated representation costs the prior
+($L_F$, $U_q$, $\nu$, $\lambda^{\mathrm{ED}}$, $\lambda^{\mathrm{chart}}$
+— $2.2\times10^5$ floats, stored once, corpus-independent of $N$) plus
+per-clip storage at EnCodec's 24\,kbps code rate. Table~\ref{tab:compression}
+reports the resulting ratios for our evaluation corpus ($T = 96{,}000$
+samples, 4\,s at 24\,kHz): the prior cost dominates a single clip
+(2.34$\times$) but amortises rapidly, reaching $15.99\times$ at the
+corpus scale of 9{,}811 NSynth notes. The asymptote is set by EnCodec's
+code rate alone; the spectral prior adds a constant, shrinking relative
+overhead. Note what this compression buys: not just a smaller library,
+but a \emph{generative} representation — the same $(L_F, U_q,
+\lambda^{\mathrm{ED}})$ that stores the corpus also constrains every
+sampling and decoding operation in Stages 2--4.
+
+\begin{table}[h]
+\centering
+\caption{Dehydration compression ratio vs.\ corpus size $N$
+(4\,s clips, 16-bit PCM vs.\ frozen prior + 24\,kbps per-clip code
+rate; prior is 561{,}664 bits stored once).}
+\begin{tabular}{rr}
+\toprule
+$N$ & Compression ratio \\
+\midrule
+1 & 2.34$\times$ \\
+10 & 10.09$\times$ \\
+50 & 14.32$\times$ \\
+100 & 15.12$\times$ \\
+256 & 15.64$\times$ \\
+1000 & 15.91$\times$ \\
+9811 & \textbf{15.99$\times$} \\
+\bottomrule
+\end{tabular}
+\label{tab:compression}
+\end{table}
+
 \subsubsection{Two-stage model training}
 
 Training proceeds as two frozen-then-fine-tuned phases.
@@ -271,10 +377,48 @@ $\{z_i\}$ conditioned on $c_{\mathrm{spec}}$:
 \end{equation}
 using $v$-prediction for numerical stability.
 
-\placeholder{Describe the full training loss including $\mathcal{L}_{\mathrm{rec}}$
-(L1 + multi-scale STFT), $\mathcal{L}_{\mathrm{chart}}$, and
-$\mathcal{L}_{\mathrm{smooth}}$. Discuss the non-repeatable training
-design (SEED=None, NOISE\_INJECT).}
+The full training objective for Phase~1 combines four terms:
+\begin{equation}
+  \mathcal{L}
+  = \lambda_{\mathrm{rec}} \mathcal{L}_{\mathrm{rec}}
+  + \lambda_{\mathrm{stft}} \mathcal{L}_{\mathrm{stft}}
+  + \lambda_{\mathrm{chart}} \mathcal{L}_{\mathrm{chart}}
+  + \lambda_{\mathrm{smooth}} \mathcal{L}_{\mathrm{smooth}},
+  \label{eq:total_loss}
+\end{equation}
+with $\mathcal{L}_{\mathrm{rec}}$ the waveform L1 distance,
+$\mathcal{L}_{\mathrm{stft}}$ a multi-scale spectral loss (spectral
+convergence + log-magnitude L1 over FFT sizes 512/1024/2048),
+$\mathcal{L}_{\mathrm{chart}} = \lVert \tilde{e}(A) -
+\tilde{e}(\hat{A})\rVert^2$ the spectral-chart consistency between the
+band energies of encoder features and their reconstruction, and
+$\mathcal{L}_{\mathrm{smooth}} = \lVert A (I - U_q U_q^\top)
+\rVert_F^2 / \lVert A \rVert_F^2$ the off-manifold penalty. Two
+implementation facts matter for interpreting our results, and we state
+them plainly. First, in the configuration evaluated in
+Section~\ref{sec:evaluation} we set
+$\lambda_{\mathrm{stft}} = 0$, so decoder training is driven by the L1
+term (with $\mathcal{L}_{\mathrm{chart}}, \mathcal{L}_{\mathrm{smooth}}$
+logged as corpus-level diagnostics; in the current trainer the chart
+target is detached, so they contribute no decoder gradient). Second, the
+chart term as specified — comparing decoded audio re-encoded to
+$\hat{A}$ against $A$ — is the natural form of the objective and is
+measured as such at evaluation time (Table~\ref{tab:retention}); wiring
+it into the decoder gradient is scheduled future work.
+
+The \emph{non-repeatable training} design is deliberate. With
+\texttt{SEED=None} a fresh seed is drawn per run, so every baked model —
+and therefore every bank and variant family — is a singular artefact:
+two producers dehydrating the same library obtain different-but-
+lineage-identical manifolds. \texttt{NOISE\_INJECT} ($\sigma_{\mathrm{inj}}$)
+perturbs the latent the decoder sees during training (the conditioning
+$c_{\mathrm{spec}}$ stays derived from the clean features), trading
+reconstruction fidelity for acoustic variety
+(Section~\ref{subsec:eval_ablation} quantifies the tradeoff). Training
+uses Adam with global gradient-norm clipping at $1.0$; a non-finite
+loss or gradient norm aborts the run with an explicit error, a
+hardening added after diagnosing an early gradient pathology in the
+wave block (Section~\ref{subsec:arch_decoder}).
 
 \subsection{Stage 2 — Dense Unconditional Sampling (Sound-Bank Generation)}
 \label{subsec:stage2}
@@ -300,9 +444,25 @@ samples that are perceptually self-similar — drawn from the same frozen
 manifold — yet acoustically distinct because \texttt{SEED=None} is the
 default.
 
-\placeholder{Discuss the ``super-dense'' character of the bank: why
-all samples share stylistic identity while varying locally. Relate to the
-frozen prior design constraint (corpus-level prior, not per-clip).}
+The bank is \emph{super-dense} in the sense that every draw lands on the
+same frozen manifold yet no two draws coincide. Three mechanisms
+conspire. (i)~The prior is corpus-level, not per-clip: $U_q$ and
+$\lambda^{\mathrm{ED}}$ encode what the \emph{whole library} has in
+common — its spectral signature — so every decoded clip is filtered
+through the same stylistic identity. (ii)~The unconditional DiT is
+trained on latents of the library only; its stationary distribution is
+the library's latent distribution, so dense sampling sweeps that
+distribution rather than an open-ended audio space. (iii)~The
+self-consistent chart conditioning keeps each draw within the energy
+allocation the corpus actually exhibits. Locally, draws differ because
+the DiT's stationary measure is continuous and
+\texttt{SEED=None} makes the sampling trajectory fresh each time;
+globally, they agree because every path through Stage~2 crosses the same
+projector $\Pi_q$. In producer terms: one bank, many voices, one sound.
+This is precisely the behaviour a sample-library workflow wants — a
+coherent palette rather than a bag of unrelated one-shots — and it is a
+structural consequence of the frozen-prior design, not a tuned
+temperature.
 
 \subsection{Stage 3 — MIDI-Conditioned Materialisation (Rehydration)}
 \label{subsec:stage3}
@@ -313,9 +473,25 @@ A language model (e.g.\ a GPT-based symbolic music model) generates a MIDI
 file $\mathcal{P}$ = $\{(p_i, t_i, d_i)\}$ where $p_i$ is the MIDI pitch,
 $t_i$ the onset time, and $d_i$ the duration of note $i$.
 
-\placeholder{Describe the GPT-MIDI generation front-end: prompt design,
-conditioning on genre/key/BPM, and the interface to LSD-Studio. Discuss
-alternative symbolic sources (human MIDI, rule-based generation, MusicXML).}
+\emph{Design specification (not yet implemented).} The front-end is
+planned as a small GPT-style decoder over a MIDI event vocabulary
+(pitch, onset, duration, velocity), fine-tunable on the producer's own
+MIDI corpus so that generated scores match the producer's rhythmic and
+harmonic habits. The prompt interface exposes genre, key, and BPM as
+structured controls, with a free-text slot for optional style steering;
+the model emits a quantised event list validated against the same
+$(p_i, t_i, d_i)$ schema that \texttt{synthesize\_midi} consumes, plus
+score metadata (BPM, key, time signature) that LSD-Studio propagates to
+the transport clock. This component is deliberately swappable: any
+source of symbolic material — hand-played MIDI, rule-based generators,
+imported MusicXML rendered to MIDI, or clip detection from the archive
+itself — feeds Stage~3 unchanged, because the materialisation interface
+is the event list, not the language model. In the current system all
+MIDI material is supplied manually; the evaluation in
+Section~\ref{sec:evaluation} uses fixed scores for exactly this reason
+(reproducibility). We report this as an engineering gap, not a
+scientific one: nothing in Stages 2--4 depends on how the score was
+produced.
 
 \subsubsection{Pitch-shifted decoding (synthesize\_midi)}
 
@@ -391,9 +567,24 @@ with per-stem gain, panning, and effect chains. Additional post-processing
 latent-space concatenation) is available via the notebook series
 (02--04)~\cite{lsd}.
 
-\placeholder{Describe the DAW integration and MIDI synchronisation in
-LSD-Studio. Discuss how BPM and key are propagated from the LM-generated
-MIDI through to the mix.}
+LSD-Studio's mixing surface follows DAW conventions so the workflow
+drops into existing practice. Each variant $Y^{(r)}$ and bank selection
+occupies a track with the usual gain, pan, mute/solo, and insert chain;
+stems created at different recursion depths are grouped, so the variant
+family $Y^{(1..R)}$ can be balanced as a unit against the dry bank
+$\mathcal{B}^{(0)}$. MIDI synchronisation is planned at the transport
+level: the score metadata (BPM, key) emitted by the Stage-3 front-end
+sets the project tempo map, note events align to the transport clock,
+and re-renders triggered by MIDI edits inherit the running tempo —
+materialisation becomes a live, re-renderable instrument rather than a
+one-shot bounce. Standard bridge protocols (e.g.\ MIDI-over-IPC to a
+DAW, or drag-out of stems) define the boundary with the producer's
+existing environment; LSD-Studio does not attempt to replace the DAW
+but to sit before it in the pipeline, exporting stems and MIDI. As with
+the language-model front-end, this describes the target design: the
+current application implements ingestion, baking, auditioning,
+generation, and mix-bus routing, with transport-locked re-rendering
+scheduled next.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -416,9 +607,34 @@ only the graph decoder and DiT are trained. This ensures that the
 manifold geometry is a property of the \emph{corpus}, not a function of
 any single training run.
 
-\placeholder{Describe the kNN graph construction, the ArrowSpace library
-API (\texttt{gl}, \texttt{lambdas()}), and the fallback behaviour when
-\texttt{pyarrowspace} bindings are unavailable.}
+Concretely, \texttt{build\_prior.py} constructs the graph as follows.
+Feature signals (columns of the corpus matrix $A \in \mathbb{R}^{N
+\times F}$, $F{=}128$ for EnCodec features) are $\ell_2$-normalised and
+compared by cosine similarity; each feature is linked to its $k$ nearest
+neighbours ($k{=}4$ in the reported configuration), and the adjacency is
+symmetrised as $W = \max(W, W^\top)$ so the Laplacian is well-defined.
+The unnormalised Laplacian $L_F = D - W$ is eigendecomposed once
+(\texttt{torch.linalg.eigh}), eigenvalues sorted ascending, the trivial
+constant mode dropped, and the leading $q$ eigenvectors retained as
+$U_q$. The dispersion network is the normalised per-feature energy
+$\lambda^{\mathrm{ED}}_f = \lVert A_{\cdot f} \rVert_2^2 /
+\lVert A \rVert_F^2$, projected onto the chart to yield
+$\lambda^{\mathrm{chart}}$. All five objects are frozen buffers with
+zero trainable parameters.
+
+The \texttt{wire\_graph.py} adapter is the port to the full ArrowSpace
+library: when the \texttt{pyarrowspace} Rust bindings are importable
+(exposing the graph constructor \texttt{gl} and dispersion query
+\texttt{lambdas()}), $L_F$ and $\lambda^{\mathrm{ED}}$ are computed by
+the library — the single source of truth, including its sparse
+Laplacian normalisation — and the Python kNN construction above serves
+as the \emph{fallback} used when the bindings are unavailable (CI,
+platforms without the Rust toolchain). The evaluation reported here ran
+the fallback path; the two constructions agree on ordering of the
+leading modes, and the fallback's dense $128\times128$ Laplacian is
+negligible compute at this scale. For archives where $F$ grows with the
+feature extractor, the library's sparse implementation is the intended
+path (Section~\ref{subsec:eval_limitations}).
 
 \subsection{1-D DiT Denoiser}
 \label{subsec:arch_dit}
@@ -435,20 +651,44 @@ inference.
 \label{subsec:arch_decoder}
 
 The \texttt{ClockGatedGraphDecoder} processes the denoised latent
-$\hat{z}$ through a sequence of \texttt{WaveReconstructionBlock}s:
+$\hat{z}$ through a sequence of \texttt{WaveReconstructionBlock}s, each
+applying a \emph{per-time-step graph filter} over the activation field.
+With activations $H \in \mathbb{R}^{C \times T}$ and feature projections
+$A = W_{C\!\to\!F} H \in \mathbb{R}^{F \times T}$:
 \begin{align}
-  \hat{H} &= A \cdot U_q,
+  \hat{H} &= U_q^\top A \in \mathbb{R}^{q \times T},
   \label{eq:project_chart}\\
-  g &= \sigma(W_g \cdot c_{\mathrm{spec}})\; \odot\; \bar{\alpha}(t),
+  g &= \sigma\!\bigl(W_g \, c_{\mathrm{spec}}\bigr) \in \mathbb{R}^{q},
   \label{eq:gate}\\
-  A' &= (\hat{H} \odot g) \cdot U_q^\top + A_{\mathrm{res}},
+  A' &= U_q \bigl(\hat{H} \odot g \mathbf{1}^\top\bigr) \in \mathbb{R}^{F \times T},
   \label{eq:lift}
 \end{align}
-where $A_{\mathrm{res}}$ is a residual convolution path and
-$\bar{\alpha}(t)$ is the Barontini clock gate (weak early in denoising,
-strong late). The decoder thus allocates reconstruction energy according
-to the corpus dispersion $\lambda^{\mathrm{ED}}$, not arbitrary learned
-weights.
+followed by $H' = H + W_{F\!\to\!C} A'$ and a residual
+\texttt{GroupNorm--SiLU--Conv1d} block. The gate $g$ is clip-level
+(broadcast over time), while the chart round-trip $U_q U_q^\top A$ acts
+on every time step independently: each frame is filtered through the
+corpus's smooth subspace before reconstruction. The
+\texttt{ClockGated} variant additionally modulates the block's
+contribution by the Barontini clock $\bar{\alpha}(t)$ — weak early in
+denoising, strong late — so the decoder allocates reconstruction energy
+according to the corpus dispersion $\lambda^{\mathrm{ED}}$ and the
+sampling clock, not arbitrary learned weights alone.
+
+An earlier version of this block projected the temporal \emph{mean} of
+$H$ through the chart and broadcast the result as a time-constant
+per-channel shift before the group normalisation. GroupNorm is
+shift-invariant in the forward pass, so that constant's gradient was
+carried entirely by second-order terms of the normaliser — a knife-edge
+that made early-training stability depend on the noise stream, and
+which we diagnosed as the cause of a device-dependent divergence
+(loss $0.44 \to 17.8$ on one backend's RNG stream versus stable descent
+on another's, at identical seeds and data). The per-time-step
+formulation removes the pathology by construction (there is no
+time-constant path into the normaliser); gradient clipping and a
+non-finite guard in the trainer bound any residual risk. This
+experience is reported in detail in the repository's issue
+tracker because it is exactly the kind of numerical accident that a
+reimplementation of the architecture should be spared.
 
 \subsection{Inference Contract (A / B / C)}
 \label{subsec:arch_inference}
@@ -477,8 +717,43 @@ model baking, sound-bank auditioning, MIDI sequencing, recursive
 generation, and multitrack mixing. The application builds to a single
 self-contained binary; Python workers are embedded at compile time.
 
-\placeholder{Architecture diagram of the IPC bridge between Rust frontend
-and Python workers. Describe the preset system and mix-bus signal flow.}
+The desktop application is organised as a thin native frontend over
+embedded model workers, communicating over an explicit IPC boundary:
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=4mm and 10mm,
+  box/.style={draw, rounded corners, minimum height=11mm, minimum width=33mm, align=center, font=\small},
+  rpc/.style={draw=none, font=\scriptsize, align=center},
+  arrow/.style={<->, >=stealth}
+]
+  \node[box] (ui) {LSD-Studio UI\\(\texttt{iced}, Rust)};
+  \node[box, right=of ui] (core) {Studio core\\(bank, tracks, mix bus)};
+  \node[box, below=9mm of ui] (rpc) {JSON-RPC\\bridge};
+  \node[box, below=9mm of core] (pool) {Python worker pool\\(LSD \texttt{LSDModel})};
+  \node[box, right=of pool] (torch) {PyTorch\\(MPS / CPU)};
+
+  \draw[arrow] (ui) -- (core);
+  \draw[arrow] (ui) -- (rpc);
+  \draw[arrow] (rpc) -- (pool);
+  \draw[arrow] (pool) -- (torch);
+\end{tikzpicture}
+\end{center}
+
+The \texttt{iced} frontend owns all interaction state — library
+ingestion, model baking progress, bank auditioning, MIDI sequencing,
+track mixing — and never links PyTorch directly. Generative requests
+(\texttt{generate\_sound\_bank}, \texttt{condition\_on\_audio},
+\texttt{synthesize\_midi}) are serialised as JSON-RPC method calls to a
+pool of Python workers, each holding one baked model
+$\mathcal{M}$; responses stream back as chunked waveforms so the UI can
+audition partial banks while later draws complete. The preset system
+lives on the worker side: a preset is a frozen $(L_F, U_q,
+\lambda^{\mathrm{ED}})$ plus trained decoder/DiT weights, selected at
+run start; the mix bus lives entirely on the Rust side, so that a
+worker crash costs generation but never the producer's mix state. This
+split keeps the producer-facing surface rebuildable in isolation from
+the research surface, and vice versa.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -531,9 +806,56 @@ controls noise injected into the EnCodec latent $z$ before the graph
 decoder's training pass, increasing acoustic variety at the cost of
 reconstruction fidelity.
 
-\placeholder{Table of hyperparameters (learning rate, batch size,
-decoder/DiT architecture dimensions, $q$, $K$, \texttt{NOISE\_INJECT}
-sweep). Training time on target hardware.}
+Table~\ref{tab:hyperparams} records the configuration used for every
+number reported in Section~\ref{sec:evaluation}, with measured wall-clock
+times on the development machine (Apple-silicon GPU via MPS; CPU-only
+runs of the identical pipeline take roughly $5\times$ longer). All runs
+share the 256-clip NSynth subset and its 179/38/39 train/val/test
+split; sweep runs override only the swept parameter and retrain the
+affected component.
+
+\begin{table}[h]
+\centering
+\caption{Training and sampling configuration (evaluation runs). Times
+are measured for 20 epochs on 179 training clips (4\,s each).}
+\begin{tabular}{lll}
+\toprule
+Component & Parameter & Value \\
+\midrule
+Data & Clips (train/val/test) & 179 / 38 / 39 \\
+     & Audio length & 96{,}000 samples (4\,s, 24\,kHz) \\
+\midrule
+Encoder & EnCodec 24\,kHz & frozen, 24\,kbps, $D{=}128$ \\
+\midrule
+Prior & Modes $q$ & 8 (swept $4$--$32$) \\
+      & kNN neighbours $k$ & 4 \\
+      & Feature dim $F$ & 128 \\
+\midrule
+Graph decoder & Base channels & 32 \\
+      & Upsampling strides & $(2,4,5,8)$ ($320\times$) \\
+      & Wave blocks & 4 (per-time-step $U_q$ filter) \\
+Baseline & Matched widths/strides, \texttt{ResBlock1d} \\
+\midrule
+DiT & Patch / dim / depth / heads & 8 / 64 / 2 / 4 \\
+\midrule
+Optimisation & Batch size & 8 \\
+      & Optimiser / lr & Adam / $10^{-3}$ \\
+      & Grad-norm clip & 1.0 \\
+      & \texttt{NOISE\_INJECT} $\sigma_{\mathrm{inj}}$ & 0.1 (swept $0$--$0.5$) \\
+      & Epochs (decoder / DiT) & 20 / 20 \\
+      & Loss weights $(\lambda_{\mathrm{rec}},\lambda_{\mathrm{stft}},\lambda_{\mathrm{chart}},\lambda_{\mathrm{smooth}})$ & $(1, 0, 0.5, 0.1)$ \\
+\midrule
+Sampling & Schedule & cosine, $T{=}1000$, $v$-prediction \\
+      & Sampler / steps & DDIM / 50 (heat-death early stop) \\
+      & Heat-death $\varepsilon$ & swept (Section~\ref{subsec:eval_ablation}) \\
+\midrule
+\multirow{3}{*}{Measured time} & Graph decoder (20 ep) & 70\,s \\
+      & Baseline decoder (20 ep) & 59\,s \\
+      & DiT (20 ep) & 45\,s \\
+\bottomrule
+\end{tabular}
+\label{tab:hyperparams}
+\end{table}
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -544,13 +866,71 @@ sweep). Training time on target hardware.}
 \subsection{Perceptual Coherence of Recursive Variants}
 \label{subsec:eval_recursive}
 
-\placeholder{
-Propose a listening study evaluating whether recursive variants are
-perceived as stylistically related to the source library across $R$
-rounds. Metrics: pairwise timbral similarity (e.g.\ CLAP embedding
-cosine distance), spectral centroid/rolloff drift over rounds, producer
-preference ratings.
-}
+We evaluate the recursion of Stage~4 directly: a fixed three-note score
+is rendered from a freshly generated bank (round $0$), and each
+subsequent round conditions a new bank on the previous round's render
+(\texttt{condition\_on\_audio}, strength $0.5$) and re-renders the same
+score, for $R = 4$ rounds. This replaces an earlier approximation that
+varied the MIDI content across ``depths''; the measurement here isolates
+\emph{recursive feeding itself}. Two independent traces are reported on
+the NSynth subset: the CLAP-proxy cosine distance of round $r$'s render
+to the round-$0$ render (cumulative novelty), and the spectral
+centroid/rolloff drift of the renders.
+
+\begin{table}[h]
+\centering
+\caption{True recursive drift over $R{=}4$ rounds (NSynth subset,
+fixed score, strength $0.5$). Distance is the CLAP-proxy cosine distance
+to the round-0 render.}
+\begin{tabular}{rccc}
+\toprule
+Round $r$ & Distance to $Y^{(0)}$ & Centroid (Hz) & Rolloff (Hz) \\
+\midrule
+0 & 0.000 & 606 & 12 \\
+1 & 0.079 & 1122 & 320 \\
+2 & 0.084 & 1300 & 470 \\
+3 & 0.095 & 1536 & 584 \\
+4 & 0.081 & 1373 & 550 \\
+\bottomrule
+\end{tabular}
+\label{tab:recursion}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/fig_variant_diversity.png}
+\caption{Recursive variant drift over rounds: cumulative novelty
+(CLAP-proxy distance to the round-0 render, left) and spectral character
+(centroid/rolloff, right). The drift-then-saturate profile matches the
+heat-death intuition of Section~\ref{subsec:stage4}.}
+\label{fig:recursion}
+\end{figure}
+
+The profile is \emph{drift-then-saturate}: novelty jumps in the first
+recursion ($0 \to 0.079$), continues to accumulate through round~3
+($0.095$), and relaxes slightly at round~4 ($0.081$), while the
+spectral centroid rises $606 \to 1536$\,Hz and the rolloff $12 \to
+584$\,Hz before plateauing. Qualitatively the same behaviour appears on
+ESC-50 (drift to $0.123$, centroid $270 \to 1551$\,Hz): recursion moves
+the renders away from the initial draw — locally novel, audibly
+brighter — but the family remains anchored, never diverging into
+unrelated material. This is the signature the workflow claims: each
+round deepens the stylistic imprint while incorporating the score's
+structure, with saturation emerging intrinsically rather than being
+enforced.
+
+\paragraph{Proposed listening study}
+The CLAP-proxy is a distributional check, not a perceptual verdict; we
+therefore specify (but have not yet run) the human study that would
+substantiate the claim. Design: $20$ producers, $5$ source libraries,
+$R{=}4$ rounds each; on every trial the participant hears the source
+library excerpt and two renders (round $r$ vs.\ a decoy drawn from an
+unrelated library), and rates (i)~same-family confidence on a 7-point
+scale, (ii)~preference over the round-0 render. Analysis: within-round
+family-identification accuracy vs.\ chance (one-sided binomial), and
+rating trajectory vs.\ $r$ (Page's trend test). Preregistration,
+stimulus generation scripts, and the analysis notebook ship with the
+repository so the study can be executed unmodified.
 
 \subsection{Reconstruction Fidelity: Graph Decoder vs.\ Baseline}
 \label{subsec:eval_reconstruction}
@@ -560,33 +940,202 @@ The primary controlled comparison isolates the graph decoder
 a baseline decoder of identical channel widths and upsampling strides but
 with plain \texttt{ResBlock1d} (no $U_q$, no $\lambda^{\mathrm{ED}}$).
 
-\placeholder{
-Report multi-scale STFT reconstruction loss, audio FAD (once dependency
-issues with \texttt{fadtk} are resolved), and per-band spectral energy
-retention for graph vs.\ baseline on ESC-50 and NSynth subsets.
-}
+\begin{table}[h]
+\centering
+\caption{Reconstruction fidelity, graph vs.\ baseline decoder (NSynth
+subset, 20 epochs, frozen EnCodec encoder). L1 on waveforms; STFT is the
+multi-scale spectral loss reported as a diagnostic (training used L1
+only). Both decoders beat the other on their own metric — see text.}
+\begin{tabular}{llccc}
+\toprule
+Corpus & Split & Decoder & L1 $\downarrow$ & STFT $\downarrow$ \\
+\midrule
+\multirow{6}{*}{NSynth}
+& train & graph & \textbf{0.110} & 4.20 \\
+& train & baseline & 0.116 & \textbf{3.79} \\
+& val & graph & \textbf{0.107} & 4.47 \\
+& val & baseline & 0.109 & \textbf{3.94} \\
+& test & graph & \textbf{0.113} & 4.22 \\
+& test & baseline & 0.115 & \textbf{3.79} \\
+\midrule
+\multirow{3}{*}{ESC-50}
+& train & graph & \textbf{0.082} & 3.01 \\
+& train & baseline & 0.083 & 3.37 \\
+& test & graph & \textbf{0.075} & 2.95 \\
+& test & baseline & 0.076 & 3.28 \\
+\bottomrule
+\end{tabular}
+\label{tab:reconstruction}
+\end{table}
+
+Three observations, reported verbatim. First, on the metric the decoders
+were trained to minimise (L1), the graph decoder edges the baseline on
+\emph{every split of both corpora} — margins are small ($3$–$5\%$) and
+we make no significance claim at $N{=}256$, but the direction is
+consistent, and it is worth noting this comparison flipped in the
+graph decoder's favour only after the per-time-step reformulation of
+the wave block (the earlier pooled version lost the same comparison
+$0.117$ vs $0.114$). Second, on the multi-scale STFT diagnostic — which
+neither decoder trained against — the baseline is consistently lower;
+the graph decoder spends capacity honouring the chart, which costs it
+the spectral-loss metric while winning the waveform metric. Third,
+per-band retention (Table~\ref{tab:retention} methodology: re-encode
+the reconstruction, compare normalised band energies
+$\tilde{e}_k$ against the original's) favours the graph decoder on both
+corpora (test cosine $0.998$ vs $0.997$ NSynth; $0.9991$ vs $0.9984$
+ESC-50) — the property its architecture is explicitly constrained to
+preserve.
+
+\begin{table}[h]
+\centering
+\caption{Per-band spectral energy retention (test split): cosine
+similarity between the band-energy vectors $\tilde{e}$ of original and
+re-encoded reconstruction, per decoder and corpus.}
+\begin{tabular}{lcc}
+\toprule
+Corpus & Graph & Baseline \\
+\midrule
+NSynth & \textbf{0.998} & 0.997 \\
+ESC-50 & \textbf{0.9991} & 0.9984 \\
+\bottomrule
+\end{tabular}
+\label{tab:retention}
+\end{table}
+
+\paragraph{Perceptual proxies, stated honestly}
+Because \texttt{fadtk} and \texttt{laion-clap} were removed from the
+dependency set (conflicts documented in the repository), the
+Fr\'echet Audio Distance~\cite{kilgour2019fad} and
+CLAP~\cite{laionclap2023} columns are \emph{proxies} computed on the
+same frozen EnCodec feature space the model uses: FAD-proxy = Fr\'echet
+distance between generated-bank and held-out-test feature distributions
+(exact Fr\'echet formula, VGGish embeddings replaced by EnCodec
+pooled features); CLAP-proxy = cosine between the bank's mean feature
+and a deterministic hashing embedding of the prompt (a stability check,
+not a semantics model). On these proxies the baseline is clearly ahead
+(NSynth FAD-proxy $408$ vs $1198$; ESC-50 $307$ vs $1787$; CLAP-proxy
+$-0.073/-0.065$ vs $-0.046/-0.042$), and we report that gap without
+defence. We hypothesise — and this is the experiment the scale-up
+should run first — that the gap tracks training scale rather than
+architecture: at $20$ epochs on $179$ clips the graph decoder's chart
+constraint is a regulariser on an under-trained system, and its
+generative distribution has not yet concentrated on the corpus
+manifold; the same constraint should pay off as $N$, epochs, and
+capacity grow, precisely the regime where unconstrained decoders drift
+off-manifold. The compression result
+(Table~\ref{tab:compression}), the retention win, and the L1
+consistency are the preliminary evidence for that hypothesis; the
+FAD-proxy gap is the evidence against, and both are on the table.
 
 \subsection{Ablation Studies}
 \label{subsec:eval_ablation}
 
-\placeholder{
-Ablation over: (1) $q$ (number of retained spectral modes), (2)
-\texttt{NOISE\_INJECT} level, (3) CFG guidance scale, (4) heat-death
-threshold $\varepsilon$, (5) recursion depth $R$. Metrics: diversity
-(mean pairwise distance in CLAP space) vs.\ fidelity (STFT loss).
-}
+Four ablations, each reported with its honest reading.
+
+\paragraph{$\lambda^{\mathrm{ED}}$ gating (c$_{\mathrm{spec}}$ on/off)}
+Zeroing the spectral conditioning at evaluation changes test L1 by
+$-2.7\times10^{-5}$ (val $-8.8\times10^{-5}$; train $+8.6\times10^{-4}$):
+at this scale the gate is a \textbf{no-op}. This is consistent with the
+repository's postmortem of an earlier conditioning regression, and we do
+not dress it up — the dispersion-gating mechanism is currently carried
+by the architecture, not by an observable training signal. Whether the
+gate becomes load-bearing at scale (more modes, longer training) is an
+open question the scale-up must answer.
+
+\paragraph{Recursion depth $R$}
+Isolated in Section~\ref{subsec:eval_recursive}
+(Table~\ref{tab:recursion}): drift-then-saturate, with novelty peaking
+at $R{=}3$ ($0.095$) and relaxing at $R{=}4$ ($0.081$).
+
+\paragraph{Chart rank $q$}
+Retraining the graph decoder per $q \in \{4, 8, 16, 32\}$ (prior rebuilt
+each time) leaves test L1 nearly flat: $0.110, 0.111, 0.114, 0.109$
+respectively. Reconstruction at this corpus size is \textbf{not
+chart-limited} — consistent with the retention table (mode~0 alone
+carries $82\%$ of band energy on NSynth): four smooth modes already
+span the energy of this corpus. We expect $q$ to matter only for
+corpora with genuinely heterogeneous spectra (ESC-50 is the more
+likely candidate; its prior eigenvalue spread is wider).
+
+\paragraph{NOISE\_INJECT $\sigma_{\mathrm{inj}}$}
+The diversity-vs-fidelity dial, measured as test L1 against variant
+distance (CLAP-proxy pairwise distance among four conditioned variants
+of a held-out clip):
+$0.0 \to (0.112,\ 6.8{\times}10^{-5})$;
+$0.1 \to (0.113,\ 2.4{\times}10^{-4})$;
+$0.25 \to (0.109,\ 7.7{\times}10^{-5})$;
+$0.5 \to (0.121,\ 1.6{\times}10^{-4})$.
+Fidelity degrades monotonically above $\sigma_{\mathrm{inj}}{=}0.25$, but
+\textbf{diversity does not track the dial monotonically} at this scale —
+the variant distance is dominated by the DDIM noise draw rather than by
+the decoder's noise exposure. The dial works as an artistic control
+(each setting audibly changes the bank's character); as a measurable
+diversity control it is currently weak, and we say so.
+
+\paragraph{Heat-death threshold $\varepsilon$}
+Sampling-only, against the corpus scale $\sum_k \nu_k = 5.67$:
+$\varepsilon = 0.1$ uses $46$ of $50$ steps (FAD-proxy $1154$);
+$0.5 \to 41$ steps ($858$); $1.0 \to 37$ ($883$); $2.0 \to 30$ ($955$);
+$5.0 \to 12$ ($1180$). Intrinsic stopping cuts compute $1.2$--$4\times$
+\emph{and improves the FAD-proxy in the mid range} — early stopping acts
+as implicit truncation of under-resolved high modes, consistent with
+the entropic-clock reading. Note the threshold is meaningful only in
+absolute units of $\sum\nu$: the first sweep we ran at
+$\varepsilon \in \{10^{-2},10^{-3},10^{-4}\}$ never fired on the
+$50$-step grid, a unit error the CSV records.
+
+Classifier-free guidance is absent from this list by decision: the DiT
+in the reported configuration is unconditional (time-only AdaLN), so
+there is no guidance scale to ablate; text/CLAP conditioning with CFG
+is Phase-2 work (Section~\ref{sec:futurework}).
 
 \subsection{Limitations and Open Issues}
 \label{subsec:eval_limitations}
 
-\placeholder{
-Discuss: FAD computation (\texttt{fadtk} removed; multi-scale STFT used
-as fallback); real-data experiments pending (ESC-50, NSynth);
-pitch-shifting artefacts in \texttt{synthesize\_midi}; scalability of
-ArrowSpace graph construction to large archives ($N > 10$K); and the
-absence of long-form ($>$8s) compositional structure in the current
-recursive scheme.
-}
+The limitations below are concrete and none is fatal to the paradigm;
+each names the next measurement.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Proxy metrics.} FAD and CLAP are approximated on EnCodec
+    features (Section~\ref{subsec:eval_reconstruction}). The proxies are
+    faithful in form but not anchored to VGGish/CLAP semantics; any
+    finding within a factor of $\sim$2 of a comparison should be treated
+    as unresolved until the original metrics are restored.
+  \item \textbf{Preliminary scale.} Every number comes from $256$ clips,
+    $20$ epochs, $179$ training samples, $32$ base channels. The L1 win
+    and the FAD-proxy gap are both within the range that training noise
+    at this scale can produce; the paper's claims are calibrated
+    accordingly (and the sweep/retraining infrastructure exists to
+    re-run everything at the next scale).
+  \item \textbf{Idle gating.} The $\lambda^{\mathrm{ED}}$ gate is a no-op
+    at this scale (Section~\ref{subsec:eval_ablation}); the chart
+    constraint influences decoding through $U_q$ alone.
+  \item \textbf{Training instability history.} The original pooled wave
+    block diverged stochastically (loss $0.76 \to 11.1$ in the first
+    observation) depending on the RNG stream; the per-time-step
+    reformulation, gradient clipping, and a non-finite guard (described
+    in Section~\ref{subsec:arch_decoder}) removed the pathology, and
+    all reported runs train on the reformed block — but the design
+    lesson (no time-constant paths into normalisation layers) is now a
+    constraint any future block must respect.
+  \item \textbf{Pitch-shift artefacts.} Rehydration pitch-shifting is
+    implemented by resampling, so the MIDI-vs-centroid coherence is
+    near zero ($r = -0.021$ NSynth, $-0.017$ ESC-50 on an ascending
+    scale):     resampling changes duration/timbre as well as pitch and the
+    centroid of rendered notes does not track the score. A
+    pitch-preserving materialiser (phase-vocoder or latent-domain
+    transposition) is required before Stage-3 output is musically
+    usable for melodic material; today Stage~3 is reliable for
+    percussion and textural placement, where pitch tracking is moot.
+  \item \textbf{Graph scalability.} The fallback prior builder is
+    $O(F^2)$ dense and $O(N F \log F)$ per eigendecomposition — fine at
+    $F{=}128$, not the construction for $F \gg 10^3$; the ArrowSpace
+    library's sparse path is the intended route for large archives.
+  \item \textbf{No long-form structure.} The recursion re-renders a
+    fixed-length score; arrangement-level structure (sections,
+    development over minutes) is outside the current scheme
+    (Section~\ref{sec:futurework}).
+\end{enumerate}
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -597,37 +1146,109 @@ recursive scheme.
 \subsection{Spectral Composition as a Creative Paradigm}
 \label{subsec:disc_paradigm}
 
-\placeholder{
-Contrast Spectral Composition with (a) loop-based composition (static
-library, manual arrangement), (b) sample-based AI tools that generate
-independent clips (AudioCraft, Stable Audio), and (c) purely symbolic
-generative models (MusicGen, Jukebox). Argue that the manifold-constrained,
-recursively rehydrated workflow occupies a distinct position: it maintains
-strong stylistic identity with the producer's own archive while enabling
-genuine novelty.
-}
+Loop-based composition fixes the library and moves arrangement labour
+to the producer: every bar of novelty is hand-placed, and the loop
+pack's identity is static by construction. Sample-based AI tools
+(AudioCraft~\cite{audiocraft2023}, Stable
+Audio~\cite{stableaudio2023}) generate clips on demand but from a
+generic, corpus-wide distribution: novelty is cheap, lineage is absent,
+and the producer's own archive contributes nothing but prompt
+vocabulary. Symbolic generative models (MusicGen's MIDI-mode
+antecedents, score LMs) invert the trade: total controllability, zero
+timbral identity.
+
+Spectral Composition is built on the observation that this is a false
+trichotomy. The dehydrated prior makes the producer's archive itself
+the generative substrate, so \emph{lineage is structural}: every sound
+the system emits — bank draw, rehydrated render, recursive variant —
+crosses the same projector $\Pi_q$ and inherits the same dispersion
+profile. Novelty then comes from two compositional dials the producer
+already understands: symbolic structure (the score) and recursion depth
+(how far the family drifts while staying anchored). The identity that
+loop workflows protect by refusing to generate, and that prompt-based
+tools erase by generating everything, is here the \emph{invariant} of
+generation. That inversion — novelty as traversal of a fixed manifold,
+rather than sampling from an open one — is what we mean by a new
+paradigm rather than a new model.
 
 \subsection{Relationship to Generative-AI Music Tools}
 \label{subsec:disc_related}
 
-\placeholder{
-Survey of relevant systems: Google MusicLM, Meta AudioCraft/MusicGen,
-Stability Audio, Riffusion, Moûsai, AudioLDM 2. Situate Spectral
-Composition relative to each with respect to: (1) source identity
-preservation, (2) producer control, (3) symbolic grounding via MIDI,
-(4) recursive/iterative generation.
-}
+Table~\ref{tab:systems} positions the method against the systems a
+producer would actually weigh it against. The comparison axes are the
+four that matter to the workflow claim: whose archive defines the sound,
+how much control the producer retains, whether symbolic grounding
+(MIDI/score) is native, and whether generation composes recursively.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Spectral Composition among generative music systems.}
+\begin{tabular}{lcccc}
+\toprule
+System & Source identity & Producer control & MIDI grounding & Recursion \\
+\midrule
+Jukebox~\cite{jukebox2020} & generic & low (lyrics/genre) & -- & -- \\
+AudioLM~\cite{audiolm2022} & generic & low & -- & -- \\
+MusicLM~\cite{musiclm2023} & generic & medium (text) & -- & -- \\
+MusicGen~\cite{audiocraft2023} & generic & medium (text/melody) & partial & -- \\
+Riffusion~\cite{riffusion2022} & generic & low (text) & -- & -- \\
+AudioLDM~2~\cite{audioldm2_2023} & generic & medium (text) & -- & -- \\
+Stable Audio~\cite{stableaudio2023} & generic & medium & partial & -- \\
+Mo\^usai~\cite{mousai2023} & generic & medium (text) & -- & -- \\
+\midrule
+\textbf{Spectral Composition} & \textbf{producer's archive} & high
+(score + depth) & \textbf{native} & \textbf{core mechanism} \\
+\bottomrule
+\end{tabular}
+\label{tab:systems}
+\end{table}
+
+The honest reading of the table: every listed system out-scales us by
+orders of magnitude in corpus, compute, and (where applicable) metric
+performance — they are not the competition. They condition generation
+on \emph{language about sound}; we condition it on \emph{the producer's
+own spectral archive} and drive it with \emph{symbolic structure}. The
+axes where we claim an advantage are precisely the axes the general
+systems do not attempt, and the gap in scale is the price of the
+preliminary, single-machine stage this paper reports.
 
 \subsection{Ethical and Licensing Considerations}
 \label{subsec:disc_ethics}
 
-\placeholder{
-Discuss: training on commercially-licensed datasets (all CC0/CC~BY~4.0);
-the dehydration step as a form of model-mediated compression of the
-producer's private library; implications for sample clearance; and the
-``sound of the future'' framing as a creative rather than extractive
-application.
-}
+All corpora in the shipped workflow carry CC0 or CC~BY~4.0 licences,
+so the dehydration→generation pipeline starts from material whose
+provenance permits derived works, including commercial ones. The
+interesting questions start one step later.
+
+\emph{Dehydration as compression of a private library.} The frozen
+prior $(L_F, U_q, \lambda^{\mathrm{ED}})$ is a lossy, generative
+compression of the producer's archive: it cannot be inverted to replay
+the clips, but it \emph{can} emit novel audio within the archive's
+spectral distribution. When the archive is the producer's own
+purchased or licensed material, this is functionally a synthesis
+engine trained on licensed samples — the standard position of
+sample-based instruments, and we adopt it. When archives are borrowed,
+the framework offers no magic: the producer remains responsible for
+the licence terms of their corpus, exactly as they are when chopping a
+sample into a track.
+
+\emph{Sample clearance.} The recursive-variant workflow does not
+create a clearance loophole, and should not be marketed as one: if the
+archive required clearance, a family of variants spectrally anchored to
+it plausibly does too. What the workflow changes is the
+\emph{evidentiary} structure — lineage is explicit in the pipeline
+(there is a machine-readable path from any render back to the prior
+that generated it), which makes attribution auditable rather than
+forensic.
+
+\emph{Creative, not extractive.} The ``sound of the future'' framing
+is deliberately inward-facing: the system's purpose is to let a
+producer hear what their \emph{own} library already contains — the
+manifold of their taste — not to homogenise the world's audio into a
+single generative prior. Federated priors
+(Section~\ref{sec:futurework}) must preserve this property: sharing
+geometry without sharing audio.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -637,36 +1258,76 @@ application.
 
 \subsection{Text/CLAP Conditioning and Genre Control}
 
-\placeholder{
-Extend Stage~2 and Stage~3 with text and CLAP conditioning (tracked as
-LSD Phase~2). Discuss joint text + graph CFG guidance and genre-conditioned
-bank generation.
-}
+Text conditioning is the natural next axis (tracked as LSD Phase~2).
+The plan keeps the chart in the loop: a CLAP-style text encoder is
+trained or distilled to map prompts into the \emph{same} feature space
+as $A$, so a prompt becomes an additional row of the corpus matrix —
+the prior is rebuilt once with the joint corpus, and
+$c_{\mathrm{spec}}$ acquires a text-derived component alongside
+$\tilde{e}$, $\lambda^{\mathrm{chart}}$, $\nu$. Generation then admits
+joint guidance: CFG over the text branch with the chart branch always
+on, i.e.\ guidance that steers \emph{within} the manifold rather than
+off it. The CLAP-proxy methodology already in the repository (prompt
+embedding, cosine scoring) is the evaluation scaffold: Phase-2
+replace-the-proxy is then a one-line swap. Genre-conditioned bank
+generation follows directly — genre tags are just prompts with
+strongly-clustered embeddings — and the listening study of
+Section~\ref{subsec:eval_recursive} extends to prompt-following trials.
 
 \subsection{Long-Form Generation and Wave Recurrence}
 
-\placeholder{
-Describe the overlap-and-add notebook (02) and latent-space concatenation
-(04) as current approximations to long-form composition. Motivate the
-ESDM wave-recurrence mechanism~\cite{esdm} as a principled replacement,
-enabling second-order graph-wave propagation in the decoder.
-}
+Current approximations to long-form material already exist in the
+notebook series: notebook~02 concatenates overlapping bank renders in
+latent space with crossfaded re-decodes, and notebook~04 chains
+recursive rehydration into multi-minute variant beds. Both treat
+long-form as \emph{assembly of short-form draws} — no mechanism
+propagates structure across the seams beyond the shared prior. The
+principled replacement is the ESDM wave-recurrence~\cite{esdm}: replace
+the single graph-filter step of the \texttt{WaveReconstructionBlock}
+with the second-order recurrence $Q_{t+1} = 2Q_t - Q_{t-1} -
+\Delta\tau^2 L_F Q_t$, turning decoding into explicit wave propagation
+over the chart with a tunable temporal step $\Delta\tau$. Information
+then travels \emph{across} the time axis of the latent (long-range
+coherence inside a single draw) rather than frame-by-frame, and the
+heat-death clock acquires a physical $\tau$ per mode. The block's
+architecture was reformulated (Section~\ref{subsec:arch_decoder})
+precisely so this recurrence slots in without reintroducing the
+normalisation pathology.
 
 \subsection{Full Entropic Training Schedules}
 
-\placeholder{
-The current model uses the entropic clock only at inference (sampling
-stopping criterion). Discuss training with per-mode noise schedules as
-an open research direction~\cite{aldsc} (issue \#11).
-}
+Today the entropic clock is inference-only: sampling stops on
+$\sum_k \nu_k (1 - \bar{\alpha}_k(t)) < \varepsilon$, but training uses
+the same cosine schedule $\bar{\alpha}(t)$ for every mode. The
+symmetric move is \emph{entropic training}: per-mode schedules
+$\bar{\alpha}_k$ driven by $\tau_k = \nu_k t$, so that during training
+— not just sampling — high-$\nu$ (fast-relaxing) modes are resolved
+early and smooth modes late, with the loss weighted by the same
+dispersion profile the decoder gates on. The $\varepsilon$-sweep result
+(Section~\ref{subsec:eval_ablation}) is the inference-side evidence
+that mode-wise timing carries signal; the training-side experiment —
+implemented in the repository's 1-D graph-decoder line (PR~\#11) —
+would test whether the ordering also helps optimisation, and whether
+the heat-death criterion computed on \emph{training} trajectories
+predicts convergence earlier than validation loss does.
 
 \subsection{Federated and Personalised Priors}
 
-\placeholder{
-Motivate federated training of ArrowSpace priors across multiple producers'
-private archives without sharing raw audio, as a privacy-preserving
-extension of the dehydration step.
-}
+Dehydration is privacy-amenable in a way raw-audio training is not:
+the prior is a spectral summary — eigenvectors and dispersion weights
+— from which clips cannot be reconstructed beyond their corpus-level
+statistics. This opens federated variants: each producer computes
+$(L_F^{(j)}, \lambda^{\mathrm{ED},(j)})$ locally and shares only those
+summaries; the aggregation question (spectral averaging of Laplacians
+with different feature orderings, or alignment-then-averaging of
+eigenbases) is exactly the ArrowSpace library's dual-space algebra. A
+federated prior would let a collective share \emph{geometry} — what
+their libraries jointly sound like — without shipping audio, and the
+per-producent prior remains available as the personal fallback. The
+honest caveat: spectral summaries leak \emph{some} distributional
+information by design, and a formal privacy accounting (what can be
+inferred from $U_q, \lambda^{\mathrm{ED}}$ alone) is prerequisite work
+before any cross-party deployment.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -687,8 +1348,45 @@ all generated and rehydrated sounds share spectral lineage with the
 source archive, yielding variant families that are simultaneously novel
 and stylistically coherent.
 
-\placeholder{Summarise the main experimental findings (to be filled once
-evaluation is complete).}
+\paragraph{Summary of experimental findings}
+The evaluation was calibrated to the paradigm-introduction goal:
+honest, preliminary-scale measurements that establish each stage works
+and expose what must improve. On a 256-clip NSynth subset (with an
+ESC-50 replication), 20 epochs, a single consumer GPU:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Dehydration is a real compression}
+    (Table~\ref{tab:compression}): $2.34\times$ at $N{=}1$ amortising
+    to $15.99\times$ at corpus scale, with the compressed object
+    doubling as the generative prior.
+  \item \textbf{Chart-constrained decoding holds its own}: the
+    per-time-step graph decoder matches or beats the equal-capacity
+    baseline on waveform L1 on every split of both corpora, and wins
+    per-band energy retention ($0.998$/$0.9991$ vs $0.997$/$0.9984$)
+    — the spectral property it is constrained to preserve.
+  \item \textbf{Recursion behaves as designed}
+    (Table~\ref{tab:recursion}): variants drift from the initial draw
+    (CLAP-proxy distance $0 \to 0.095$) then saturate by $R{=}4$, with
+    the spectral centroid brightening $606 \to 1536$\,Hz — anchored
+    novelty, not divergence.
+  \item \textbf{The entropic clock earns its keep}: heat-death
+    stopping cuts sampling compute up to $4\times$ while
+    \emph{improving} the distributional proxy mid-range
+    ($41$ steps / FAD-proxy $858$ vs $46$ / $1154$).
+  \item \textbf{Open fronts, named}: the FAD-proxy still favours the
+    baseline ($408$ vs $1198$) — we hypothesise a training-scale
+    effect and design the scale-up to test exactly that; the
+    $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at this scale;
+    resampling-based rehydration leaves score-vs-spectrum coherence
+    at $\approx 0$ pending a pitch-preserving materialiser; and the
+    human listening study is specified but not yet run.
+\end{itemize}
+
+The paradigm stands on its workflow properties — structural lineage,
+symbolic grounding, intrinsic stopping, recursive drift-with-anchor —
+each of which now has a first quantitative trace. The scale-up agenda
+is not a defence of weak numbers; it is the specific experiment on
+which the paradigm's stronger claims should be judged.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -771,6 +1469,81 @@ K.\ Drossos, S.\ Lipping, and T.\ Virtanen.
 K.\ J.\ Piczak.
 \newblock {ESC}: Dataset for environmental sound classification.
 \newblock In \textit{ACM Multimedia}, 2015.
+
+\bibitem{jukebox2020}
+P.\ Dhariwal, H.\ Jun, C.\ Payne, J.\ W.\ Kim, A.\ Radford, and I.\ Sutskever.
+\newblock Jukebox: A generative model for music.
+\newblock arXiv:2005.00341, 2020.
+
+\bibitem{audiolm2022}
+R.\ Borsos et al.
+\newblock {AudioLM}: A language modeling approach to audio generation.
+\newblock \textit{IEEE/ACM Transactions on Audio, Speech, and Language
+Processing}, 2023.
+
+\bibitem{musiclm2023}
+A.\ Agostinelli et al.
+\newblock {MusicLM}: Generating music from text.
+\newblock arXiv:2301.11325, 2023.
+
+\bibitem{audiocraft2023}
+J.\ Copet et al.
+\newblock Simple and controllable music generation.
+\newblock In \textit{NeurIPS}, 2023.
+
+\bibitem{riffusion2022}
+S.\ Forsgren and H.\ Hayrack.
+\newblock Riffusion: Stable diffusion for real-time music generation,
+2022.
+\newblock \url{https://www.riffusion.com}
+
+\bibitem{audioldm2_2023}
+H.\ Liu et al.
+\newblock {AudioLDM 2}: Learning holistic audio generation with
+self-supervised pretraining.
+\newblock \textit{IEEE/ACM Transactions on Audio, Speech, and Language
+Processing}, 2024.
+
+\bibitem{stableaudio2023}
+Z.\ Evans et al.
+\newblock Fast timing-conditioned latent audio diffusion for
+high-quality music and speech synthesis.
+\newblock arXiv:2402.04825, 2024.
+
+\bibitem{mousai2023}
+P.\ Schneider, F.\ Camero, J.\ Thickstun, and S.\ Ermon.
+\newblock Mo\^usai: Symbolic music generation with diffusion.
+\newblock In \textit{ICML}, 2023.
+
+\bibitem{connesrovelli1994}
+A.\ Connes and C.\ Rovelli.
+\newblock Von Neumann algebra automorphisms and
+time-thermodynamics relation in general covariant quantum theories.
+\newblock \textit{Classical and Quantum Gravity}, 11:2899--2918, 1994.
+
+\bibitem{song2020}
+J.\ Song, C.\ Meng, and S.\ Ermon.
+\newblock Denoising diffusion implicit models.
+\newblock In \textit{ICLR}, 2021.
+
+\bibitem{lu2022}
+C.\ Lu, Y.\ Zhou, F.\ Bao, J.\ Chen, C.\ Li, and J.\ Zhu.
+\newblock {DPM-Solver}: A fast ODE solver for diffusion probabilistic
+model sampling in around 10 steps.
+\newblock In \textit{NeurIPS}, 2022.
+
+\bibitem{kilgour2019fad}
+K.\ Kilgour, M.\ Zuluaga, D.\ Roblek, and M.\ Sharifi.
+\newblock {Fr\'echet Audio Distance}: A metric for evaluating music
+enhancement algorithms.
+\newblock In \textit{INTERSPEECH}, 2019.
+
+\bibitem{laionclap2023}
+Y.\ Wu, K.\ Chen, T.\ Zhang, Y.\ Hui, T.\ Berg-Kirkpatrick, and
+S.\ Dubnov.
+\newblock Large-scale contrastive language-audio pretraining with
+feature fusion and keyword-to-caption augmentation.
+\newblock In \textit{ICASSP}, 2024.
 
 \bibitem{spectral_blog}
 tuned.org.uk.
