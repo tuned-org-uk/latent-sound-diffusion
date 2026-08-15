@@ -1,0 +1,115 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "d6e0ab178133",
+  "session_id": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-15T13:23:30.632232Z",
+  "branch": "feat/bank-variant-modes",
+  "checkpoints_count": 6,
+  "save_step_count": 6,
+  "files_touched": [
+    "results/bank_variants.csv",
+    "src/ald_sc/inference.py",
+    "src/ald_sc/scattering1d.py",
+    "tests/test_inference.py",
+    "tests/test_scattering1d.py",
+    "uv.lock"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.3",
+  "turn_id": "c99f1c2d47ac",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 150137,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3313600,
+    "output_tokens": 14318,
+    "api_call_count": 63
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-15T13:23:30.598825Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 258,
+    "human_modified": 16,
+    "human_removed": 0,
+    "total_committed": 258,
+    "total_lines_changed": 275,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 377,
+      "user_lines_removed": 1,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "results/bank_variants.csv": 14,
+        "src/ald_sc/scattering1d.py": 241,
+        "tests/test_scattering1d.py": 121,
+        "uv.lock": 1
+      },
+      "user_removed_per_file": {
+        "uv.lock": 1
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 377,
+      "agent_lines_removed": 1
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 272,
+      "user_lines_removed": 14,
+      "agent_lines_added": 377,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        "src/ald_sc/inference.py": 147,
+        "src/ald_sc/scattering1d.py": 15,
+        "tests/test_inference.py": 94,
+        "tests/test_scattering1d.py": 16
+      },
+      "user_removed_per_file": {
+        "src/ald_sc/inference.py": 9,
+        "src/ald_sc/scattering1d.py": 3,
+        "tests/test_scattering1d.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 644,
+      "agent_lines_removed": 10
+    }
+  ]
+}

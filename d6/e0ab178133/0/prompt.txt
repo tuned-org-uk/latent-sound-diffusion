@@ -1,0 +1,10 @@
+Let's try to improve variants generation https://github.com/tuned-org-uk/latent-sound-diffusion/issues/53
+consider also leveraging https://github.com/tuned-org-uk/latent-sound-diffusion/issues/48
+
+---
+
+ok, we also need considering interface options at inference time that allows selecting the arms so to be ready to be plugged in LSD-studio
+
+---
+
+select the best 3 arms for integration
