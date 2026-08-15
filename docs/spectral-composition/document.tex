@@ -488,9 +488,10 @@ trained on latents of the library only; its stationary distribution is
 the library's latent distribution, so dense sampling sweeps that
 distribution rather than an open-ended audio space. (iii)~The
 self-consistent chart conditioning keeps each draw within the energy
-allocation the corpus actually exhibits. Locally, draws differ because
-the DiT's stationary measure is continuous and
-\texttt{SEED=None} makes the sampling trajectory fresh each time;
+allocation the corpus actually exhibits. Locally, draws differ through
+the variant modes around $\bar{z}$ (or, at scale, because the DiT's
+stationary measure is continuous and \texttt{SEED=None} makes the
+sampling trajectory fresh each time);
 globally, they agree because every path through Stage~2 crosses the same
 projector $\Pi_q$. In producer terms: one bank, many voices, one sound.
 This is precisely the behaviour a sample-library workflow wants — a
@@ -501,9 +502,18 @@ scale evaluated here the unconditional DiT has not yet learned
 input-dependent structure, and the sampler \emph{contracts} all draws
 toward a single latent (measured in
 Section~\ref{subsec:eval_ablation}: initial-noise differences of $6.1$
-in max-norm collapse to $1.2\times10^{-6}$ after 49 DDIM steps), so the
-``many voices'' property is a design target and an explicit open front
-of the scale-up, not a currently demonstrated behaviour.
+in max-norm collapse to $1.2\times10^{-6}$ after 49 DDIM steps), so
+raw DDIM draws yield the ``one voice'' regime. Variety at this scale is
+nevertheless demonstrated, not deferred: because the decoder is trained
+with latent-noise injection, the neighbourhood of the canonical draw
+$\bar{z}$ decodes to acoustically distinct, corpus-coherent clips.
+Bank generation therefore exposes explicit \emph{variant modes} around
+$\bar{z}$ — noise jitter, amplified seed-residual, and a stop-time
+sweep along the contraction path — gated by a pre-registered diversity
+protocol (pairwise waveform L1, centroid spread, FAD-proxy, RMS;
+Section~\ref{subsec:eval_ablation}). In this regime ``many voices'' is
+a measured mechanism, with the sampler-internal spread remaining an
+open front of the scale-up.
 
 \paragraph{Role of the sampler at preliminary scale}
 The contraction measurement lets us state precisely what DDIM does and
@@ -519,10 +529,13 @@ buys its compute/quality tradeoff there. What the sampler does
 that role is deferred until $v_\theta$ becomes input-dependent at
 scale, requiring no pipeline change. Meanwhile variety in the workflow
 comes from the sampler-bypassing paths: Mode-B latent interpolation
-(Stage~3) and the \texttt{NOISE\_INJECT} training dial. At preliminary
+(Stage~3), the \texttt{NOISE\_INJECT} training dial, and — since the
+bank-variant study — the Stage-2 variant modes themselves, which vary
+the latent around $\bar{z}$ and decode through the same
+noise-tolerant decoder. At preliminary
 scale the division of labour is therefore: DDIM for the canonical sound
-and the stopping dial, interpolation for the variety; the scale-up
-re-merges the two roles as designed.
+and the stopping dial, latent-neighbourhood variation for the variety;
+the scale-up re-merges the two roles as designed.
 
 \subsection{Stage 3 — MIDI-Conditioned Materialisation (Rehydration)}
 \label{subsec:stage3}
@@ -953,7 +966,14 @@ brighter — but the family remains anchored, never diverging into
 unrelated material. This is the signature the workflow claims: each
 round deepens the stylistic imprint while incorporating the score's
 structure, with saturation emerging intrinsically rather than being
-enforced.
+enforced. One calibration is owed: these runs predate the bank-variant
+modes, so each round's bank was itself near-degenerate (the contraction
+of Section~\ref{subsec:eval_ablation}) — the measured drift is driven
+by the Mode-B conditioning step, not by intra-bank variety. Re-running
+the recursion with gate-passing variant banks (jitter at L1 $0.18$) is
+the natural follow-up measurement; the drift-then-saturate profile is
+expected to sharpen, since round-to-round novelty then compounds with
+within-bank spread from the start.
 
 \paragraph{Proposed listening study}
 The CLAP-proxy is a distributional check, not a perceptual verdict; we
@@ -1123,9 +1143,20 @@ waveform level (pairwise L1 $0.13$–$0.17$ at strength $0.5$–$0.9$), but
 the pooled-feature diversity proxy cannot resolve that difference
 ($\sim\!10^{-4}$): latent diversity on this checkpoint is real only
 where the sampler is bypassed, and measurable only with waveform-level
-metrics. Diversity therefore awaits the scale-up (input-dependent
-$v_\theta$) or sampler-bypassing variant modes; both mechanisms are
-reported verbatim.
+metrics. A pre-registered bank-variant protocol (gate: mean pairwise
+L1 $\ge 0.05$, FAD-proxy $\le 1200$, RMS $\ge 0.35$, centroid spread
+$> 20$\,Hz) confirms this operationally: latent jitter around the
+canonical draw ($\bar{z} + \alpha\,\sigma_z\,\varepsilon_i$) reaches
+L1 $0.18$ with \emph{improving} FAD-proxy ($853$ at $\alpha{=}0.5$ vs
+$1184$ for the contracted bank), amplifying the seed residual to
+relative std $0.3$ reaches L1 $0.11$ with $192$\,Hz centroid spread,
+and a same-seed stop-time sweep reaches L1 $0.07$ — three gate-passing
+variant modes, wired into bank generation as explicit options.
+Corpus-anchored blends fail the RMS floor ($0.15$–$0.18$; they decode
+quiet) and are recorded as negative. Diversity within one bank is
+therefore available now via sampler-bypassing variant modes, with
+sampler-internal spread awaiting the scale-up (input-dependent
+$v_\theta$); both mechanisms are reported verbatim.
 
 \paragraph{Heat-death threshold $\varepsilon$}
 Sampling-only, against the corpus scale $\sum_k \nu_k = 5.67$:
@@ -1457,7 +1488,10 @@ ESC-50 replication), 20 epochs, a single consumer GPU:
     a training-scale effect, now with a measured mechanism (the
     undertrained DiT contracts all draws to one point, making banks
     near-degenerate), and the scale-up is designed to test exactly
-    that; the $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at
+    that; within-bank diversity is available today through the
+    gate-passing variant modes (jitter, residual, stop-time), with
+    sampler-internal spread deferred to the same scale-up; the
+    $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at
     this scale;
     resampling-based rehydration leaves score-vs-spectrum coherence
     at $\approx 0$ pending a pitch-preserving materialiser; and the
