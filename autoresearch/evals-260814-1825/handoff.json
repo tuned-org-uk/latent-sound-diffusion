@@ -1,0 +1,22 @@
+{
+  "run_id": "evals-260814-1825",
+  "mode": "orchestrator",
+  "archetype": "build-feature",
+  "goal": "Implement and run the issue #49 evaluation pipeline; produce all 7 deliverables.",
+  "predicate": {
+    "command": "test -s results/table1_reconstruction.csv && test -s results/table2_ablation.csv && test -s results/table3_fad_clap.csv && test -s results/table4_compression.csv && test -s results/table5_coherence.csv && test -s results/fig_variant_diversity.png && test -s notebooks/07_evaluation_metrics.ipynb && uv run pytest tests/test_eval.py -q",
+    "expected": "exit 0"
+  },
+  "terminal_choice": "stop-at-verified",
+  "decisions": {
+    "fad_clap": "dependency-free proxy on frozen EnCodec features (user-confirmed)",
+    "notebook_name": "07_evaluation_metrics.ipynb (matches issue; existing nb07 untouched)",
+    "training_device": "CPU (graph decoder diverges on MPS; baseline+DiT accelerate ~5x on MPS)",
+    "variant_depths": "[1, 2, 4] (matches issue text; 8 caused MPS OOM)"
+  },
+  "artifacts_dir": "results",
+  "status": "done",
+  "verdict": "CONVERGED",
+  "tests": "203 passed (203, +30 new in tests/test_eval.py)",
+  "lint": "ruff check + format clean (27 files)"
+}
