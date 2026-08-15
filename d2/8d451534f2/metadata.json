@@ -3,7 +3,7 @@
   "checkpoint_id": "d28d451534f2",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 10,
   "files_touched": [
     "scripts/build_audio_prior.py",
     "scripts/eval_audio.py",
@@ -25,6 +25,13 @@
       "compact_transcript": "/d2/8d451534f2/1/transcript.jsonl",
       "content_hash": "/d2/8d451534f2/1/content_hash.txt",
       "prompt": "/d2/8d451534f2/1/prompt.txt"
+    },
+    {
+      "metadata": "/d2/8d451534f2/2/metadata.json",
+      "transcript": "/d2/8d451534f2/2/full.jsonl",
+      "compact_transcript": "/d2/8d451534f2/2/transcript.jsonl",
+      "content_hash": "/d2/8d451534f2/2/content_hash.txt",
+      "prompt": "/d2/8d451534f2/2/prompt.txt"
     }
   ],
   "token_usage": {
