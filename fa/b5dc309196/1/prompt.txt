@@ -1,0 +1,13 @@
+LEt's implement and run the evaluation pipeline using the autoresearch skill to acomplish https://github.com/tuned-org-uk/latent-sound-diffusion/issues/49
+
+---
+
+please note that the paper content in docs/ is changed. the current working paper referenced by the issue is in docs/spectral-composition
+
+---
+
+add a todo: add the link to this repository in the paper
+
+---
+
+what is still outstanding?
