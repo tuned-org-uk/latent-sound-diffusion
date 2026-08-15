@@ -1,0 +1,12 @@
+the canonical DDIM from version 0.7.0 and previous, I didnt test the new v0.10 and v0.11
+Let's create an autoresearch issue called "v0.12.0 - improve target output noise".
+I will add comments there after testing the newest versions.
+
+---
+
+Let's create this issue.
+then we create a new notebooks to test the new variations system.
+
+---
+
+let's create a comparative test for all the available samples bank generation variants and measure their level of similarity.
