@@ -496,7 +496,14 @@ projector $\Pi_q$. In producer terms: one bank, many voices, one sound.
 This is precisely the behaviour a sample-library workflow wants — a
 coherent palette rather than a bag of unrelated one-shots — and it is a
 structural consequence of the frozen-prior design, not a tuned
-temperature.
+temperature. A calibration caveat is owed, however: at the training
+scale evaluated here the unconditional DiT has not yet learned
+input-dependent structure, and the sampler \emph{contracts} all draws
+toward a single latent (measured in
+Section~\ref{subsec:eval_ablation}: initial-noise differences of $6.1$
+in max-norm collapse to $1.2\times10^{-6}$ after 49 DDIM steps), so the
+``many voices'' property is a design target and an explicit open front
+of the scale-up, not a currently demonstrated behaviour.
 
 \subsection{Stage 3 — MIDI-Conditioned Materialisation (Rehydration)}
 \label{subsec:stage3}
@@ -1011,7 +1018,13 @@ and a deterministic hashing embedding of the prompt (a stability check,
 not a semantics model). On these proxies the internal control records
 lower values (NSynth FAD-proxy $408$ vs $1198$; ESC-50 $307$ vs $1787$;
 CLAP-proxy $-0.073/-0.065$ vs $-0.046/-0.042$), and we report that
-difference without defence. We hypothesise — and this is the experiment the scale-up
+difference without defence. A further caveat the contraction
+measurement of Section~\ref{subsec:eval_ablation} forces: the generated
+banks are effectively single-sample distributions ($16$ draws collapse
+to one point), so these FAD-proxy values compare one effective sample
+against the corpus spread — a valid relative comparison between arms,
+not an estimate of a distributional gap. We hypothesise — and this is
+the experiment the scale-up
 should run first — that the gap tracks training scale rather than
 architecture: at $20$ epochs on $179$ clips the graph decoder's chart
 constraint is a regulariser on an under-trained system, and its
@@ -1061,12 +1074,23 @@ $0.0 \to (0.112,\ 6.8{\times}10^{-5})$;
 $0.1 \to (0.113,\ 2.4{\times}10^{-4})$;
 $0.25 \to (0.109,\ 7.7{\times}10^{-5})$;
 $0.5 \to (0.121,\ 1.6{\times}10^{-4})$.
-Fidelity degrades monotonically above $\sigma_{\mathrm{inj}}{=}0.25$, but
-\textbf{diversity does not track the dial monotonically} at this scale —
-the variant distance is dominated by the DDIM noise draw rather than by
-the decoder's noise exposure. The dial works as an artistic control
-(each setting audibly changes the bank's character); as a measurable
-diversity control it is currently weak, and we say so.
+Fidelity degrades monotonically above $\sigma_{\mathrm{inj}}{=}0.25$, and
+\textbf{diversity does not respond to any sampler-side dial} at this
+scale. The mechanism is now measured rather than guessed: the
+undertrained unconditional DiT contracts every noise draw to (nearly)
+the same latent — initial-noise max-norm differences of $6.1$ collapse
+to $1.2\times10^{-6}$ across 49 DDIM steps — so stopping rules
+(including the heat-death $\varepsilon$) move the endpoint along a
+one-dimensional contraction path rather than spreading an output
+distribution, and banks of $n$ draws are $n$ near-identical clips.
+Mode-B interpolations, which bypass the sampler, do differ at the
+waveform level (pairwise L1 $0.13$–$0.17$ at strength $0.5$–$0.9$), but
+the pooled-feature diversity proxy cannot resolve that difference
+($\sim\!10^{-4}$): latent diversity on this checkpoint is real only
+where the sampler is bypassed, and measurable only with waveform-level
+metrics. Diversity therefore awaits the scale-up (input-dependent
+$v_\theta$) or sampler-bypassing variant modes; both mechanisms are
+reported verbatim.
 
 \paragraph{Heat-death threshold $\varepsilon$}
 Sampling-only, against the corpus scale $\sum_k \nu_k = 5.67$:
@@ -1395,9 +1419,11 @@ ESC-50 replication), 20 epochs, a single consumer GPU:
     ($41$ steps / FAD-proxy $858$ vs $46$ / $1154$).
   \item \textbf{Open fronts, named}: the FAD-proxy still records lower
     values for the internal control ($408$ vs $1198$) — we hypothesise
-    a training-scale effect and design the scale-up to test exactly
-    that; the
-    $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at this scale;
+    a training-scale effect, now with a measured mechanism (the
+    undertrained DiT contracts all draws to one point, making banks
+    near-degenerate), and the scale-up is designed to test exactly
+    that; the $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at
+    this scale;
     resampling-based rehydration leaves score-vs-spectrum coherence
     at $\approx 0$ pending a pitch-preserving materialiser; and the
     human listening study is specified but not yet run.
