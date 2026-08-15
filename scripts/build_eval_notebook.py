@@ -45,31 +45,46 @@ def code(src: str) -> None:
 
 
 md(
-    "# Evaluation Metrics — Spectral Composition (Issue #49)\n"
+    "# Evaluation Metrics — Spectral Composition (Issues #49 + #50)\n"
     "\n"
-    "This notebook presents every evaluation deliverable required by\n"
-    "[issue #49](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/49):\n"
+    "This notebook presents every evaluation deliverable produced by\n"
+    "`scripts/run_evaluation.py`, extended per\n"
+    "[issue #50](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/50)\n"
+    "Phase 1:\n"
     "\n"
-    "- **Phase 1** (Table 1, Table 2): reconstruction L1 (train/val/test) +\n"
-    "  $\\lambda^{ED}$ ablation\n"
+    "- **Phase 1** (Tables 1, 2, 6): reconstruction L1 (train/val/test) +\n"
+    "  $\\lambda^{ED}$ ablation + per-band spectral energy retention\n"
     "- **Phase 2** (Table 3): FAD-proxy + CLAP-proxy (graph vs baseline)\n"
     "- **Phase 3a** (Table 4): dehydration compression ratio vs corpus size $N$\n"
     "- **Phase 3b** (Table 5): rehydration coherence (MIDI pitch vs spectral\n"
-    "  centroid, Pearson $r$)\n"
-    "- **Phase 3c** (figure): recursive variant diversity (CLAP-proxy cosine\n"
-    "  distance vs recursion depth)\n"
+    "  centroid/rolloff, Pearson $r$)\n"
+    "- **Phase 3c** (CSV + figure): TRUE recursive variant drift — outputs fed\n"
+    "  back through `condition_on_audio` → `synthesize_midi` for R rounds\n"
+    "- **Sweeps** (issue #50): chart rank $q$, latent NOISE_INJECT\n"
+    "  (diversity-vs-fidelity), heat-death $\\varepsilon$ (steps-vs-quality)\n"
+    "\n"
+    "**Calibration.** The paper introduces a novel workflow — dehydration →\n"
+    "diffusion → rehydration → recursive variation — at preliminary scale\n"
+    "(256-sample NSynth subset, 20 epochs, real frozen EnCodec). These tables\n"
+    "are hypothesis-generating evidence for the paradigm, **not** benchmark\n"
+    "claims: numbers are reported verbatim, the matched baseline contextualises\n"
+    "(and currently outperforms) the graph decoder at this scale, and the\n"
+    "workflow-affordance metrics (compression, coherence, variant drift,\n"
+    "diversity-vs-fidelity) stand alongside fidelity metrics.\n"
     "\n"
     "By default this notebook **loads the pre-computed results** produced by\n"
     "the faithful full-training pipeline `scripts/run_evaluation.py`\n"
-    "(256-sample NSynth subset, 20 epochs, real frozen EnCodec, CPU). Set\n"
-    "`TRAIN_FROM_SCRATCH = True` below to re-run the full pipeline in-place.\n"
+    "(256-sample subset, 20 epochs, real frozen EnCodec, MPS with grad\n"
+    "clipping; the graph decoder's per-time-step graph filter makes training\n"
+    "device-stable — see issue #51). Set `TRAIN_FROM_SCRATCH = True` below to\n"
+    "re-run the full pipeline in-place.\n"
     "\n"
     "> **FAD/CLAP methodology**: `fadtk` and `laion-clap` were removed due to\n"
     '> dependency conflicts (see README "Open issues" and\n'
-    "> `docs/postmortem-c-spec-regression.md`). Phase 2 and 3c use\n"
-    "> dependency-free proxies on the same frozen EnCodec feature space the\n"
-    "> model already uses. The methodology is recorded in each CSV\n"
-    "> (`*_method` columns). See `src/ald_sc/eval.py` for the implementations."
+    "> `docs/postmortem-c-spec-regression.md`). Phase 2/3c use dependency-free\n"
+    "> proxies on the same frozen EnCodec feature space the model already\n"
+    "> uses. The methodology is recorded in each CSV (`*_method` columns). See\n"
+    "> `src/ald_sc/eval.py` for the implementations."
 )
 
 md("## Configuration")
@@ -143,6 +158,25 @@ code(
 )
 
 md(
+    "## Phase 1 (extension): Per-band Spectral Energy Retention (Table 6)\n"
+    "\n"
+    "For each spectral mode $k$ of the prior chart: the normalised band\n"
+    "energy of the original audio's EnCodec features vs the reconstruction's\n"
+    "(re-encoded), per split and decoder. ``retention`` = $e^{recon}_k /\n"
+    "e^{orig}_k$ (1.0 = perfect); ``cosine`` = mean cosine similarity between\n"
+    "band-energy vectors (split-level summary). Does the decoder preserve the\n"
+    "chart's spectral energy allocation?"
+)
+
+code(
+    "table6 = load_csv('table6_band_retention.csv')\n"
+    "print('=== Table 6: Per-band spectral energy retention ===')\n"
+    "show(table6[:16])\n"
+    "if len(table6) > 16:\n"
+    "    print(f'  ... ({len(table6) - 16} more rows)')"
+)
+
+md(
     "## Phase 2: FAD-proxy + CLAP-proxy (Table 3)\n"
     "\n"
     "Generates 16 latents via DDIM, decodes with each decoder, and compares the\n"
@@ -191,19 +225,21 @@ code(
 )
 
 md(
-    "## Phase 3c: Recursive Variant Diversity (figure)\n"
+    "## Phase 3c: Recursive Variant Drift (CSV + figure)\n"
     "\n"
-    "Apply Mode C rehydration at depths 1×, 2×, 4× with different MIDI\n"
-    "sequences. Compute pairwise CLAP-proxy cosine distance between variants.\n"
-    "Reports mean inter-variant distance as a function of recursion depth,\n"
-    "validating the claim that each MIDI produces a meaningfully different\n"
-    "variant."
+    "**True recursion** (issue #50): round 0 renders a MIDI score from a\n"
+    "freshly generated bank; round $r$ conditions on the previous round's\n"
+    "render (`condition_on_audio`, Mode B), rebuilds the bank, and re-renders\n"
+    "the same score (`synthesize_midi`, Mode C). Reports per round: CLAP-proxy\n"
+    "distance to the round-0 render (cumulative novelty) and centroid/rolloff\n"
+    "drift (spectral character evolution). This replaces the earlier\n"
+    "MIDI-rotation approximation with faithful recursive feeding."
 )
 
 code(
-    "var_rows = load_csv('variant_diversity.csv')\n"
-    "print('=== Variant diversity vs recursion depth ===')\n"
-    "show(var_rows)"
+    "rec_rows = load_csv('recursive_variants.csv')\n"
+    "print('=== Recursive variant drift (true R-round recursion) ===')\n"
+    "show(rec_rows)"
 )
 
 code(
@@ -217,41 +253,115 @@ code(
     "else:\n"
     "    print(f'  {fig_path} not found (run scripts/run_evaluation.py first)')\n"
     "\n"
-    "# Re-plot from the CSV data for a self-contained execution output.\n"
-    "if var_rows:\n"
-    "    fig, ax = plt.subplots(figsize=(6, 4))\n"
-    "    xs = [int(r['depth']) for r in var_rows]\n"
-    "    means = [float(r['mean_distance']) for r in var_rows]\n"
-    "    mins_v = [float(r['min_distance']) for r in var_rows]\n"
-    "    maxs_v = [float(r['max_distance']) for r in var_rows]\n"
-    "    ax.plot(xs, means, 'o-', label='mean pairwise distance', color='tab:blue')\n"
-    "    ax.fill_between(xs, mins_v, maxs_v, alpha=0.2, color='tab:blue')\n"
-    "    ax.set_xlabel('Recursion depth R')\n"
-    "    ax.set_ylabel('CLAP-proxy cosine distance')\n"
-    "    ax.set_title('Recursive variant diversity vs depth')\n"
-    "    ax.legend()\n"
-    "    ax.grid(True, alpha=0.3)\n"
+    "if rec_rows:\n"
+    "    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))\n"
+    "    xs = [int(r['round']) for r in rec_rows]\n"
+    "    dists = [float(r['clap_distance_to_round0']) for r in rec_rows]\n"
+    "    cents = [float(r['centroid_mean_hz']) for r in rec_rows]\n"
+    "    rolls = [float(r['rolloff_mean_hz']) for r in rec_rows]\n"
+    "    ax1.plot(xs, dists, 'o-', color='tab:blue')\n"
+    "    ax1.set_xlabel('Recursion round R')\n"
+    "    ax1.set_ylabel('CLAP-proxy distance to round 0')\n"
+    "    ax1.set_title('Cumulative novelty drift')\n"
+    "    ax1.grid(True, alpha=0.3)\n"
+    "    ax2.plot(xs, cents, 'o-', label='centroid (Hz)', color='tab:orange')\n"
+    "    ax2.plot(xs, rolls, 's-', label='rolloff (Hz)', color='tab:green')\n"
+    "    ax2.set_xlabel('Recursion round R')\n"
+    "    ax2.set_title('Spectral drift over rounds')\n"
+    "    ax2.legend()\n"
+    "    ax2.grid(True, alpha=0.3)\n"
     "    fig.tight_layout()\n"
     "    plt.show()\n"
     "else:\n"
-    "    print('No variant_diversity.csv data to plot.')"
+    "    print('No recursive_variants.csv data to plot.')"
+)
+
+md(
+    "## Issue #50 sweeps: $q$, NOISE_INJECT, heat-death $\\varepsilon$\n"
+    "\n"
+    "- **$q$ sweep** (`sweep_q.csv`): chart rank $q \\in \\{4, 8, 16, 32\\}$ —\n"
+    "  prior rebuilt and graph decoder retrained per $q$; test L1 + band-\n"
+    "  retention cosine. How many spectral modes does the chart need at this\n"
+    "  scale?\n"
+    "- **NOISE_INJECT sweep** (`sweep_noise.csv`): latent noise $\\in\n"
+    "  \\{0.0, 0.1, 0.25, 0.5\\}$ — the workflow's diversity-vs-fidelity\n"
+    "  dial: test L1 (fidelity) vs variant distance (novelty affordance).\n"
+    "- **$\\varepsilon$ sweep** (`sweep_eps.csv`): heat-death threshold $\\in\n"
+    "  \\{10^{-2}, 10^{-3}, 10^{-4}\\}$ (sampling only) — intrinsic stopping\n"
+    "  trades steps for quality: mean DDIM steps used vs FAD-proxy."
+)
+
+code(
+    "sweep_q = load_csv('sweep_q.csv')\n"
+    "print('=== Sweep: chart rank q (decoder retrained per q) ===')\n"
+    "show(sweep_q)"
+)
+
+code(
+    "sweep_noise = load_csv('sweep_noise.csv')\n"
+    "print('=== Sweep: NOISE_INJECT (diversity vs fidelity) ===')\n"
+    "show(sweep_noise)"
+)
+
+code(
+    "sweep_eps = load_csv('sweep_eps.csv')\n"
+    "print('=== Sweep: heat-death epsilon (sampling only) ===')\n"
+    "show(sweep_eps)\n"
+    "\n"
+    "if sweep_eps:\n"
+    "    fig, ax = plt.subplots(figsize=(6, 4))\n"
+    "    xs = [float(r['eps']) for r in sweep_eps]\n"
+    "    ys = [float(r['mean_steps']) for r in sweep_eps]\n"
+    "    ax.plot(xs, ys, 'o-')\n"
+    "    ax.set_xscale('log')\n"
+    "    ax.set_xlabel('heat-death epsilon')\n"
+    "    ax.set_ylabel('mean DDIM steps used')\n"
+    "    ax.set_title('Intrinsic stopping: epsilon vs steps')\n"
+    "    ax.grid(True, alpha=0.3)\n"
+    "    fig.tight_layout()\n"
+    "    plt.show()"
+)
+
+md(
+    "## ESC-50 cross-corpus run (tagged tables)\n"
+    "\n"
+    "The same 256-subset pipeline on ESC-50 environmental audio (~600 MB,\n"
+    "CC BY 4.0) writes `esc50_`-prefixed tables — cross-corpus evidence that\n"
+    "the workflow applies beyond musical instruments, without clobbering the\n"
+    "NSynth tables."
+)
+
+code(
+    "esc50_files = ['esc50_table1_reconstruction.csv', 'esc50_table3_fad_clap.csv',\n"
+    "              'esc50_table5_coherence.csv', 'esc50_recursive_variants.csv']\n"
+    "for f in esc50_files:\n"
+    "    rows = load_csv(f)\n"
+    "    if rows:\n"
+    "        print(f'=== {f} ===')\n"
+    "        show(rows)\n"
+    "        print()"
 )
 
 md(
     "## Re-run from scratch (optional)\n"
     "\n"
     "The full training pipeline (prior construction, graph + baseline decoder\n"
-    "training, DiT training, all metrics) is in `scripts/run_evaluation.py`.\n"
-    "To reproduce the CSVs from scratch:\n"
+    "training, DiT training, all metrics + sweeps) is in\n"
+    "`scripts/run_evaluation.py`. To reproduce the CSVs from scratch:\n"
     "\n"
     "```bash\n"
-    "uv run python scripts/run_evaluation.py --device cpu\n"
-    "# (~16 min on CPU; produces all results/*.csv + fig_variant_diversity.png)\n"
+    "uv run python scripts/run_evaluation.py --device mps \\\n"
+    "    --ablation-q 4 8 16 32 --ablation-noise 0.0 0.1 0.25 0.5 \\\n"
+    "    --ablation-eps 1e-2 1e-3 1e-4\n"
+    "\n"
+    "# ESC-50 tagged run\n"
+    "uv run python scripts/run_evaluation.py --device mps \\\n"
+    "    --data-dir data/esc50/ESC-50-master/audio --tag esc50_\n"
     "```\n"
     "\n"
     "Set `TRAIN_FROM_SCRATCH = True` in the configuration cell and re-execute to\n"
     "run the same pipeline in-notebook. The eval engine itself is in\n"
-    "`src/ald_sc/eval.py` (reusable, 30 unit tests in `tests/test_eval.py`)."
+    "`src/ald_sc/eval.py` (reusable, unit tests in `tests/test_eval.py`)."
 )
 
 md("## Summary")
@@ -259,7 +369,9 @@ md("## Summary")
 code(
     "print('=== Deliverables ===')\n"
     "for f in ['table1_reconstruction.csv', 'table2_ablation.csv', 'table3_fad_clap.csv',\n"
-    "          'table4_compression.csv', 'table5_coherence.csv', 'fig_variant_diversity.png']:\n"
+    "          'table4_compression.csv', 'table5_coherence.csv', 'table6_band_retention.csv',\n"
+    "          'recursive_variants.csv', 'fig_variant_diversity.png',\n"
+    "          'sweep_q.csv', 'sweep_noise.csv', 'sweep_eps.csv']:\n"
     "    p = RESULTS_DIR / f\n"
     '    print(f\'  {"OK" if p.exists() and p.stat().st_size > 0 else "MISSING"}: {p.name}\')'
 )

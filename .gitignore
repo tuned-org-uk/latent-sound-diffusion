@@ -231,3 +231,6 @@ notebooks/results/
 *.out
 *.synctex.gz
 *.toc
+
+# Evaluation checkpoints (issue #50 sweeps)
+results/artifacts/

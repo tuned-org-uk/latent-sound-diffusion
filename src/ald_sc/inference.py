@@ -276,6 +276,9 @@ class LSDModel:
             raise ValueError(
                 f"audio must be (1, 1, T) or (1, T); got {tuple(audio.shape)}"
             )
+        # Conditioning audio may arrive on CPU (e.g. bank clips staged on CPU
+        # before MPS rendering) — move it to the model's device before encoding.
+        audio = audio.to(self.prior.U_q.device)
 
         strength = float(max(0.0, min(1.0, strength)))
         s = _resolve_seed(seed)
@@ -285,7 +288,8 @@ class LSDModel:
         variants: list[Tensor] = []
         for i in range(n):
             noise = torch.randn_like(
-                z_cond, generator=torch.Generator().manual_seed(s + i)
+                z_cond,
+                generator=torch.Generator(device=z_cond.device).manual_seed(s + i),
             )
             z = (1.0 - strength) * z_cond + strength * noise
             clip = self._sample_and_decode(

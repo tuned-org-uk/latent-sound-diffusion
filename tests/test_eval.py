@@ -19,16 +19,20 @@ from ald_sc.data import ToyAudioDataset, build_audio_dataloader
 from ald_sc.eval import (
     ablation_table,
     audio_embedding,
+    band_energy_retention,
     clap_proxy_score,
     compression_ratio,
     compression_ratio_vs_n,
+    eps_sweep,
     evaluate_reconstruction,
     fad_score,
     frechet_distance,
     midi_pitch_contour,
     reconstruction_table,
+    recursive_variant_drift,
     rehydration_coherence,
     spectral_centroid,
+    spectral_rolloff,
     split_files,
     text_embedding,
     variant_diversity,
@@ -374,6 +378,260 @@ class TestVariantDiversity:
         for r in rows:
             assert r["mean_distance"] >= 0.0
             assert r["min_distance"] >= 0.0
+
+
+class TestBandEnergyRetention:
+    def _loader(self):
+        ds = ToyAudioDataset(num_samples=8, audio_length=24000)
+        return build_audio_dataloader(ds, batch_size=4, shuffle=False)
+
+    def test_one_row_per_mode(self) -> None:
+        prior = _toy_prior(q=4)
+        encoder = _StubEncoder()
+        dec = _TinyGraphDecoder()
+        rows = band_energy_retention(
+            encoder, dec, prior, self._loader(), torch.device("cpu")
+        )
+        assert len(rows) == prior.q
+        for r in rows:
+            assert {"k", "e_orig", "e_recon", "retention", "cosine"} <= set(r)
+            assert r["e_orig"] >= 0.0 and r["e_recon"] >= 0.0
+            assert -1.0 <= r["cosine"] <= 1.0
+
+    def test_normalized_band_energies(self) -> None:
+        prior = _toy_prior(q=4)
+        encoder = _StubEncoder()
+        dec = _TinyGraphDecoder()
+        rows = band_energy_retention(
+            encoder, dec, prior, self._loader(), torch.device("cpu")
+        )
+        total = sum(r["e_orig"] for r in rows)
+        assert abs(total - 1.0) < 0.05  # e_tilde sums to ~1
+
+    def test_cspec_off_sends_zeros(self) -> None:
+        prior = _toy_prior(q=4)
+        encoder = _StubEncoder()
+        captured: dict[str, object] = {}
+
+        class _SpyDecoder(_TinyGraphDecoder):
+            def forward(self, z, c_spec=None):  # type: ignore[override]
+                captured["c_spec"] = c_spec
+                return super().forward(z, c_spec)
+
+        band_energy_retention(
+            encoder,
+            _SpyDecoder(),
+            prior,
+            self._loader(),
+            torch.device("cpu"),
+            use_cspec=False,
+        )
+        assert captured["c_spec"] is not None
+        assert float(captured["c_spec"].abs().sum()) == 0.0  # type: ignore[union-attr]
+
+    def test_retention_finite(self) -> None:
+        prior = _toy_prior(q=4)
+        encoder = _StubEncoder()
+        dec = _TinyGraphDecoder()
+        rows = band_energy_retention(
+            encoder, dec, prior, self._loader(), torch.device("cpu")
+        )
+        for r in rows:
+            assert r["retention"] == r["retention"]  # not NaN
+            assert r["retention"] >= 0.0
+
+
+class TestSpectralRolloff:
+    def test_sine_rolloff_below_high_freq(self) -> None:
+        sr = 24000
+        t = torch.arange(sr, dtype=torch.float32) / sr
+        x = torch.sin(2 * torch.pi * 500.0 * t)
+        ro = spectral_rolloff(x, sample_rate=sr)
+        assert ro.dim() == 1
+        assert 0.0 < ro.mean().item() < 5000.0
+
+    def test_noise_rolloff_above_sine(self) -> None:
+        sr = 24000
+        t = torch.arange(sr, dtype=torch.float32) / sr
+        sine = torch.sin(2 * torch.pi * 500.0 * t)
+        noise = torch.randn(sr) * 0.1
+        ro_sine = spectral_rolloff(sine, sample_rate=sr).mean().item()
+        ro_noise = spectral_rolloff(noise, sample_rate=sr).mean().item()
+        assert ro_noise > ro_sine
+
+    def test_shape_variants(self) -> None:
+        x = torch.randn(24000)
+        for shape_fn in [
+            lambda t: t,
+            lambda t: t.unsqueeze(0),
+            lambda t: t.unsqueeze(0).unsqueeze(0),
+        ]:
+            ro = spectral_rolloff(shape_fn(x))
+            assert ro.dim() == 1
+            assert (ro >= 0.0).all()
+            assert (ro <= 12000.0 + 1.0).all()  # <= Nyquist
+
+
+class TestRecursiveVariantDrift:
+    def test_rows_per_round(self) -> None:
+        class _FakeModel:
+            sample_rate = 24000
+
+            def generate_sound_bank(self, n, steps, seed):
+                return [torch.randn(1, 24000) for _ in range(n)]
+
+            def synthesize_midi(self, events, bank, seed=None, **kw):
+                t = (
+                    torch.arange(self.sample_rate, dtype=torch.float32)
+                    / self.sample_rate
+                )
+                return torch.sin(2 * torch.pi * (220 + 10 * seed) * t).unsqueeze(0)
+
+            def condition_on_audio(self, audio, n, steps, strength, seed):
+                return [torch.randn(1, 24000) for _ in range(n)]
+
+        enc = _StubEncoder()
+        events = [(60, 0.0, 0.25), (64, 0.25, 0.25)]
+        rows = recursive_variant_drift(
+            _FakeModel(),
+            events,
+            rounds=2,
+            encoder=enc,
+            device=torch.device("cpu"),
+            steps=2,
+            seed=3407,
+            bank_n=2,
+        )
+        assert len(rows) == 3  # round 0 + 2 recursive rounds
+        for r in rows:
+            assert {
+                "round",
+                "centroid_mean_hz",
+                "centroid_std_hz",
+                "rolloff_mean_hz",
+                "clap_distance_to_round0",
+            } <= set(r)
+            assert r["centroid_mean_hz"] > 0.0
+            assert r["rolloff_mean_hz"] > 0.0
+            assert r["clap_distance_to_round0"] >= 0.0
+        assert rows[0]["round"] == 0
+        assert rows[0]["clap_distance_to_round0"] == 0.0
+        assert [r["round"] for r in rows] == [0, 1, 2]
+
+    def test_true_recursion_feeds_output_back(self) -> None:
+        calls: dict[str, list[object]] = {"condition": [], "synthesize": 0}
+
+        class _FakeModel:
+            sample_rate = 24000
+
+            def generate_sound_bank(self, n, steps, seed):
+                return [torch.randn(1, 24000) for _ in range(n)]
+
+            def synthesize_midi(self, events, bank, seed=None, **kw):
+                calls["synthesize"] = calls["synthesize"] + 1
+                t = (
+                    torch.arange(self.sample_rate, dtype=torch.float32)
+                    / self.sample_rate
+                )
+                return torch.sin(2 * torch.pi * 300 * t).unsqueeze(0)
+
+            def condition_on_audio(self, audio, n, steps, strength, seed):
+                calls["condition"].append(audio)
+                return [torch.randn(1, 24000) for _ in range(n)]
+
+        enc = _StubEncoder()
+        events = [(60, 0.0, 0.25)]
+        recursive_variant_drift(
+            _FakeModel(),
+            events,
+            rounds=3,
+            encoder=enc,
+            device=torch.device("cpu"),
+            steps=2,
+            seed=3407,
+            bank_n=2,
+        )
+        # condition_on_audio called once per recursive round...
+        assert len(calls["condition"]) == 3
+        # ...and each call receives the previous round's RENDER (finite audio)
+        for a in calls["condition"]:
+            assert isinstance(a, torch.Tensor)
+            assert float(a.abs().sum()) > 0.0
+        # synthesize called once per round + once for round 0
+        assert calls["synthesize"] == 4
+
+
+class TestEpsSweep:
+    def test_rows_and_bounds(self) -> None:
+        from ald_sc.dit import MinimalDiT
+        from ald_sc.schedule import CosineSchedule
+
+        prior = build_arrow_prior(torch.randn(32, 128), q=4, k=4)
+        dit = MinimalDiT(
+            latent_channels=128,
+            latent_length=16,
+            patch_size=4,
+            dim=32,
+            depth=1,
+            num_heads=2,
+            text_dim=0,
+            spec_dim=12,
+        )
+        sched = CosineSchedule(num_steps=100)
+        dec = _TinyGraphDecoder()
+        enc = _StubEncoder()
+        ref = torch.randn(4, 128)
+        rows = eps_sweep(
+            dit,
+            sched,
+            prior,
+            dec,
+            enc,
+            ref,
+            [1e-4, 1e-3, 1e-2],
+            torch.device("cpu"),
+            n_gen=1,
+            steps=4,
+        )
+        assert len(rows) == 3
+        assert [r["eps"] for r in rows] == [1e-4, 1e-3, 1e-2]
+        for r in rows:
+            assert 0.0 <= r["mean_steps"] <= 4.0
+            assert r["FAD"] >= 0.0
+            assert r["FAD_method"] == "encod_proxy"
+
+    def test_larger_eps_stops_earlier(self) -> None:
+        from ald_sc.dit import MinimalDiT
+        from ald_sc.schedule import CosineSchedule
+
+        prior = build_arrow_prior(torch.randn(32, 128), q=4, k=4)
+        dit = MinimalDiT(
+            latent_channels=128,
+            latent_length=16,
+            patch_size=4,
+            dim=32,
+            depth=1,
+            num_heads=2,
+            text_dim=0,
+            spec_dim=12,
+        )
+        sched = CosineSchedule(num_steps=100)
+        dec = _TinyGraphDecoder()
+        enc = _StubEncoder()
+        ref = torch.randn(4, 128)
+        rows = eps_sweep(
+            dit,
+            sched,
+            prior,
+            dec,
+            enc,
+            ref,
+            [1e-6, 1.0],
+            torch.device("cpu"),
+            n_gen=1,
+            steps=8,
+        )
+        assert rows[0]["mean_steps"] >= rows[1]["mean_steps"]
 
 
 class TestWriteCSV:

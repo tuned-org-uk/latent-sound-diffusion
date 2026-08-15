@@ -1,0 +1,29 @@
+{
+  "run_id": "evals-260815-0945",
+  "mode": "orchestrator",
+  "archetype": "build-feature",
+  "goal": "Issue #50 Phase 1: extend the evaluation pipeline (retention, rolloff, true recursion, q/noise/eps sweeps, ESC-50), rerun all deliverables on MPS with the grad-clip trainer, calibrated to novel-paradigm presentation.",
+  "predicate": {
+    "command": "uv run pytest tests/ -q && uv run ruff check src tests scripts && uv run ruff format --check src tests scripts && test -s results/table1_reconstruction.csv && test -s results/table6_band_retention.csv && test -s results/sweep_q.csv && test -s results/sweep_noise.csv && test -s results/sweep_eps.csv && test -s results/fig_variant_diversity.png && test -s autoresearch/evals-260815-0945/summary.md",
+    "expected": "exit 0"
+  },
+  "terminal_choice": "stop-at-verified",
+  "decisions": {
+    "calibration": "novel-paradigm presentation: honest preliminary-scale numbers, no benchmark claims; workflow-affordance metrics alongside fidelity",
+    "training_device": "MPS for all runs (graph decoder v2 per-time-step graph filter + grad-clip 1.0)",
+    "eps_units": "absolute {0.1,0.5,1,2,5} against Sum(nu)=5.67; issue's 1e-2..1e-4 unreachable on the 50-step grid",
+    "wave_block_v2": "per-time-step U_q graph filter replaces pooled time-constant delta (issue #51 root cause); correction posted",
+    "heat_death": "reverse-process remaining dissipation Sum(nu*(1-abar)) < eps replaces degenerate forward metric",
+    "esc50": "downloaded (600 MB, CC BY 4.0) to data/esc50/; esc50_-tagged tables"
+  },
+  "artifacts_dir": "results",
+  "status": "done",
+  "verdict": "CONVERGED",
+  "tests": "223 passed (+11 eval, +1 dissipation; heat-death test updated)",
+  "follow_ups": [
+    "issue #50 Phase 2/3: paper prose fill-ins (data-grounded placeholders §5.3/§3.1/§6.x/§9 + 17 prose placeholders)",
+    "resampling pitch artefacts (coherence r ~ 0) — candidate fix before Phase 2",
+    "FAD-proxy gap (graph 1198 vs baseline 408): hypothesis — decoder blur/peak-normalisation; test with unnormalised clips"
+  ],
+  "prev_run": "evals-260814-1825"
+}

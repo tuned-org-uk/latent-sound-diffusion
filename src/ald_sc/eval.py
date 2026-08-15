@@ -3,7 +3,8 @@
 Owns all paper-table computations:
 
 - Phase 1: train/val/test L1 reconstruction + lambda_ED ablation
-  (``reconstruction_table``, ``ablation_table``).
+  (``reconstruction_table``, ``ablation_table``) and per-band spectral
+  energy retention (``band_energy_retention``, paper §6.2).
 - Phase 2: FAD-proxy (Frechet distance over frozen EnCodec feature
   distributions) + CLAP-proxy (cosine on a deterministic text/audio
   embedding) + baseline comparison (``frechet_distance``, ``fad_score``,
@@ -11,9 +12,13 @@ Owns all paper-table computations:
 - Phase 3a: dehydration compression ratio vs corpus size N
   (``compression_ratio``, ``compression_ratio_vs_n``).
 - Phase 3b: rehydration coherence (MIDI pitch contour vs spectral
-  centroid, Pearson r) (``rehydration_coherence``).
+  centroid, Pearson r) (``rehydration_coherence``) and spectral rolloff
+  (``spectral_rolloff``, paper §6.1 rolloff drift).
 - Phase 3c: recursive variant diversity (pairwise CLAP-proxy cosine
-  distance vs depth) (``variant_diversity``).
+  distance vs depth) (``variant_diversity``) and TRUE R-round recursion
+  through ``condition_on_audio`` → ``synthesize_midi``
+  (``recursive_variant_drift``, paper §6.1 Stage 4).
+- Phase 4: heat-death epsilon sweep (``eps_sweep``, sampling-only).
 
 Dependency note. ``fadtk`` and ``laion-clap`` were removed from the project
 due to dependency conflicts (see README "Open issues"). To stay green, the
@@ -45,6 +50,7 @@ __all__ = [
     "evaluate_reconstruction",
     "reconstruction_table",
     "ablation_table",
+    "band_energy_retention",
     "frechet_distance",
     "encodec_pooled_features",
     "fad_score",
@@ -55,9 +61,12 @@ __all__ = [
     "compression_ratio",
     "compression_ratio_vs_n",
     "spectral_centroid",
+    "spectral_rolloff",
     "midi_pitch_contour",
     "rehydration_coherence",
     "variant_diversity",
+    "recursive_variant_drift",
+    "eps_sweep",
 ]
 
 SAMPLE_RATE = 24000
@@ -192,6 +201,85 @@ def ablation_table(
                 "split": split_name,
                 "with_cspec": "delta",
                 "L1": without["rec"] - with_c["rec"],
+            }
+        )
+    return rows
+
+
+# --------------------------------------------------------------------------- #
+# Phase 1 extension: per-band spectral energy retention (paper §6.2)
+# --------------------------------------------------------------------------- #
+
+
+@torch.no_grad()
+def band_energy_retention(
+    encoder: EnCodecEncoder,
+    decoder: nn.Module,
+    prior: ArrowSpacePrior,
+    loader,
+    device: torch.device,
+    use_cspec: bool = True,
+) -> list[dict[str, object]]:
+    """Per-mode band-energy retention of reconstructions (paper §6.2).
+
+    For each batch: encode the original audio to ``A`` (pooled EnCodec
+    features), decode to ``x_hat``, re-encode ``x_hat`` to ``A_hat``, and
+    compare the normalised per-mode band energies ``e_tilde`` via
+    ``prior.band_energies``. Retention per mode k is
+    ``e_tilde_rec[k] / e_tilde_orig[k]`` (1.0 = perfect retention; guarded
+    to 0 when the original mode carries negligible energy).
+
+    Returns one row per spectral mode k with columns
+    ``k, e_orig, e_recon, retention, cosine`` where cosine is the mean
+    cosine similarity between the original and reconstructed band-energy
+    vectors (repeated across rows as the split-level summary).
+    """
+    encoder = encoder.to(device).eval()
+    decoder = decoder.to(device).eval()
+    prior = prior.to(device)
+    is_baseline = isinstance(decoder, BaselineAudioDecoder)
+
+    e_orig_sum = torch.zeros(prior.q)
+    e_rec_sum = torch.zeros(prior.q)
+    cos_sum, n_batches = 0.0, 0
+    for batch in loader:
+        x = batch.to(device) if isinstance(batch, Tensor) else batch[0].to(device)
+        z, A, c_spec = encoder.encode(x, prior)
+        if is_baseline:
+            x_hat = decoder(z)
+        elif use_cspec:
+            x_hat = decoder(z, c_spec)
+        else:
+            x_hat = decoder(z, torch.zeros_like(c_spec))
+        _, A_hat, _ = encoder.encode(x_hat.clamp(-1, 1), prior)
+
+        e_o = prior.band_energies(A)
+        e_r = prior.band_energies(A_hat)
+        e_o = e_o / (e_o.sum(dim=-1, keepdim=True) + 1e-8)
+        e_r = e_r / (e_r.sum(dim=-1, keepdim=True) + 1e-8)
+        e_orig_sum += e_o.mean(dim=0).cpu()
+        e_rec_sum += e_r.mean(dim=0).cpu()
+        cos = torch.nn.functional.cosine_similarity(e_o, e_r, dim=-1)
+        cos_sum += float(cos.mean().item())
+        n_batches += 1
+
+    if n_batches == 0:
+        return []
+    e_orig_mean = e_orig_sum / n_batches
+    e_rec_mean = e_rec_sum / n_batches
+    cosine = cos_sum / n_batches
+    rows: list[dict[str, object]] = []
+    for k in range(prior.q):
+        retention = (
+            float(e_rec_mean[k] / e_orig_mean[k]) if e_orig_mean[k] > 1e-6 else 0.0
+        )
+        rows.append(
+            {
+                "k": k,
+                "e_orig": float(e_orig_mean[k]),
+                "e_recon": float(e_rec_mean[k]),
+                "retention": retention,
+                "cosine": cosine,
             }
         )
     return rows
@@ -536,6 +624,44 @@ def spectral_centroid(
     return centroid
 
 
+def spectral_rolloff(
+    audio: Tensor,
+    sample_rate: int = SAMPLE_RATE,
+    n_fft: int = 2048,
+    hop: int = 512,
+    fraction: float = 0.85,
+) -> Tensor:
+    """Per-frame spectral rolloff (1-D tensor) of a mono waveform.
+
+    rolloff(t) = the lowest frequency f such that ``fraction`` of the
+    frame's spectral energy is contained in bins <= f (classic 0.85
+    rolloff). Accepts (T,), (1, T) or (1, 1, T). Returns (num_frames,)
+    rolloff frequencies in Hz.
+    """
+    x = audio.detach().float().cpu()
+    if x.dim() == 3:
+        x = x.squeeze(0).squeeze(0)
+    elif x.dim() == 2:
+        x = x.squeeze(0)
+    window = torch.hann_window(n_fft)
+    spec = torch.stft(
+        x,
+        n_fft,
+        hop_length=hop,
+        return_complex=True,
+        window=window,
+    )
+    mag = spec.abs().clamp(min=0.0)
+    freqs = torch.linspace(0, sample_rate / 2, mag.shape[0])
+    energy = mag.pow(2)
+    cum = torch.cumsum(energy, dim=0)
+    total = cum[-1:, :]
+    crossed = cum >= fraction * total
+    # First bin where the cumulative energy crosses the fraction threshold.
+    idx = crossed.float().argmax(dim=0)
+    return freqs[idx]
+
+
 def midi_pitch_contour(
     events: Sequence[tuple[int, float, float]],
     num_frames: int,
@@ -651,6 +777,159 @@ def variant_diversity(
                 "mean_distance": float(pairs.mean().item()),
                 "min_distance": float(pairs.min().item()),
                 "max_distance": float(pairs.max().item()),
+            }
+        )
+    return rows
+
+
+# --------------------------------------------------------------------------- #
+# Phase 3c extension: TRUE recursive variant drift (paper §6.1, Stage 4)
+# --------------------------------------------------------------------------- #
+
+
+def _as_clip(audio: Tensor) -> Tensor:
+    """Normalise a waveform to (1, 1, T); keeps its device."""
+    x = audio.detach().float()
+    while x.dim() < 3:
+        x = x.unsqueeze(0)
+    if x.shape[1] != 1:
+        x = x.mean(dim=1, keepdim=True)
+    return x
+
+
+def recursive_variant_drift(
+    model,
+    events: Sequence[tuple[int, float, float]],
+    rounds: int,
+    encoder: EnCodecEncoder,
+    device: torch.device,
+    steps: int = 50,
+    seed: int = 3407,
+    bank_n: int = 4,
+    strength: float = 0.5,
+) -> list[dict[str, object]]:
+    """True R-round recursion: feed outputs back through the workflow.
+
+    Round 0 renders ``events`` from a freshly generated bank. Round r
+    conditions on the previous round's render (``condition_on_audio``),
+    rebuilds the bank, and re-renders the same score (``synthesize_midi``).
+    Reports per round: spectral centroid / rolloff means (drift) and the
+    CLAP-proxy cosine distance of the round's render to the round-0 render
+    (cumulative novelty). This replaces the earlier MIDI-rotation
+    approximation of "depth" with faithful recursive feeding.
+    """
+    bank = model.generate_sound_bank(n=bank_n, steps=steps, seed=seed)
+    audio = _as_clip(model.synthesize_midi(list(events), list(bank), seed=seed))
+
+    base_feat = encodec_pooled_features([audio], encoder, device)[0]
+    base_feat = base_feat / base_feat.norm().clamp(min=1e-12)
+
+    rows: list[dict[str, object]] = []
+
+    def _row(r: int, clip: Tensor) -> dict[str, object]:
+        centroid = spectral_centroid(clip, sample_rate=model.sample_rate)
+        rolloff = spectral_rolloff(clip, sample_rate=model.sample_rate)
+        feat = encodec_pooled_features([clip], encoder, device)[0]
+        feat = feat / feat.norm().clamp(min=1e-12)
+        dist = 1.0 - float(torch.dot(feat, base_feat).item())
+        return {
+            "round": r,
+            "centroid_mean_hz": float(centroid.mean().item()),
+            "centroid_std_hz": float(centroid.std().item()),
+            "rolloff_mean_hz": float(rolloff.mean().item()),
+            "clap_distance_to_round0": max(dist, 0.0),
+        }
+
+    rows.append(_row(0, audio))
+    for r in range(1, rounds + 1):
+        variants = model.condition_on_audio(
+            audio, n=bank_n, steps=steps, strength=strength, seed=seed + r
+        )
+        audio = _as_clip(
+            model.synthesize_midi(list(events), list(variants), seed=seed + r)
+        )
+        rows.append(_row(r, audio))
+    return rows
+
+
+# --------------------------------------------------------------------------- #
+# Phase 4: heat-death epsilon sweep (sampling-only)
+# --------------------------------------------------------------------------- #
+
+
+@torch.no_grad()
+def eps_sweep(
+    dit: nn.Module,
+    sched,
+    prior: ArrowSpacePrior,
+    decoder: nn.Module,
+    encoder: EnCodecEncoder,
+    reference_features: Tensor,
+    eps_values: Sequence[float],
+    device: torch.device,
+    n_gen: int = 8,
+    steps: int = 50,
+    seed: int = 3407,
+) -> list[dict[str, object]]:
+    """Heat-death stopping sweep: steps used + FAD-proxy vs epsilon.
+
+    For each epsilon a :class:`SpectralSchedule` with that heat-death
+    threshold drives DDIM early stopping. Reports mean steps actually used,
+    the FAD-proxy of the generated bank against ``reference_features``,
+    and the per-generation step counts. Sampling-only: no retraining.
+    Larger epsilon stops earlier (fewer steps, faster, potentially worse).
+
+    Note: ``prior.F`` must match the DiT latent channels (128 in the real
+    pipeline) — c_spec is derived from the pooled latent exactly as in
+    ``perceptual_table``.
+    """
+    from ald_sc.sampling import sample_ddim
+    from ald_sc.spectral_schedule import SpectralSchedule
+
+    dit = dit.to(device).eval()
+    decoder = decoder.to(device).eval()
+    prior = prior.to(device)
+    encoder = encoder.to(device).eval()
+
+    rows: list[dict[str, object]] = []
+    for eps in eps_values:
+        spec_sched = SpectralSchedule(prior=prior, horizon=1.0, eps=float(eps))
+        clips: list[Tensor] = []
+        steps_used: list[int] = []
+        for i in range(n_gen):
+            z, used = sample_ddim(
+                dit,
+                sched,
+                batch_size=1,
+                steps=steps,
+                seed=seed + i,
+                device=device,
+                spectral_schedule=spec_sched,
+                return_steps=True,
+            )
+            a = z.mean(dim=2)
+            c_spec = prior.chart_energy_descriptor(a)
+            if isinstance(decoder, BaselineAudioDecoder):
+                x_hat = decoder(z)
+            else:
+                x_hat = decoder(z, c_spec)
+            x_hat = x_hat.clamp(-1, 1).squeeze(0)
+            peak = x_hat.abs().max()
+            if peak > 0:
+                x_hat = x_hat / peak
+            clips.append(x_hat.unsqueeze(0))
+            steps_used.append(int(used))
+        gen_feats = encodec_pooled_features(clips, encoder, device)
+        fad = fad_score(gen_feats, reference_features.cpu())
+        rows.append(
+            {
+                "eps": float(eps),
+                "mean_steps": sum(steps_used) / len(steps_used),
+                "min_steps": min(steps_used),
+                "max_steps": max(steps_used),
+                "FAD": fad,
+                "FAD_method": "encod_proxy",
+                "n_gen": n_gen,
             }
         )
     return rows
