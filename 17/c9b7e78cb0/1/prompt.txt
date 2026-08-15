@@ -1,13 +1,1 @@
-credits added
-
----
-
-check out interface and capabilities only
-
----
-
-just mention LSD-studio in the paper, do not dedicate a subsection
-
----
-
-just mention LSD-studio in the paper, do not dedicate a subsection, just two paragraphs
+I have added an LSD-studio screenshot in the figures directory, please include it in the right section (maybe an appendix)
