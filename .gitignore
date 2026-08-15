@@ -234,3 +234,5 @@ notebooks/results/
 
 # Evaluation checkpoints (issue #50 sweeps)
 results/artifacts/
+document.fdb_latexmk
+document.fls

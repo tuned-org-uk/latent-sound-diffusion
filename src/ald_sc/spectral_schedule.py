@@ -66,6 +66,9 @@ class SpectralSchedule(nn.Module):
         self.eps = eps
         self.q = prior.q
 
+        # Declared buffer types for static checkers (see arrow_prior.py).
+        self.nu: Tensor
+        self.tau_k_max: Tensor
         self.register_buffer("nu", prior.eigvals_q.clone())
         self.register_buffer("tau_k_max", prior.eigvals_q.clone() * horizon)
 

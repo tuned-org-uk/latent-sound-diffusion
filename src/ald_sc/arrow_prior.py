@@ -37,6 +37,14 @@ class ArrowSpacePrior(nn.Module):
         Energy-dispersion distribution per feature node.
     """
 
+    # Declared buffer types (nn.Module.__getattr__ would otherwise widen
+    # attribute access to Tensor | Module for static checkers).
+    L_F: Tensor
+    U_q: Tensor
+    eigvals_q: Tensor
+    lambdas_ed: Tensor
+    lambdas_chart: Tensor
+
     def __init__(
         self,
         L_F: Tensor,

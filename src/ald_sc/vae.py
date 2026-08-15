@@ -99,13 +99,12 @@ class SpectralVAE(nn.Module):
 
     def _get_spectral_gate(self, c_spec_dim: int, device: torch.device) -> nn.Linear:
         if self._spectral_gate is None:
-            self._spectral_gate = nn.Linear(c_spec_dim, self.base_channels * 4).to(
-                device
-            )
-            nn.init.zeros_(self._spectral_gate.bias)
+            gate = nn.Linear(c_spec_dim, self.base_channels * 4).to(device)
+            nn.init.zeros_(gate.bias)
+            self._spectral_gate = gate
         return self._spectral_gate
 
-    def encode(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
+    def encode(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         """Encode image to (z, A, mu, logvar).
 
         Returns

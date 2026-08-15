@@ -85,6 +85,100 @@ class TestGenerateSoundBank:
         assert not torch.allclose(low, high)
 
 
+class TestBankModes:
+    """Issue #53: latent-variation bank modes around the canonical draw."""
+
+    def test_all_modes_return_n_clips(self) -> None:
+        from ald_sc.inference import BANK_MODES
+
+        m = _make_model()
+        for mode in BANK_MODES:
+            bank = m.generate_sound_bank(n=3, steps=4, seed=3407, bank_mode=mode)
+            assert len(bank) == 3, mode
+            for clip in bank:
+                assert clip.shape == (1, 16 * 320), mode
+
+    def test_default_mode_is_canonical(self) -> None:
+        m = _make_model()
+        default = m.generate_sound_bank(n=2, steps=3, seed=11)
+        canonical = m.generate_sound_bank(n=2, steps=3, seed=11, bank_mode="canonical")
+        for a, b in zip(default, canonical):
+            assert torch.allclose(a, b)
+
+    def test_jitter_diversifies(self) -> None:
+        m = _make_model()
+        bank = m.generate_sound_bank(
+            n=4, steps=4, seed=3407, bank_mode="jitter", bank_variety=0.5
+        )
+        l1 = [
+            float((bank[i] - bank[j]).abs().mean())
+            for i in range(4)
+            for j in range(i + 1, 4)
+        ]
+        assert sum(l1) / len(l1) > 0.01
+
+    def test_jitter_first_clip_is_canonical(self) -> None:
+        """variety=0 must reduce every mode to the canonical draw."""
+        m = _make_model()
+        canon = m.generate_sound_bank(n=2, steps=3, seed=5, bank_mode="canonical")[0]
+        for mode in ("jitter", "residual"):
+            bank = m.generate_sound_bank(
+                n=2, steps=3, seed=5, bank_mode=mode, bank_variety=0.0
+            )
+            assert torch.allclose(bank[0], canon, atol=1e-5), mode
+            assert torch.allclose(bank[1], canon, atol=1e-5), mode
+
+    def test_stopvar_grid_semantics(self) -> None:
+        """stopvar = same seed, step counts spread over the trajectory.
+
+        With steps=4, n=3 the grid is lo=round(4*0.24)=1 to
+        hi=round(4*0.98)=4, i.e. {1, 2, 4}: each latent must equal a
+        fresh DDIM draw at that step count with the SAME seed.
+        """
+        from ald_sc.sampling import sample_ddim
+
+        m = _make_model()
+        latents = m._bank_latents(
+            n=3, steps=4, seed=5, bank_mode="stopvar", bank_variety=0.5
+        )
+        for z, s in zip(latents, (1, 2, 4)):
+            ref = sample_ddim(
+                m.dit, m.schedule, batch_size=1, steps=s, seed=5, device=z.device
+            )
+            assert torch.allclose(z, ref, atol=1e-6)
+
+    def test_modes_reproducible(self) -> None:
+        m = _make_model()
+        for mode in ("jitter", "residual", "stopvar"):
+            a = m.generate_sound_bank(n=3, steps=4, seed=99, bank_mode=mode)
+            b = m.generate_sound_bank(n=3, steps=4, seed=99, bank_mode=mode)
+            for ca, cb in zip(a, b):
+                assert torch.allclose(ca, cb), mode
+
+    def test_invalid_mode_raises(self) -> None:
+        m = _make_model()
+        with pytest.raises(ValueError, match="bank_mode"):
+            m.generate_sound_bank(n=1, steps=2, seed=1, bank_mode="bogus")
+
+    def test_negative_variety_raises(self) -> None:
+        m = _make_model()
+        with pytest.raises(ValueError, match="bank_variety"):
+            m.generate_sound_bank(n=1, steps=2, seed=1, bank_variety=-0.1)
+
+    def test_from_generation_passes_mode(self) -> None:
+        m = _make_model()
+        bank = Bank.from_generation(
+            m, n=3, steps=3, seed=7, bank_mode="jitter", bank_variety=0.25
+        )
+        assert len(bank.clips) == 3
+
+    def test_n_one_supported(self) -> None:
+        m = _make_model()
+        for mode in ("residual", "stopvar"):
+            bank = m.generate_sound_bank(n=1, steps=3, seed=3, bank_mode=mode)
+            assert len(bank) == 1
+
+
 class TestConditionOnAudio:
     def test_variants_shape(self) -> None:
         m = _make_model()

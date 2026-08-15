@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader
 
 from ald_sc._logging import configure_logging
 from ald_sc.arrow_prior import ArrowSpacePrior
-from ald_sc.audio_codec import BaselineAudioDecoder
+from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder
 from ald_sc.losses import ALDSCLoss
 from ald_sc.schedule import CosineSchedule
 
@@ -35,7 +35,7 @@ __all__ = ["train_audio_decoder", "train_audio_diffusion", "log_training"]
 
 def train_audio_decoder(
     loader: DataLoader,
-    audio_vae: nn.Module,
+    audio_vae: AudioVAE,
     prior: ArrowSpacePrior,
     loss_fn: ALDSCLoss,
     epochs: int = 10,
@@ -153,7 +153,7 @@ def train_audio_decoder(
 
 def train_audio_diffusion(
     loader: DataLoader,
-    audio_vae: nn.Module,
+    audio_vae: AudioVAE,
     dit: nn.Module,
     prior: ArrowSpacePrior,
     schedule: CosineSchedule,
