@@ -3,8 +3,9 @@
   "checkpoint_id": "60e011fa846d",
   "strategy": "manual-commit",
   "branch": "docs/midi-gpt-reference",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
+    "docs/spectral-composition/document.pdf",
     "docs/spectral-composition/document.tex"
   ],
   "sessions": [
@@ -14,6 +15,13 @@
       "compact_transcript": "/60/e011fa846d/0/transcript.jsonl",
       "content_hash": "/60/e011fa846d/0/content_hash.txt",
       "prompt": "/60/e011fa846d/0/prompt.txt"
+    },
+    {
+      "metadata": "/60/e011fa846d/1/metadata.json",
+      "transcript": "/60/e011fa846d/1/full.jsonl",
+      "compact_transcript": "/60/e011fa846d/1/transcript.jsonl",
+      "content_hash": "/60/e011fa846d/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
