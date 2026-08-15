@@ -3,7 +3,7 @@
   "checkpoint_id": "4e5e4f4a4954",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 10,
   "files_touched": [
     "src/ald_sc/audio_codec.py",
     "src/ald_sc/inference.py",
@@ -24,13 +24,20 @@
       "compact_transcript": "/4e/5e4f4a4954/1/transcript.jsonl",
       "content_hash": "/4e/5e4f4a4954/1/content_hash.txt",
       "prompt": "/4e/5e4f4a4954/1/prompt.txt"
+    },
+    {
+      "metadata": "/4e/5e4f4a4954/2/metadata.json",
+      "transcript": "/4e/5e4f4a4954/2/full.jsonl",
+      "compact_transcript": "/4e/5e4f4a4954/2/transcript.jsonl",
+      "content_hash": "/4e/5e4f4a4954/2/content_hash.txt",
+      "prompt": "/4e/5e4f4a4954/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 113364,
+    "input_tokens": 6175921,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 826944,
-    "output_tokens": 5854,
-    "api_call_count": 26
+    "cache_read_tokens": 33558976,
+    "output_tokens": 111476,
+    "api_call_count": 219
   }
 }

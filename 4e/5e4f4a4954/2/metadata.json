@@ -1,0 +1,141 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "4e5e4f4a4954",
+  "session_id": "ses_ffeb46877ffeDki1dPYcXcg42M",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-15T09:11:06.878015Z",
+  "branch": "main",
+  "checkpoints_count": 7,
+  "save_step_count": 7,
+  "files_touched": [
+    "src/ald_sc/audio_codec.py",
+    "src/ald_sc/inference.py",
+    "src/ald_sc/schedule.py",
+    "src/ald_sc/trainer.py"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.2",
+  "turn_id": "e1b12e895f43",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 6062557,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 32732032,
+    "output_tokens": 105622,
+    "api_call_count": 193
+  },
+  "session_metrics": {
+    "turn_count": 7
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-15T09:11:06.797792Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 8,
+    "total_committed": 0,
+    "total_lines_changed": 8,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 3662,
+      "user_lines_removed": 1129,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "autoresearch/evals-260814-1825/handoff.json": 17,
+        "autoresearch/evals-260814-1825/plan.md": 47,
+        "docs/spectral-composition/document.aux": 135,
+        "docs/spectral-composition/document.out": 45,
+        "docs/spectral-composition/document.tex": 782,
+        "docs/spectral-composition/document.toc": 45,
+        "notebooks/07_evaluation_metrics.ipynb": 501,
+        "results/table1_reconstruction.csv": 7,
+        "results/table2_ablation.csv": 10,
+        "results/table3_fad_clap.csv": 3,
+        "results/table4_compression.csv": 9,
+        "results/table5_coherence.csv": 2,
+        "results/variant_diversity.csv": 4,
+        "scripts/build_audio_prior.py": 29,
+        "scripts/build_eval_notebook.py": 371,
+        "scripts/eval_audio.py": 33,
+        "scripts/run_evaluation.py": 498,
+        "scripts/sample_audio.py": 3,
+        "scripts/train_audio_decoder.py": 11,
+        "scripts/train_audio_diffusion.py": 15,
+        "src/ald_sc/audio_codec.py": 12,
+        "src/ald_sc/eval.py": 678,
+        "src/ald_sc/inference.py": 4,
+        "src/ald_sc/schedule.py": 4,
+        "src/ald_sc/trainer.py": 1,
+        "tests/test_eval.py": 396
+      },
+      "user_removed_per_file": {
+        "docs/paper/ald-sc.aux": 112,
+        "docs/paper/ald-sc.out": 35,
+        "docs/paper/ald-sc.tex": 911,
+        "docs/paper/ald-sc.toc": 35,
+        "scripts/build_audio_prior.py": 10,
+        "scripts/eval_audio.py": 10,
+        "scripts/sample_audio.py": 1,
+        "scripts/train_audio_decoder.py": 3,
+        "scripts/train_audio_diffusion.py": 4,
+        "src/ald_sc/inference.py": 3,
+        "src/ald_sc/schedule.py": 4,
+        "src/ald_sc/trainer.py": 1
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3662,
+      "agent_lines_removed": 1129
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3662,
+      "agent_lines_removed": 1129
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 402,
+      "user_lines_removed": 334,
+      "agent_lines_added": 3620,
+      "agent_lines_removed": 1129,
+      "user_added_per_file": {
+        "notebooks/07_evaluation_metrics.ipynb": 402
+      },
+      "user_removed_per_file": {
+        "notebooks/07_evaluation_metrics.ipynb": 334
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3688,
+      "agent_lines_removed": 1129
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3688,
+      "agent_lines_removed": 1129
+    }
+  ]
+}
