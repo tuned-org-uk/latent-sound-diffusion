@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "fab5dc309196",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/spectral-composition/document.pdf",
+    "docs/spectral-composition/document.tex"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fa/b5dc309196/0/metadata.json",
+      "transcript": "/fa/b5dc309196/0/full.jsonl",
+      "compact_transcript": "/fa/b5dc309196/0/transcript.jsonl",
+      "content_hash": "/fa/b5dc309196/0/content_hash.txt",
+      "prompt": "/fa/b5dc309196/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34574,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 266176,
+    "output_tokens": 1436,
+    "api_call_count": 15
+  }
+}

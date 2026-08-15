@@ -1,0 +1,2 @@
+Let's proceed with https://github.com/tuned-org-uk/latent-sound-diffusion/issues/50
+what is the problem of running the graph decoding in MPS?
