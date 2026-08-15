@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "d2a64af212c4",
+  "strategy": "manual-commit",
+  "branch": "feat/bank-mode-comparison",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "scripts/build_bank_variants_notebook.py",
+    "scripts/compare_bank_modes.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d2/a64af212c4/0/metadata.json",
+      "transcript": "/d2/a64af212c4/0/full.jsonl",
+      "compact_transcript": "/d2/a64af212c4/0/transcript.jsonl",
+      "content_hash": "/d2/a64af212c4/0/content_hash.txt",
+      "prompt": "/d2/a64af212c4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 312036,
+    "cache_creation_tokens": 212759,
+    "cache_read_tokens": 3046725,
+    "output_tokens": 11636,
+    "api_call_count": 24
+  }
+}
