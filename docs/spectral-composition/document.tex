@@ -14,8 +14,6 @@
 \usepackage{abstract}
 \usepackage{titlesec}
 \usepackage{enumitem}
-\usepackage{tikz}
-\usetikzlibrary{positioning}
 \usepackage{multirow}
 
 \geometry{margin=2.5cm}
@@ -139,8 +137,8 @@ rehydrate, recurse); the \emph{pipeline} is the software realisation
   \item We show how the existing LSD inference contract
     (\texttt{generate\_sound\_bank}, \texttt{condition\_on\_audio},
     \texttt{synthesize\_midi}) directly implements stages~2--4 of the
-    pipeline, requiring only the addition of a language-model MIDI
-    front-end.
+    pipeline, with the language-model MIDI front-end shipping inside
+    LSD-Studio.
   \item We articulate the mathematical and architectural foundations of
     the workflow, instantiating the ALD-SC research programme's central
     \emph{hypothesis} --- that decoding on the feature-space manifold
@@ -511,25 +509,20 @@ A language model (e.g.\ a GPT-based symbolic music model) generates a MIDI
 file $\mathcal{P}$ = $\{(p_i, t_i, d_i)\}$ where $p_i$ is the MIDI pitch,
 $t_i$ the onset time, and $d_i$ the duration of note $i$.
 
-\emph{Design specification (not yet implemented).} The front-end is
-planned as a small GPT-style decoder over a MIDI event vocabulary
-(pitch, onset, duration, velocity), fine-tunable on the producer's own
-MIDI corpus so that generated scores match the producer's rhythmic and
-harmonic habits. The prompt interface exposes genre, key, and BPM as
-structured controls, with a free-text slot for optional style steering;
-the model emits a quantised event list validated against the same
-$(p_i, t_i, d_i)$ schema that \texttt{synthesize\_midi} consumes, plus
-score metadata (BPM, key, time signature) that LSD-Studio propagates to
-the transport clock. This component is deliberately swappable: any
-source of symbolic material — hand-played MIDI, rule-based generators,
-imported MusicXML rendered to MIDI, or clip detection from the archive
-itself — feeds Stage~3 unchanged, because the materialisation interface
-is the event list, not the language model. In the current system all
-MIDI material is supplied manually; the evaluation in
-Section~\ref{sec:evaluation} uses fixed scores for exactly this reason
-(reproducibility). We report this as an engineering gap, not a
-scientific one: nothing in Stages 2--4 depends on how the score was
-produced.
+\emph{Implementation status.} This front-end is implemented in the
+shipped system: LSD-Studio carries a proprietary symbolic-generation
+worker that emits quantised event lists conforming to the
+$(p_i, t_i, d_i)$ schema \texttt{synthesize\_midi} consumes, with
+producer controls over musical role (melodic, chordal, bass,
+percussive), length, and note density. Its design is undisclosed; what
+matters for the pipeline is the interface, which is deliberately
+swappable: any source of symbolic material — hand-played MIDI,
+rule-based generators, imported MusicXML rendered to MIDI, or clip
+detection from the archive itself — feeds Stage~3 unchanged, because
+the materialisation interface is the event list, not the generator.
+The evaluation of Section~\ref{sec:evaluation} uses fixed scores for
+exactly this reason (reproducibility), and the front-end is treated as
+out of scope for the model-level measurements.
 
 \subsubsection{Pitch-shifted decoding (synthesize\_midi)}
 
@@ -599,30 +592,14 @@ via $R$ and the perturbation schedule $\{\sigma_r\}$.
 
 The variant outputs $\{Y^{(1)}, \ldots, Y^{(R)}\}$ plus any selections
 from the unconditional bank $\mathcal{B}^{(0)}$ form a natural stem set
-for a multitrack mix. Within LSD-Studio, these are routed to a mix bus
-with per-stem gain, panning, and effect chains. Additional post-processing
-(overlap-and-add long-form generation, BPS-synchronised modulation,
-latent-space concatenation) is available via the notebook series
-(02--04)~\cite{lsd}.
-
-LSD-Studio's mixing surface follows DAW conventions so the workflow
-drops into existing practice. Each variant $Y^{(r)}$ and bank selection
-occupies a track with the usual gain, pan, mute/solo, and insert chain;
-stems created at different recursion depths are grouped, so the variant
-family $Y^{(1..R)}$ can be balanced as a unit against the dry bank
-$\mathcal{B}^{(0)}$. MIDI synchronisation is planned at the transport
-level: the score metadata (BPM, key) emitted by the Stage-3 front-end
-sets the project tempo map, note events align to the transport clock,
-and re-renders triggered by MIDI edits inherit the running tempo —
-materialisation becomes a live, re-renderable instrument rather than a
-one-shot bounce. Standard bridge protocols (e.g.\ MIDI-over-IPC to a
-DAW, or drag-out of stems) define the boundary with the producer's
-existing environment; LSD-Studio does not attempt to replace the DAW
-but to sit before it in the pipeline, exporting stems and MIDI. As with
-the language-model front-end, this describes the target design: the
-current application implements ingestion, baking, auditioning,
-generation, and mix-bus routing, with transport-locked re-rendering
-scheduled next.
+for a multitrack mix. In the shipped system this surface is provided by
+LSD-Studio: each generated process occupies a channel strip with
+mute/solo and level controls under a master fader, and samples can be
+sculpted with an offline ADSR envelope before auditioning or export.
+Panning, insert effects, and DAW bridging are scheduled extensions; in
+the meantime, long-form post-processing (overlap-and-add generation,
+BPS-synchronised modulation, latent-space concatenation) is available
+via the notebook series (02--04)~\cite{lsd}.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -745,53 +722,32 @@ exposes three methods that directly implement Stages~2--4:
     Implements Stage~3.
 \end{description}
 
-\subsection{LSD-Studio: Producer UX and Mix Bus}
-\label{subsec:arch_studio}
+LSD-Studio~\cite{lsdstudio} is the producer-facing realisation of this
+contract, and is proprietary and undisclosed; we describe its
+producer-visible surface only. It is a self-contained desktop
+application that wraps the entire workflow — archive ingestion, model
+baking and training on the producer's sound archive, sound-bank
+generation, symbolic (MIDI) generation and materialisation, ADSR
+envelope sculpting, auditioning, and multitrack mixing — with no
+external runtime dependencies, the generation workers embedded in a
+single binary. Both generative stages of the pipeline are exposed as
+first-class capabilities: diffusion-based bank generation with spectral
+conditioning, and the language-model MIDI front-end
+(Section~\ref{subsec:stage3}), whose scores are materialised through
+generated banks. Every trained model is stored with its provenance
+metadata (training corpus, epochs, final loss, sample lineage), so that
+generated artefacts remain traceable to the archive they were
+dehydrated from.
 
-LSD-Studio~\cite{lsdstudio} is a Rust + \texttt{iced} desktop
-application that wraps the Python LSD model workers and exposes the
-full Spectral Composition workflow to the producer: library ingestion,
-model baking, sound-bank auditioning, MIDI sequencing, recursive
-generation, and multitrack mixing. The application builds to a single
-self-contained binary; Python workers are embedded at compile time.
-
-The desktop application is organised as a thin native frontend over
-embedded model workers, communicating over an explicit IPC boundary:
-
-\begin{center}
-\begin{tikzpicture}[
-  node distance=4mm and 10mm,
-  box/.style={draw, rounded corners, minimum height=11mm, minimum width=33mm, align=center, font=\small},
-  rpc/.style={draw=none, font=\scriptsize, align=center},
-  arrow/.style={<->, >=stealth}
-]
-  \node[box] (ui) {LSD-Studio UI\\(\texttt{iced}, Rust)};
-  \node[box, right=of ui] (core) {Studio core\\(bank, tracks, mix bus)};
-  \node[box, below=9mm of ui] (rpc) {JSON-RPC\\bridge};
-  \node[box, below=9mm of core] (pool) {Python worker pool\\(LSD \texttt{LSDModel})};
-  \node[box, right=of pool] (torch) {PyTorch\\(MPS / CPU)};
-
-  \draw[arrow] (ui) -- (core);
-  \draw[arrow] (ui) -- (rpc);
-  \draw[arrow] (rpc) -- (pool);
-  \draw[arrow] (pool) -- (torch);
-\end{tikzpicture}
-\end{center}
-
-The \texttt{iced} frontend owns all interaction state — library
-ingestion, model baking progress, bank auditioning, MIDI sequencing,
-track mixing — and never links PyTorch directly. Generative requests
-(\texttt{generate\_sound\_bank}, \texttt{condition\_on\_audio},
-\texttt{synthesize\_midi}) are serialised as JSON-RPC method calls to a
-pool of Python workers, each holding one baked model
-$\mathcal{M}$; responses stream back as chunked waveforms so the UI can
-audition partial banks while later draws complete. The preset system
-lives on the worker side: a preset is a frozen $(L_F, U_q,
-\lambda^{\mathrm{ED}})$ plus trained decoder/DiT weights, selected at
-run start; the mix bus lives entirely on the Rust side, so that a
-worker crash costs generation but never the producer's mix state. This
-split keeps the producer-facing surface rebuildable in isolation from
-the research surface, and vice versa.
+Architecturally the application keeps the producer's mix state entirely
+on the native side of an internal worker boundary, so that generation
+work remains disposable while the producer's arrangement is not; the
+details of that boundary are part of the product and are not disclosed
+here. LSD-Studio does not attempt to replace the DAW: it sits before it
+in the pipeline, exporting stems, rendered materialisations, and
+symbolic material. The evaluation of Section~\ref{sec:evaluation} is
+conducted at the model level with reproducible fixed scores; the
+application layer is deliberately out of scope for the measurements.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
@@ -804,9 +760,10 @@ the research surface, and vice versa.
 
 The LSD model core is implemented in Python~3.13 with PyTorch~$\geq$2.2,
 using \texttt{uv} for dependency management. The graph prior is computed
-via \texttt{pyarrowspace} (Rust bindings). LSD-Studio is implemented in
-Rust (stable) with the \texttt{iced} GUI framework and communicates with
-Python workers over a JSON-RPC IPC channel. The full source code,
+via \texttt{pyarrowspace} (Rust bindings). LSD-Studio is proprietary
+and undisclosed; at the level relevant here it is a single
+self-contained desktop binary in which the Python generation workers
+are embedded (Section~\ref{sec:architecture}). The full source code,
 evaluation pipeline, and trained-model checkpoints are available at
 \url{https://github.com/tuned-org-uk/latent-sound-diffusion}.
 
@@ -1387,9 +1344,9 @@ Spectral Composition introduces a four-stage compositional workflow —
 dehydration, dense sampling, MIDI-conditioned materialisation, and
 recursive variant generation — that grounds sample-based music production
 in a compressed spectral latent manifold estimated from the producer's
-own library. The method is fully implemented in the LSD model core and
-LSD-Studio application, requiring only the addition of a language-model
-MIDI front-end to complete the pipeline. By anchoring every generative
+own library. The method is fully implemented end-to-end in the LSD
+model core and the LSD-Studio application, including the
+language-model MIDI front-end. By anchoring every generative
 and compositional operation to the same frozen ArrowSpace prior
 $(L_F, U_q, \lambda^{\mathrm{ED}})$, Spectral Composition ensures that
 all generated and rehydrated sounds share spectral lineage with the
