@@ -1,21 +1,5 @@
-fix the linting in https://github.com/tuned-org-uk/latent-sound-diffusion/pull/55
+plese
 
 ---
 
-always use uv
-
----
-
-do not use nnode, find an alternative
-
----
-
-use a rust based checker https://pydevtools.com/handbook/explanation/how-do-mypy-pyright-and-ty-compare/
-
----
-
-remove pyright
-
----
-
-use ty locally and CI
+proceed

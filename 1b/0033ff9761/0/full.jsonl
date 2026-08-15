@@ -17,19 +17,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 6.239681440000001,
+    "cost": 6.3904848,
     "tokens": {
-      "input": 265642,
-      "output": 35158,
+      "input": 267966,
+      "output": 36418,
       "reasoning": 40271,
       "cache": {
-        "read": 21291904,
+        "read": 21838080,
         "write": 0
       }
     },
     "time": {
       "created": 1786798004702,
-      "updated": 1786802228498
+      "updated": 1786802263595
     }
   },
   "messages": [
@@ -23929,21 +23929,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.037266,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 136650,
+          "input": 318,
+          "output": 332,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 136000
           }
         },
         "modelID": "glm-5.3",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786802228497
+          "created": 1786802228497,
+          "completed": 1786802246113
         },
+        "finish": "tool-calls",
         "id": "msg_005b64d11001uU2GnstjyS2CSs",
         "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
       },
@@ -23971,21 +23974,428 @@
           "tool": "bash",
           "callID": "call_71b06c1f3edb4210af379b35",
           "state": {
-            "metadata": {
-              "output": "Switched to a new branch 'docs/bank-variant-paper-calibration'\n"
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git checkout -b docs/bank-variant-paper-calibration && git add docs/spectral-composition/document.tex docs/spectral-composition/document.pdf && git commit -m \"docs: calibrate paper for the bank-variant modes finding (issue #53)\n\n- §3.2 Stage 2: 'many voices' now a measured mechanism (variant modes\n  around z-bar pass a pre-registered diversity gate); sampler-internal\n  spread remains the scale-up open front; SEED=None phrasing no longer\n  claims per-draw novelty at preliminary scale\n- §3.2 sampler role: division of labour updated — latent-neighbourhood\n  variation for variety (alongside Mode-B and NOISE_INJECT)\n- §6.1 recursion: calibration note — measured drift predates variant\n  modes (contraction made banks near-degenerate; drift is Mode-B\n  driven); re-run with gate-passing banks named as follow-up\n- §6.3 NOISE_INJECT ablation: bank-variant protocol results (jitter\n  L1 0.18/FAD 853, residual 0.11/192Hz, stopvar 0.07; anchors fail\n  RMS floor) — diversity available now, sampler spread awaits scale-up\n- Conclusions: open fronts updated accordingly\" && git push -u origin docs/bank-variant-paper-calibration 2>&1 | tail -2",
               "timeout": 120000
             },
+            "output": "Switched to a new branch 'docs/bank-variant-paper-calibration'\n[docs/bank-variant-paper-calibration 1e20be5] docs: calibrate paper for the bank-variant modes finding (issue #53)\n 2 files changed, 48 insertions(+), 14 deletions(-)\n * [new branch]      docs/bank-variant-paper-calibration -> docs/bank-variant-paper-calibration\nbranch 'docs/bank-variant-paper-calibration' set up to track 'origin/docs/bank-variant-paper-calibration'.\n",
+            "metadata": {
+              "output": "Switched to a new branch 'docs/bank-variant-paper-calibration'\n[docs/bank-variant-paper-calibration 1e20be5] docs: calibrate paper for the bank-variant modes finding (issue #53)\n 2 files changed, 48 insertions(+), 14 deletions(-)\n * [new branch]      docs/bank-variant-paper-calibration -> docs/bank-variant-paper-calibration\nbranch 'docs/bank-variant-paper-calibration' set up to track 'origin/docs/bank-variant-paper-calibration'.\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git checkout -b docs/bank-variant-paper-calibration && git add docs/spectral-composition/document.tex docs/spectral-composition/document.pdf && git commit -m \"docs: calibrate paper for the bank-variant modes finding (issue #53)\n\n- §3.2 Stage 2: 'many voices' now a measured mechanism (variant modes\n  around z-bar pass a pre-registered diversity gate); sampler-internal\n  spread remains the scale-up open front; SEED=None phrasing no longer\n  claims per-draw novelty at preliminary scale\n- §3.2 sampler role: division of labour updated — latent-neighbourhood\n  variation for variety (alongside Mode-B and NOISE_INJECT)\n- §6.1 recursion: calibration note — measured drift predates variant\n  modes (contraction made banks near-degenerate; drift is Mode-B\n  driven); re-run with gate-passing banks named as follow-up\n- §6.3 NOISE_INJECT ablation: bank-variant protocol results (jitter\n  L1 0.18/FAD 853, residual 0.11/192Hz, stopvar 0.07; anchors fail\n  RMS floor) — diversity available now, sampler spread awaits scale-up\n- Conclusions: open fronts updated accordingly\" && git push -u origin docs/bank-variant-paper-calibration 2>&1 | tail -2",
             "time": {
-              "start": 1786802236425
+              "start": 1786802245983,
+              "end": 1786802245986
             }
           },
           "id": "prt_005b66be3001cHDoNO4ccuw8kU",
           "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
           "messageID": "msg_005b64d11001uU2GnstjyS2CSs"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-finish",
+          "tokens": {
+            "total": 136650,
+            "input": 318,
+            "output": 332,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 136000
+            }
+          },
+          "cost": 0.037266,
+          "id": "prt_005b691a8001tfWq4iE4U5WZnq",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b64d11001uU2GnstjyS2CSs"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_005b46b81001SOJskso01AZAxJ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03796336,
+        "tokens": {
+          "total": 137183,
+          "input": 514,
+          "output": 413,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 136256
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786802246122,
+          "completed": 1786802256148
+        },
+        "finish": "tool-calls",
+        "id": "msg_005b691ea001M8WgqM38n76MBj",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-start",
+          "id": "prt_005b6b247001Gpi4IXgjJLZ5BW",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b691ea001M8WgqM38n76MBj"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_576b0b5185774261bcd4c86e",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head docs/bank-variant-paper-calibration --title \"docs: calibrate paper for the bank-variant modes finding (issue #53)\" --body \"Closes the paper follow-up from issue #53 (decision record: #53 comment, shipped in v0.11.0 / PR #55).\n\n## Changes\n\n- **§3.2 Stage 2** — the \\\"many voices\\\" caveat now reports the measured mechanism: variant modes around the canonical draw \\$\\\\bar{z}\\$ (jitter / amplified residual / stop-time sweep) pass the pre-registered diversity gate; sampler-internal spread remains the scale-up open front. The \\`SEED=None\\` sentence no longer claims per-draw novelty at preliminary scale (contradicted by the contraction measurement).\n- **§3.2 Role of the sampler** — division of labour updated: latent-neighbourhood variation joins Mode-B interpolation and NOISE_INJECT as the variety paths.\n- **§6.1 recursion** — calibration note: the drift-then-saturate table predates variant modes (banks were near-degenerate; drift is Mode-B-driven). Re-running with gate-passing banks named as the follow-up measurement.\n- **§6.3 ablations** — NOISE_INJECT paragraph extended with the bank-variant protocol numbers: jitter L1 0.18 / FAD 853 (improving), residual 0.11 / 192 Hz spread, stopvar 0.07; corpus-anchored blends fail the RMS floor (negative result recorded).\n- **Conclusions** — open-fronts item updated: within-bank diversity available today via variant modes.\n\n## Verification\n\nlatexmk clean, 27 pages, no undefined references/citations; new text verified present in the compiled PDF.\" 2>&1 | tail -1",
+              "timeout": 120000
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/57\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/57\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head docs/bank-variant-paper-calibration --title \"docs: calibrate paper for the bank-variant modes finding (issue #53)\" --body \"Closes the paper follow-up from issue #53 (decision record: #53 comment, shipped in v0.11.0 / PR #55).\n\n## Changes\n\n- **§3.2 Stage 2** — the \\\"many voices\\\" caveat now reports the measured mechanism: variant modes around the canonical draw \\$\\\\bar{z}\\$ (jitter / amplified residual / stop-time sweep) pass the pre-registered diversity gate; sampler-internal spread remains the scale-up open front. The \\`SEED=None\\` sentence no longer claims per-draw novelty at preliminary scale (contradicted by the contraction measurement).\n- **§3.2 Role of the sampler** — division of labour updated: latent-neighbourhood variation joins Mode-B interpolation and NOISE_INJECT as the variety paths.\n- **§6.1 recursion** — calibration note: the drift-then-saturate table predates variant modes (banks were near-degenerate; drift is Mode-B-driven). Re-running with gate-passing banks named as the follow-up measurement.\n- **§6.3 ablations** — NOISE_INJECT paragraph extended with the bank-variant protocol numbers: jitter L1 0.18 / FAD 853 (improving), residual 0.11 / 192 Hz spread, stopvar 0.07; corpus-anchored blends fail the RMS floor (negative result recorded).\n- **Conclusions** — open-fronts item updated: within-bank diversity available today via variant modes.\n\n## Verification\n\nlatexmk clean, 27 pages, no undefined references/citations; new text verified present in the compiled PDF.\" 2>&1 | tail -1",
+            "time": {
+              "start": 1786802256026,
+              "end": 1786802256028
+            }
+          },
+          "id": "prt_005b6b24a00171U5qWcOLbVUd3",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b691ea001M8WgqM38n76MBj"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-finish",
+          "tokens": {
+            "total": 137183,
+            "input": 514,
+            "output": 413,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 136256
+            }
+          },
+          "cost": 0.03796336,
+          "id": "prt_005b6b8db001pYg9HN0VrYCTly",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b691ea001M8WgqM38n76MBj"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_005b46b81001SOJskso01AZAxJ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03816888,
+        "tokens": {
+          "total": 137661,
+          "input": 440,
+          "output": 453,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 136768
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786802256157,
+          "completed": 1786802263586
+        },
+        "finish": "tool-calls",
+        "id": "msg_005b6b91d001Z94BiXnKEtPXXz",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-start",
+          "id": "prt_005b6d547001zWWDD6VbLOmYcM",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6b91d001Z94BiXnKEtPXXz"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "call_01ace450e74e41989346e7f4",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "Run scripts/bank_variants.py (#53 experiment, pre-registered gate)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add scattering transform from #48 (src/ald_sc/scattering1d.py) + tests",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Wire best-3 arms (jitter, resid, stopvar) into generate_sound_bank as bank_mode interface",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Add unit tests for bank_mode interface",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Verify library modes against real checkpoints reproduce gate metrics",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Run ruff + full test suite",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Branch, bump 0.11.0, open PR (#55)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Investigate slow test runs (uv env-sync stall, not tests: suite is 3s)",
+                  "priority": "low",
+                  "status": "completed"
+                },
+                {
+                  "content": "Fix issue #54: MIDI-GPT reference in paper (PR #56, merged)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Fix PR #55 CI: ruff format + replace pyright with ty (merged)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "PR comments: bank_mode interface docs + LSD-studio surface",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Checkout main, tag v0.11.0",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Post CSV summary table as decision record on issue #53",
+                  "priority": "low",
+                  "status": "completed"
+                },
+                {
+                  "content": "Paper updates: §3.2/§6.1/§6.3 calibration (PR #57)",
+                  "priority": "low",
+                  "status": "completed"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"Run scripts/bank_variants.py (#53 experiment, pre-registered gate)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add scattering transform from #48 (src/ald_sc/scattering1d.py) + tests\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Wire best-3 arms (jitter, resid, stopvar) into generate_sound_bank as bank_mode interface\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Add unit tests for bank_mode interface\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Verify library modes against real checkpoints reproduce gate metrics\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Run ruff + full test suite\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Branch, bump 0.11.0, open PR (#55)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Investigate slow test runs (uv env-sync stall, not tests: suite is 3s)\",\n    \"status\": \"completed\",\n    \"priority\": \"low\"\n  },\n  {\n    \"content\": \"Fix issue #54: MIDI-GPT reference in paper (PR #56, merged)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Fix PR #55 CI: ruff format + replace pyright with ty (merged)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"PR comments: bank_mode interface docs + LSD-studio surface\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Checkout main, tag v0.11.0\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Post CSV summary table as decision record on issue #53\",\n    \"status\": \"completed\",\n    \"priority\": \"low\"\n  },\n  {\n    \"content\": \"Paper updates: §3.2/§6.1/§6.3 calibration (PR #57)\",\n    \"status\": \"completed\",\n    \"priority\": \"low\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "Run scripts/bank_variants.py (#53 experiment, pre-registered gate)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add scattering transform from #48 (src/ald_sc/scattering1d.py) + tests",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Wire best-3 arms (jitter, resid, stopvar) into generate_sound_bank as bank_mode interface",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Add unit tests for bank_mode interface",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Verify library modes against real checkpoints reproduce gate metrics",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Run ruff + full test suite",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Branch, bump 0.11.0, open PR (#55)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Investigate slow test runs (uv env-sync stall, not tests: suite is 3s)",
+                  "status": "completed",
+                  "priority": "low"
+                },
+                {
+                  "content": "Fix issue #54: MIDI-GPT reference in paper (PR #56, merged)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Fix PR #55 CI: ruff format + replace pyright with ty (merged)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "PR comments: bank_mode interface docs + LSD-studio surface",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Checkout main, tag v0.11.0",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Post CSV summary table as decision record on issue #53",
+                  "status": "completed",
+                  "priority": "low"
+                },
+                {
+                  "content": "Paper updates: §3.2/§6.1/§6.3 calibration (PR #57)",
+                  "status": "completed",
+                  "priority": "low"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "0 todos",
+            "time": {
+              "start": 1786802263373,
+              "end": 1786802263375
+            }
+          },
+          "id": "prt_005b6d5490015sUNZ6TjZ7gAlO",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6b91d001Z94BiXnKEtPXXz"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-finish",
+          "tokens": {
+            "total": 137661,
+            "input": 440,
+            "output": 453,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 136768
+            }
+          },
+          "cost": 0.03816888,
+          "id": "prt_005b6d5ed001JlOseHizsVqQn2",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6b91d001Z94BiXnKEtPXXz"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_005b46b81001SOJskso01AZAxJ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03740512,
+        "tokens": {
+          "total": 138266,
+          "input": 1052,
+          "output": 62,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 137152
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786802263594,
+          "completed": 1786802268475
+        },
+        "finish": "stop",
+        "id": "msg_005b6d62a001Q0Ug1jQxneGd11",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-start",
+          "id": "prt_005b6e6ad001PhrVhnmFgK5BZv",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6d62a001Q0Ug1jQxneGd11"
+        },
+        {
+          "type": "text",
+          "text": "All done. Paper calibration PR: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/57 (§3.2, §6.1, §6.3, conclusions), decision record posted on #53, and the todo list is fully complete.",
+          "time": {
+            "start": 1786802267824,
+            "end": 1786802268352
+          },
+          "id": "prt_005b6e6b0001slYlz4WPTMhDsM",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6d62a001Q0Ug1jQxneGd11"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "20e75be5b4245a357a0fb6e8675b123f33dbe82f",
+          "type": "step-finish",
+          "tokens": {
+            "total": 138266,
+            "input": 1052,
+            "output": 62,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 137152
+            }
+          },
+          "cost": 0.03740512,
+          "id": "prt_005b6e9010011fwOiPBOUJpi5f",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_005b6d62a001Q0Ug1jQxneGd11"
         }
       ]
     }
