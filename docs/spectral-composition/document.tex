@@ -1080,9 +1080,15 @@ $5.0 \to 12$ ($1180$). Intrinsic stopping cuts compute $1.2$--$4\times$
 \emph{and improves the FAD-proxy in the mid range} — early stopping acts
 as implicit truncation of under-resolved high modes, consistent with
 the entropic-clock reading. Note the threshold is meaningful only in
-absolute units of $\sum\nu$: the first sweep we ran at
-$\varepsilon \in \{10^{-2},10^{-3},10^{-4}\}$ never fired on the
-$50$-step grid, a unit error the CSV records.
+    absolute units of $\sum\nu$: the first sweep we ran at
+    $\varepsilon \in \{10^{-2},10^{-3},10^{-4}\}$ never fired on the
+    $50$-step grid, a unit error the CSV records. Wall-clock confirms
+    the budget reading: end-to-end generation of one 4-second clip —
+    DDIM sampling plus graph decoding — takes a median $0.04$–$0.07$\,s
+    per clip on the same consumer hardware ($60$–$110\times$ real-time
+    on both the GPU and CPU paths; \texttt{results/latency.csv}), with
+    the $41$-vs-$49$-step difference inside kernel-launch overhead at
+    this model scale.
 
 Classifier-free guidance is absent from this list by decision: the DiT
 in the reported configuration is unconditional (time-only AdaLN), so
@@ -1387,6 +1393,31 @@ symbolic grounding, intrinsic stopping, recursive drift-with-anchor —
 each of which now has a first quantitative trace. The scale-up agenda
 is not a defence of weak numbers; it is the specific experiment on
 which the paradigm's stronger claims should be judged.
+
+\paragraph{Efficiency, locality, and the artist's pace}
+Finally, the workflow's economics. The spectral structure ArrowSpace
+provides does double duty: the eigenvalues $\nu_k$ both order the chart
+for decoding and meter sampling through the heat-death clock, so
+generation cost tracks spectral content rather than a fixed step
+budget. Measured end-to-end, a 4-second clip renders in
+$0.04$–$0.07$\,s on a single consumer laptop — $60$–$110\times$
+real-time at this preliminary scale — and the entire model (prior,
+graph decoder, DiT) bakes in under three minutes on the same machine;
+the evaluations of this paper double as a baseline for comparatively
+efficient, entirely local training. For the producer this collapses
+the exploration cycle: auditioning a bank of eight sounds takes under
+a second, a recursive variant family a few seconds — where the nearest
+equivalents in current sample-library workflows (manual browsing,
+purchase, bespoke sound design) cost minutes to days. The time cost of
+``try another'' approaches zero, so the bottleneck moves from asset
+acquisition to taste — selection, combination, arrangement — which is
+where the producer's judgement is productively spent. And because
+training and inference never leave the machine, neither does the
+library: the dehydrated prior is a spectral summary rather than an
+audio archive, and every render carries machine-readable lineage to
+the prior that produced it. Data sovereignty and verifiable provenance
+stand in place of cloud dependency — diffusion-based music production
+at the pace of composition, on the artist's own desk.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
