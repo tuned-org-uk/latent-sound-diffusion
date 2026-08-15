@@ -1,21 +1,13 @@
-Suggest improvements in framing and positining of the paper according to: the paper is a presentation of a new paradigm so evaluation and results should be calibrated to this objective. we are not putting down strong claims but introducing a novel workflow with scientific backing for a novel diffusion model.
+credits added
 
 ---
 
-no mention to state of the art should be present
+check out interface and capabilities only
 
 ---
 
-no mention to comparison to state of the art should be present as it is a unique novelty
+just mention LSD-studio in the paper, do not dedicate a subsection
 
 ---
 
-proceed with changes
-
----
-
-todo: add a acknoledgement section that states which LLMs have been used: GLM 5.2 and 5.3 for drafting and experiments design and execution; Qwen3.8 Max and Kimi 3 for reviewing
-
----
-
-commit
+just mention LSD-studio in the paper, do not dedicate a subsection, just two paragraphs

@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 22.77182279,
+    "cost": 22.99460329,
     "tokens": {
-      "input": 913499,
-      "output": 130761,
+      "input": 913511,
+      "output": 131487,
       "reasoning": 83830,
       "cache": {
-        "read": 69530209,
-        "write": 853365
+        "read": 70395601,
+        "write": 854186
       }
     },
     "time": {
       "created": 1786784753145,
-      "updated": 1786794544765
+      "updated": 1786794566098
     }
   },
   "messages": [
@@ -40936,21 +40936,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.11148625,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 433281,
+          "input": 6,
+          "output": 440,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 278,
+            "read": 432557
           }
         },
         "modelID": "qwen3.8-max",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786794544765
+          "created": 1786794544765,
+          "completed": 1786794566086
         },
+        "finish": "tool-calls",
         "id": "msg_005410e7d002ZrRfuyqpZ8T3Hm",
         "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT"
       },
@@ -40994,20 +40997,132 @@
           "tool": "bash",
           "callID": "toolu_1c95d7cfc9e8497ab53b9517",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add docs/spectral-composition/document.tex docs/spectral-composition/document.pdf && git commit -m \"docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n\nVerified against the LSD-Studio codebase (proprietary, undisclosed):\n\n- Removed the dedicated §4.5 subsection (incl. TikZ IPC diagram and the\n  incorrect 'JSON-RPC bridge' claim — the real worker protocol is not\n  disclosed); replaced with two paragraphs at producer-visible surface\n  level: wrapped workflow capabilities, single self-contained binary,\n  first-class generative stages, model provenance metadata, mix-state\n  isolation, DAW positioning, evaluation scope\n- §3.3.1 GPT-MIDI front-end: 'design specification (not yet\n  implemented)' was WRONG — the LM-MIDI front-end ships in LSD-Studio;\n  rewritten as Implementation status (proprietary worker, role/length/\n  density controls, undisclosed design) keeping the swappable-interface\n  point\n- §3.4 mixing corrected to actual capabilities: channel strips with\n  mute/solo/level + master fader + offline ADSR sculpting; panning,\n  insert effects, DAW bridging marked as scheduled extensions\n- §5.1: 'JSON-RPC IPC channel' replaced with proprietary/undisclosed\n  one-liner; §1 contributions + §9 updated: pipeline complete incl.\n  LM-MIDI front-end (no longer 'requiring its addition')\n- tikz packages removed (no longer used)\n\n24 pages, 0 undefined refs.\" && git log --oneline -2"
             },
+            "output": "[main 3bad567] docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n 2 files changed, 57 insertions(+), 100 deletions(-)\n3bad567 docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n8da0100 minor change\n",
+            "metadata": {
+              "output": "[main 3bad567] docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n 2 files changed, 57 insertions(+), 100 deletions(-)\n3bad567 docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n8da0100 minor change\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add docs/spectral-composition/document.tex docs/spectral-composition/document.pdf && git commit -m \"docs: demote LSD-Studio to two capability-level paragraphs; correct implementation claims (proprietary IP protection)\n\nVerified against the LSD-Studio codebase (proprietary, undisclosed):\n\n- Removed the dedicated §4.5 subsection (incl. TikZ IPC diagram and the\n  incorrect 'JSON-RPC bridge' claim — the real worker protocol is not\n  disclosed); replaced with two paragraphs at producer-visible surface\n  level: wrapped workflow capabilities, single self-contained binary,\n  first-class generative stages, model provenance metadata, mix-state\n  isolation, DAW positioning, evaluation scope\n- §3.3.1 GPT-MIDI front-end: 'design specification (not yet\n  implemented)' was WRONG — the LM-MIDI front-end ships in LSD-Studio;\n  rewritten as Implementation status (proprietary worker, role/length/\n  density controls, undisclosed design) keeping the swappable-interface\n  point\n- §3.4 mixing corrected to actual capabilities: channel strips with\n  mute/solo/level + master fader + offline ADSR sculpting; panning,\n  insert effects, DAW bridging marked as scheduled extensions\n- §5.1: 'JSON-RPC IPC channel' replaced with proprietary/undisclosed\n  one-liner; §1 contributions + §9 updated: pipeline complete incl.\n  LM-MIDI front-end (no longer 'requiring its addition')\n- tikz packages removed (no longer used)\n\n24 pages, 0 undefined refs.\" && git log --oneline -2",
             "time": {
-              "start": 1786794560017
+              "start": 1786794566013,
+              "end": 1786794566015
             }
           },
           "id": "prt_005412ebf00190INlzCBzO3pZL",
           "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
           "messageID": "msg_005410e7d002ZrRfuyqpZ8T3Hm"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "9856e85e3bc9023ee60436fde25f84003f7acc34",
+          "type": "step-finish",
+          "tokens": {
+            "total": 433281,
+            "input": 6,
+            "output": 440,
+            "reasoning": 0,
+            "cache": {
+              "write": 278,
+              "read": 432557
+            }
+          },
+          "cost": 0.11148625,
+          "id": "prt_0054161a3001reYPsS9hmiqBJu",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_005410e7d002ZrRfuyqpZ8T3Hm"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0053c0dd3001Lbe0db8zS3MpMC",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "variant": "high",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.11129425,
+        "tokens": {
+          "total": 433670,
+          "input": 6,
+          "output": 286,
+          "reasoning": 0,
+          "cache": {
+            "write": 543,
+            "read": 432835
+          }
+        },
+        "modelID": "qwen3.8-max",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786794566098,
+          "completed": 1786794580516
+        },
+        "finish": "stop",
+        "id": "msg_0054161d20027QUsy6lPB3beTc",
+        "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT"
+      },
+      "parts": [
+        {
+          "snapshot": "9856e85e3bc9023ee60436fde25f84003f7acc34",
+          "type": "step-start",
+          "id": "prt_005417bf1001ZNB0Fx7nrZrxHj",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_0054161d20027QUsy6lPB3beTc"
+        },
+        {
+          "type": "reasoning",
+          "text": "Committed as 3bad567 (note that there was an intermediate commit by the user, 8da0100 \"minor change\").\n\nSummary for the user — brief, about what was corrected after cross-checking against the codebase.\n",
+          "time": {
+            "start": 1786794572787,
+            "end": 1786794574012
+          },
+          "metadata": {
+            "anthropic": {
+              "signature": ""
+            }
+          },
+          "id": "prt_005417bf3001VrXV2AKG7aMSHq",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_0054161d20027QUsy6lPB3beTc"
+        },
+        {
+          "type": "text",
+          "text": "Done — `3bad567`. Corrections made against the actual LSD-Studio implementation (kept capability-level, internals undisclosed):\n\n**Claims fixed:**\n- §4.5 subsection removed (incl. TikZ diagram + the **incorrect \"JSON-RPC\"** claim) → two producer-visible paragraphs: wrapped workflow (ingestion, baking/training, bank generation, MIDI generation/materialisation, ADSR sculpting, mixing), single self-contained binary, model provenance metadata, mix-state isolation\n- §3.3.1: \"not yet implemented\" was **wrong** — the LM-MIDI front-end *ships* in LSD-Studio; rewritten as Implementation status (role/length/density controls, design undisclosed, swappable interface kept)\n- §3.4 mixing: corrected to real capabilities (mute/solo/level strips + master fader + offline ADSR); pan/effects/DAW bridging marked as scheduled\n- §1/§9: pipeline is complete end-to-end *including* the MIDI front-end\n- tikz packages dropped; 24 pp, 0 undefined refs",
+          "time": {
+            "start": 1786794574013,
+            "end": 1786794580391
+          },
+          "id": "prt_0054180bd001NyUtA7613YwDrq",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_0054161d20027QUsy6lPB3beTc"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "9856e85e3bc9023ee60436fde25f84003f7acc34",
+          "type": "step-finish",
+          "tokens": {
+            "total": 433670,
+            "input": 6,
+            "output": 286,
+            "reasoning": 0,
+            "cache": {
+              "write": 543,
+              "read": 432835
+            }
+          },
+          "cost": 0.11129425,
+          "id": "prt_005419a00001n3BNNVKGYAklI5",
+          "sessionID": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+          "messageID": "msg_0054161d20027QUsy6lPB3beTc"
         }
       ]
     }
