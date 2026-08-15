@@ -17,19 +17,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 0.04296064,
+    "cost": 0.06962472,
     "tokens": {
-      "input": 19416,
-      "output": 2372,
+      "input": 20546,
+      "output": 4718,
       "reasoning": 0,
       "cache": {
-        "read": 20544,
+        "read": 77312,
         "write": 0
       }
     },
     "time": {
       "created": 1786816287761,
-      "updated": 1786816317651
+      "updated": 1786816466020
     }
   },
   "messages": [
@@ -581,21 +581,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.00914368,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 14399,
+          "input": 230,
+          "output": 1241,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 12928
           }
         },
         "modelID": "glm-5.2",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786816317650
+          "created": 1786816317650,
+          "completed": 1786816453018
         },
+        "finish": "tool-calls",
         "id": "msg_0068d48d2001ce7dIsY2clmFW6",
         "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2"
       },
@@ -634,21 +637,417 @@
           "tool": "bash",
           "callID": "call_d972",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git commit -m \"bump to 0.11.1\" && git push origin feat/bank-mode-comparison",
               "description": "Commit the patch bump and push to the branch"
             },
+            "output": "(no output)\n\n<shell_metadata>\nshell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.\n</shell_metadata>",
+            "metadata": {
+              "output": "(no output)\n\n<shell_metadata>\nshell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.\n</shell_metadata>",
+              "exit": null,
+              "truncated": false
+            },
+            "title": "git commit -m \"bump to 0.11.1\" && git push origin feat/bank-mode-comparison",
             "time": {
-              "start": 1786816329786
+              "start": 1786816329786,
+              "end": 1786816452900
             }
           },
           "id": "prt_0068d7836001vi9uBr3rBCEVqp",
           "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
           "messageID": "msg_0068d48d2001ce7dIsY2clmFW6"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-finish",
+          "tokens": {
+            "total": 14399,
+            "input": 230,
+            "output": 1241,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 12928
+            }
+          },
+          "cost": 0.00914368,
+          "id": "prt_0068f5958001qV33lN9nScpz9z",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068d48d2001ce7dIsY2clmFW6"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0068cd41c00139J0HFdaemvA5U",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.00459308,
+        "tokens": {
+          "total": 14578,
+          "input": 243,
+          "output": 127,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 14208
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786816453021,
+          "completed": 1786816454995
+        },
+        "finish": "tool-calls",
+        "id": "msg_0068f599d001RTo04XkokYjDRa",
+        "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2"
+      },
+      "parts": [
+        {
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-start",
+          "id": "prt_0068f5dd2001ObyFbxrw4M4G8B",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f599d001RTo04XkokYjDRa"
+        },
+        {
+          "type": "reasoning",
+          "text": "The push likely triggered a pre-push hook (notebook validation given the `scripts/ci_run_notebook.py` and notebooks). It timed out at 120s. Let me check git status to see if the commit succeeded, and retry the push with a longer timeout.",
+          "time": {
+            "start": 1786816454100,
+            "end": 1786816454454
+          },
+          "id": "prt_0068f5dd4001kSwN6njOSErRR8",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f599d001RTo04XkokYjDRa"
+        },
+        {
+          "type": "text",
+          "text": "The commit+push timed out — probably a pre-push hook running notebooks. Let me check state and retry the push with a longer timeout.",
+          "time": {
+            "start": 1786816454455,
+            "end": 1786816454885
+          },
+          "id": "prt_0068f5f37001fD5A7gUreiqMcQ",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f599d001RTo04XkokYjDRa"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_6c07",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git log --oneline -3 && git status --short && git status --branch | head -1",
+              "description": "Check if commit landed and whether push completed"
+            },
+            "output": "17284ab cleanup notebooks\nc7024eb bump to 0.11.1\n5581073 fix: DC-block all generated audio; stopvar playability floor (PR #59 feedback)\n?? scripts/ci_run_notebook.py\nOn branch feat/bank-mode-comparison\n",
+            "metadata": {
+              "output": "17284ab cleanup notebooks\nc7024eb bump to 0.11.1\n5581073 fix: DC-block all generated audio; stopvar playability floor (PR #59 feedback)\n?? scripts/ci_run_notebook.py\nOn branch feat/bank-mode-comparison\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git log --oneline -3 && git status --short && git status --branch | head -1",
+            "time": {
+              "start": 1786816454868,
+              "end": 1786816454870
+            }
+          },
+          "id": "prt_0068f6095001mKj6GNfHI7311B",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f599d001RTo04XkokYjDRa"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-finish",
+          "tokens": {
+            "total": 14578,
+            "input": 243,
+            "output": 127,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 14208
+            }
+          },
+          "cost": 0.00459308,
+          "id": "prt_0068f6118001dHm5Ks45rdJWxl",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f599d001RTo04XkokYjDRa"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0068cd41c00139J0HFdaemvA5U",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.00609428,
+        "tokens": {
+          "total": 15133,
+          "input": 115,
+          "output": 490,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 14528
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786816454998,
+          "completed": 1786816459593
+        },
+        "finish": "tool-calls",
+        "id": "msg_0068f6156001Ij1KlMWTHGQWCj",
+        "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2"
+      },
+      "parts": [
+        {
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-start",
+          "id": "prt_0068f655700163O9FEi1Q8Zuz2",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f6156001Ij1KlMWTHGQWCj"
+        },
+        {
+          "type": "reasoning",
+          "text": "Interesting! The commit landed (c7024eb \"bump to 0.11.1\"). But there's also a NEW commit \"17284ab cleanup notebooks\" that appeared on top. That must have been created by... a pre-commit/pre-push hook? Or did the push hook auto-commit notebook cleanups? \n\nWait, actually — the notebooks had unstaged modifications before. Now `git status --short` shows only the untracked `scripts/ci_run_notebook.py`. The notebook modifications are gone — they got committed in \"17284ab cleanup notebooks\". \n\nSo it seems a hook (likely pre-push) ran the notebooks (via scripts/ci_run_notebook.py?), which re-executed/cleaned them, and then auto-committed those changes as \"cleanup notebooks\". Hmm, that's a notable side effect. Or maybe there's a pre-push hook that lints notebooks and the cleanup was staged+committed automatically.\n\nActually, more likely: there's a pre-push hook that runs `scripts/ci_run_notebook.py` which executes notebooks, and the cleaned notebook outputs were then committed. But who committed them? A hook wouldn't typically commit. Unless... the hook script itself commits. \n\nHmm, this is getting complicated. Let me check what happened. Let me look at the two new commits and the git status regarding remote sync.\n\nActually the branch status line got cut — `git status --branch | head -1` just shows \"On branch feat/bank-mode-comparison\" (the first line). I need the ahead/behind info. Let me check properly.\n\nLet me investigate:\n1. Did the push actually go through, or did the hook create commits and the push hasn't completed?\n2. What's in c7024eb and 17284ab?",
+          "time": {
+            "start": 1786816456026,
+            "end": 1786816458767
+          },
+          "id": "prt_0068f655a001i3k8JlZRAmufhP",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f6156001Ij1KlMWTHGQWCj"
+        },
+        {
+          "type": "text",
+          "text": "Two new commits appeared (`c7024eb` bump, `17284ab` cleanup notebooks) — likely a pre-push hook executed notebooks and committed their cleaned outputs. Let me check what's in that cleanup commit and whether the push completed.",
+          "time": {
+            "start": 1786816458768,
+            "end": 1786816459421
+          },
+          "id": "prt_0068f7010001oR6n51uISjnKKi",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f6156001Ij1KlMWTHGQWCj"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_29fc",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git status -sb | head -1 && echo \"---\" && git show --stat 17284ab && echo \"--- hooks ---\" && ls -la .git/hooks/ 2>/dev/null | grep -v sample",
+              "description": "Check branch sync status, cleanup commit contents, and installed hooks"
+            },
+            "output": "## feat/bank-mode-comparison...origin/feat/bank-mode-comparison [ahead 2]\n---\ncommit 17284ab51e41c40a05ddc97f6908a81ac16c56e8\nAuthor: Lorenzo (Mec-iS) <tunedconsulting@gmail.com>\nDate:   Sat Aug 15 18:54:04 2026 +0100\n\n    cleanup notebooks\n    \n    Entire-Checkpoint: 61178ced01a7\n\n notebooks/01_sound_generation.ipynb       | 198 ++-------\n notebooks/02_long_form_generation.ipynb   | 338 ++--------------\n notebooks/03_bps_modulation_effects.ipynb | 430 ++------------------\n notebooks/04_latent_concatenation.ipynb   | 348 ++--------------\n notebooks/05_full_music_generation.ipynb  | 222 ++--------\n notebooks/06_end_to_end_real_data.ipynb   | 315 ++-------------\n notebooks/07_evaluation_metrics.ipynb     | 332 ++-------------\n notebooks/07_production_workflow.ipynb    | 473 ++--------------------\n notebooks/08_bank_variant_modes.ipynb     | 646 +-----------------------------\n 9 files changed, 244 insertions(+), 3058 deletions(-)\n--- hooks ---\ntotal 176\ndrwxr-xr-x  22 tuned-silicon  staff   704  8 Aug 01:29 .\ndrwxr-xr-x  20 tuned-silicon  staff   640 15 Aug 18:54 ..\n-rwxr-xr-x   1 tuned-silicon  staff   416  7 Aug 19:10 commit-msg\n-rwxr-xr-x   1 tuned-silicon  staff   215  7 Aug 19:10 post-commit\n-rwxr-xr-x   1 tuned-silicon  staff   210  7 Aug 19:10 post-rewrite\n-rwxr-xr-x@  1 tuned-silicon  staff   650  8 Aug 01:29 pre-commit\n-rwxr-xr-x   1 tuned-silicon  staff   213  7 Aug 19:10 pre-push\n-rwxr-xr-x   1 tuned-silicon  staff   150  7 Aug 19:10 prepare-commit-msg\n",
+            "metadata": {
+              "output": "## feat/bank-mode-comparison...origin/feat/bank-mode-comparison [ahead 2]\n---\ncommit 17284ab51e41c40a05ddc97f6908a81ac16c56e8\nAuthor: Lorenzo (Mec-iS) <tunedconsulting@gmail.com>\nDate:   Sat Aug 15 18:54:04 2026 +0100\n\n    cleanup notebooks\n    \n    Entire-Checkpoint: 61178ced01a7\n\n notebooks/01_sound_generation.ipynb       | 198 ++-------\n notebooks/02_long_form_generation.ipynb   | 338 ++--------------\n notebooks/03_bps_modulation_effects.ipynb | 430 ++------------------\n notebooks/04_latent_concatenation.ipynb   | 348 ++--------------\n notebooks/05_full_music_generation.ipynb  | 222 ++--------\n notebooks/06_end_to_end_real_data.ipynb   | 315 ++-------------\n notebooks/07_evaluation_metrics.ipynb     | 332 ++-------------\n notebooks/07_production_workflow.ipynb    | 473 ++--------------------\n notebooks/08_bank_variant_modes.ipynb     | 646 +-----------------------------\n 9 files changed, 244 insertions(+), 3058 deletions(-)\n--- hooks ---\ntotal 176\ndrwxr-xr-x  22 tuned-silicon  staff   704  8 Aug 01:29 .\ndrwxr-xr-x  20 tuned-silicon  staff   640 15 Aug 18:54 ..\n-rwxr-xr-x   1 tuned-silicon  staff   416  7 Aug 19:10 commit-msg\n-rwxr-xr-x   1 tuned-silicon  staff   215  7 Aug 19:10 post-commit\n-rwxr-xr-x   1 tuned-silicon  staff   210  7 Aug 19:10 post-rewrite\n-rwxr-xr-x@  1 tuned-silicon  staff   650  8 Aug 01:29 pre-commit\n-rwxr-xr-x   1 tuned-silicon  staff   213  7 Aug 19:10 pre-push\n-rwxr-xr-x   1 tuned-silicon  staff   150  7 Aug 19:10 prepare-commit-msg\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git status -sb | head -1 && echo \"---\" && git show --stat 17284ab && echo \"--- hooks ---\" && ls -la .git/hooks/ 2>/dev/null | grep -v sample",
+            "time": {
+              "start": 1786816459484,
+              "end": 1786816459486
+            }
+          },
+          "id": "prt_0068f7253001xVtFyFCdBzgq9e",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f6156001Ij1KlMWTHGQWCj"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-finish",
+          "tokens": {
+            "total": 15133,
+            "input": 115,
+            "output": 490,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 14528
+            }
+          },
+          "cost": 0.00609428,
+          "id": "prt_0068f7312001BfpBWs2EdW273C",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f6156001Ij1KlMWTHGQWCj"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0068cd41c00139J0HFdaemvA5U",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.00683304,
+        "tokens": {
+          "total": 16134,
+          "input": 542,
+          "output": 488,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 15104
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786816459595,
+          "completed": 1786816466017
+        },
+        "finish": "tool-calls",
+        "id": "msg_0068f734b001yTiufDQWpZo5Oq",
+        "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2"
+      },
+      "parts": [
+        {
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-start",
+          "id": "prt_0068f7bc800153Scy3O6tqyOuo",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f734b001yTiufDQWpZo5Oq"
+        },
+        {
+          "type": "reasoning",
+          "text": "So the branch is now \"ahead 2\" of origin — meaning the push did NOT complete (the timeout interrupted it before the push finished, OR the pre-push hook created the cleanup commit and the push was about to start but got killed). Actually \"ahead 2\" means local has 2 commits not on remote, so push hasn't happened yet.\n\nThe \"17284ab cleanup notebooks\" commit was created by a hook (post-commit? no — post-commit runs after commit. More likely pre-commit or a custom mechanism). The notebooks shrank dramatically (3058 deletions) — outputs were stripped. A pre-commit hook probably runs nbstripout or executes notebooks to strip outputs, then the hook itself amends/commits. \n\nRegardless, the state now:\n- Local branch ahead by 2: c7024eb (bump) + 17284ab (cleanup notebooks)\n- Push hasn't completed (origin still at 5581073)\n\nThe pre-push hook timed out at 120s. The hook probably runs the notebooks (heavy). Since the notebook cleanup is already committed (17284ab), the push hook body might have already done its work. The timeout killed the actual `git push` part before it uploaded.\n\nI need to retry the push with a much longer timeout so the pre-push hook (whatever it does — maybe it re-runs notebooks each push) completes. Let me look at the pre-push hook to understand what it does and estimate time.\n\nActually, let me reconsider. The cleanup commit 17284ab stripped notebook outputs (heavy deletion). This was likely created by the pre-commit hook (not pre-push) when I ran `git commit`. Wait, but I committed only pyproject.toml (staged). How did notebooks get committed?\n\nLet me look at the hooks to understand the mechanism. Let me read pre-commit and post-commit.",
+          "time": {
+            "start": 1786816461770,
+            "end": 1786816465276
+          },
+          "id": "prt_0068f7bca001im6MNEtf5a74zj",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f734b001yTiufDQWpZo5Oq"
+        },
+        {
+          "type": "text",
+          "text": "Branch is **ahead 2** — the push never completed (timeout killed it before upload). A hook also auto-created `17284ab cleanup notebooks` (stripped outputs). Let me read the hooks to understand timing before retrying the push.",
+          "time": {
+            "start": 1786816465278,
+            "end": 1786816465901
+          },
+          "id": "prt_0068f897e001T2ARd4VMwn9RqJ",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f734b001yTiufDQWpZo5Oq"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_2766",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "for h in pre-commit post-commit pre-push commit-msg prepare-commit-msg post-rewrite; do echo \"=== $h ===\"; cat .git/hooks/$h; done",
+              "description": "Read all installed git hooks"
+            },
+            "output": "=== pre-commit ===\n#!/usr/bin/env bash\n# File generated by pre-commit: https://pre-commit.com\n# ID: 138fd403232d2ddd5efb44317e38bf03\n\n# start templated\nINSTALL_PYTHON=/Users/tuned-silicon/papers/latent-sound-diffusion/.venv/bin/python3\nARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)\n# end templated\n\nHERE=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\nARGS+=(--hook-dir \"$HERE\" -- \"$@\")\n\nif [ -x \"$INSTALL_PYTHON\" ]; then\n    exec \"$INSTALL_PYTHON\" -mpre_commit \"${ARGS[@]}\"\nelif command -v pre-commit > /dev/null; then\n    exec pre-commit \"${ARGS[@]}\"\nelse\n    echo '`pre-commit` not found.  Did you forget to activate your virtualenv?' 1>&2\n    exit 1\nfi\n=== post-commit ===\n#!/bin/sh\n# Entire CLI hooks\n# Post-commit hook: condense session data if commit has Entire-Checkpoint trailer\nif command -v entire >/dev/null 2>&1; then entire hooks git post-commit 2>/dev/null || true; else :; fi\n=== pre-push ===\n#!/bin/sh\n# Entire CLI hooks\n# Pre-push hook: push session logs alongside user's push\n# $1 is the remote name (e.g., \"origin\")\nif command -v entire >/dev/null 2>&1; then entire hooks git pre-push \"$1\"; else :; fi\n=== commit-msg ===\n#!/bin/sh\n# Entire CLI hooks\n# Commit-msg hook: strip trailer if no user content (allows aborting empty commits)\nif command -v entire >/dev/null 2>&1; then entire hooks git commit-msg \"$1\" || true; else printf '%s\\n' '[entire] Entire CLI is enabled but not installed or not on PATH. Skipping Entire Git hook; continuing. Installation guide: https://docs.entire.io/cli/installation#installation-methods' >&2 || :; fi\n=== prepare-commit-msg ===\n#!/bin/sh\n# Entire CLI hooks\nif command -v entire >/dev/null 2>&1; then entire hooks git prepare-commit-msg \"$1\" \"$2\" 2>/dev/null || true; else :; fi\n=== post-rewrite ===\n#!/bin/sh\n# Entire CLI hooks\n# Post-rewrite hook: remap session linkage after amend/rebase rewrites\nif command -v entire >/dev/null 2>&1; then entire hooks git post-rewrite \"$1\" 2>/dev/null || true; else :; fi\n",
+            "metadata": {
+              "output": "=== pre-commit ===\n#!/usr/bin/env bash\n# File generated by pre-commit: https://pre-commit.com\n# ID: 138fd403232d2ddd5efb44317e38bf03\n\n# start templated\nINSTALL_PYTHON=/Users/tuned-silicon/papers/latent-sound-diffusion/.venv/bin/python3\nARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)\n# end templated\n\nHERE=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\nARGS+=(--hook-dir \"$HERE\" -- \"$@\")\n\nif [ -x \"$INSTALL_PYTHON\" ]; then\n    exec \"$INSTALL_PYTHON\" -mpre_commit \"${ARGS[@]}\"\nelif command -v pre-commit > /dev/null; then\n    exec pre-commit \"${ARGS[@]}\"\nelse\n    echo '`pre-commit` not found.  Did you forget to activate your virtualenv?' 1>&2\n    exit 1\nfi\n=== post-commit ===\n#!/bin/sh\n# Entire CLI hooks\n# Post-commit hook: condense session data if commit has Entire-Checkpoint trailer\nif command -v entire >/dev/null 2>&1; then entire hooks git post-commit 2>/dev/null || true; else :; fi\n=== pre-push ===\n#!/bin/sh\n# Entire CLI hooks\n# Pre-push hook: push session logs alongside user's push\n# $1 is the remote name (e.g., \"origin\")\nif command -v entire >/dev/null 2>&1; then entire hooks git pre-push \"$1\"; else :; fi\n=== commit-msg ===\n#!/bin/sh\n# Entire CLI hooks\n# Commit-msg hook: strip trailer if no user content (allows aborting empty commits)\nif command -v entire >/dev/null 2>&1; then entire hooks git commit-msg \"$1\" || true; else printf '%s\\n' '[entire] Entire CLI is enabled but not installed or not on PATH. Skipping Entire Git hook; continuing. Installation guide: https://docs.entire.io/cli/installation#installation-methods' >&2 || :; fi\n=== prepare-commit-msg ===\n#!/bin/sh\n# Entire CLI hooks\nif command -v entire >/dev/null 2>&1; then entire hooks git prepare-commit-msg \"$1\" \"$2\" 2>/dev/null || true; else :; fi\n=== post-rewrite ===\n#!/bin/sh\n# Entire CLI hooks\n# Post-rewrite hook: remap session linkage after amend/rebase rewrites\nif command -v entire >/dev/null 2>&1; then entire hooks git post-rewrite \"$1\" 2>/dev/null || true; else :; fi\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "for h in pre-commit post-commit pre-push commit-msg prepare-commit-msg post-rewrite; do echo \"=== $h ===\"; cat .git/hooks/$h; done",
+            "time": {
+              "start": 1786816465908,
+              "end": 1786816465910
+            }
+          },
+          "id": "prt_0068f8bd6001K392Ypvj2f24zS",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f734b001yTiufDQWpZo5Oq"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-finish",
+          "tokens": {
+            "total": 16134,
+            "input": 542,
+            "output": 488,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 15104
+            }
+          },
+          "cost": 0.00683304,
+          "id": "prt_0068f8c29001D4n1S7la6JqdTi",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f734b001yTiufDQWpZo5Oq"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0068cd41c00139J0HFdaemvA5U",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "reasoning": 0,
+          "cache": {
+            "read": 0,
+            "write": 0
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786816466019
+        },
+        "id": "msg_0068f8c63001fEhUMUmRu7zDIU",
+        "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2"
+      },
+      "parts": [
+        {
+          "snapshot": "51f22d72e37ab3f569ea07b08d912af2a33bc6d1",
+          "type": "step-start",
+          "id": "prt_0068f9106001TjzcZhz7WcZWBw",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f8c63001fEhUMUmRu7zDIU"
+        },
+        {
+          "type": "reasoning",
+          "text": "",
+          "time": {
+            "start": 1786816467208
+          },
+          "id": "prt_0068f9108001zfaJGXIJ7DqNb3",
+          "sessionID": "ses_ff9732beeffeE1K2uiBRt9mEJ2",
+          "messageID": "msg_0068f8c63001fEhUMUmRu7zDIU"
         }
       ]
     }
