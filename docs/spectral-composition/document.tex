@@ -1315,6 +1315,21 @@ would test whether the ordering also helps optimisation, and whether
 the heat-death criterion computed on \emph{training} trajectories
 predicts convergence earlier than validation loss does.
 
+A dynamic variant of the clock — accumulating entropic time $\tau$ from
+the measured entropy flow between denoising steps rather than from the
+frozen eigenvalues — has been implemented and evaluated against the
+frozen criterion on the same artefacts
+(\texttt{results/sweep\_clock.csv}). It did not demonstrate a genuine
+advantage at this scale, and we report the negative result: the
+criterion is insensitive to $\varepsilon$ (accumulated $\tau$ crosses
+the warm-up estimate at a near-constant rate, making the stopping point
+a fixed $K{+}1$ steps in disguise), and its apparent distributional win
+tracks banks decoded from near-noise latents rather than improved
+generation. The frozen reverse-process criterion therefore remains the
+validated stopping rule; a redesigned dynamic clock (per-sector entropy
+rather than a global variance proxy, an $\varepsilon$-sensitive
+criterion, per-generation state reset) is the named direction.
+
 \subsection{Federated and Personalised Priors}
 
 Dehydration is privacy-amenable in a way raw-audio training is not:
