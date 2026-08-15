@@ -40,10 +40,21 @@ configure_logging()
 
 log = structlog.get_logger("ald_sc.inference")
 
-__all__ = ["LSDModel", "Bank", "MidiEvent"]
+__all__ = ["LSDModel", "Bank", "MidiEvent", "BANK_MODES"]
 
 # A MIDI note event: (midi_note:int, start_seconds:float, duration_seconds:float).
 MidiEvent = tuple[int, float, float]
+
+# Bank-generation variant modes (issue #53). Default "canonical" keeps the
+# pre-#53 behaviour (n independent DDIM draws — near-identical clips while
+# the unconditional DiT contracts, i.e. the "house voice"). The other three
+# passed the pre-registered diversity gate on the current checkpoint
+# (results/bank_variants.csv) and vary the latent around the canonical draw
+# z_bar, exploiting the decoder's NOISE_INJECT-trained tolerance:
+#   "jitter"   — z_bar + variety * std(z_bar) * eps_i      (fresh noise)
+#   "residual" — z_bar amplified seed residual to relative std `variety`
+#   "stopvar"  — same seed, step count swept 0.24..0.98 * steps
+BANK_MODES = ("canonical", "jitter", "residual", "stopvar")
 
 
 def _resolve_seed(seed: int | None) -> int:
@@ -196,6 +207,88 @@ class LSDModel:
         audio = audio.squeeze(1)
         return _normalize(audio.clamp(-1, 1))
 
+    def _bank_latents(
+        self,
+        n: int,
+        steps: int,
+        seed: int,
+        bank_mode: str,
+        bank_variety: float,
+    ) -> list[Tensor]:
+        """Latents for one bank under the requested variant mode (issue #53).
+
+        All non-canonical modes vary *around the canonical draw* z_bar
+        (the DDIM endpoint for ``seed``), where the decoder's
+        NOISE_INJECT-trained tolerance guarantees a latent neighbourhood
+        that decodes to genuinely distinct waveforms.
+        """
+        device = next(self.dit.parameters()).device
+
+        if bank_mode == "canonical":
+            return [
+                sample_ddim(
+                    self.dit,
+                    self.schedule,
+                    batch_size=1,
+                    steps=steps,
+                    seed=seed + i,
+                    device=device,
+                )
+                for i in range(n)
+            ]
+
+        z_bar = sample_ddim(
+            self.dit,
+            self.schedule,
+            batch_size=1,
+            steps=steps,
+            seed=seed,
+            device=device,
+        )
+
+        if bank_mode == "jitter":
+            sig = z_bar.std()
+            latents = []
+            for i in range(n):
+                gen = torch.Generator(device=device).manual_seed(seed + 100 + i)
+                eps = torch.randn(z_bar.shape, device=device, generator=gen)
+                latents.append(z_bar + bank_variety * sig * eps)
+            return latents
+
+        if bank_mode == "residual":
+            draws = [
+                sample_ddim(
+                    self.dit,
+                    self.schedule,
+                    batch_size=1,
+                    steps=steps,
+                    seed=seed + i,
+                    device=device,
+                )
+                for i in range(1, n)
+            ]
+            if not draws:
+                return [z_bar]
+            resid = torch.cat([(d - z_bar).flatten().unsqueeze(0) for d in draws])
+            k = bank_variety * float(z_bar.std()) / max(float(resid.std()), 1e-12)
+            return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]
+
+        # bank_mode == "stopvar"
+        lo = max(1, int(round(steps * 0.24)))
+        hi = max(lo + 1, int(round(steps * 0.98)))
+        grid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]
+        return [
+            sample_ddim(
+                self.dit,
+                self.schedule,
+                batch_size=1,
+                steps=s,
+                seed=seed,
+                device=device,
+            )
+            for s in grid
+        ]
+
     @torch.no_grad()
     def generate_sound_bank(
         self,
@@ -203,6 +296,8 @@ class LSDModel:
         steps: int = 50,
         temperature: float = 1.0,
         seed: int | None = None,
+        bank_mode: str = "canonical",
+        bank_variety: float = 0.5,
     ) -> list[Tensor]:
         """Mode A: generate a bank of ``n`` unconditional baseline sounds.
 
@@ -216,20 +311,56 @@ class LSDModel:
             Noise scaling (lower = more conservative).
         seed : int or None
             Reproducible seed, or ``None`` for a non-repeatable run.
+        bank_mode : str
+            Variant strategy (issue #53), one of ``BANK_MODES``:
+
+            - ``"canonical"`` (default) — n independent DDIM draws.
+              Unchanged pre-#53 behaviour; at preliminary scale every draw
+              contracts to the model's "house voice".
+            - ``"jitter"`` — decode ``z_bar + a*std(z_bar)*eps_i``; the
+              decoder's latent neighbourhood provides real diversity.
+            - ``"residual"`` — amplify the (tiny) seed-to-seed residual
+              to relative std ``bank_variety``.
+            - ``"stopvar"`` — same seed, step count swept across the
+              trajectory (the 1-D contraction path as bank diversity).
+
+        bank_variety : float
+            Diversity dial, interpreted per mode: jitter amplitude
+            (alpha), residual relative std, or (unused for stopvar).
+            Defaults to 0.5 (the gate-passing jitter value; 0.3 passed
+            for residual). 0 disables variation (canonical output).
 
         Returns
         -------
         list[Tensor]
             ``n`` peak-normalised waveforms of shape ``(1, T)``.
         """
-        s = _resolve_seed(seed)
-        bank: list[Tensor] = []
-        for i in range(n):
-            clip = self._sample_and_decode(
-                seed=s + i, steps=steps, temperature=temperature
+        if bank_mode not in BANK_MODES:
+            raise ValueError(
+                f"bank_mode must be one of {BANK_MODES}; got {bank_mode!r}"
             )
-            bank.append(clip)
-        log.info("sound_bank", n=n, steps=steps, temperature=temperature, seed=s)
+        if bank_variety < 0:
+            raise ValueError(f"bank_variety must be >= 0; got {bank_variety}")
+
+        s = _resolve_seed(seed)
+        latents = self._bank_latents(
+            n=n, steps=steps, seed=s, bank_mode=bank_mode, bank_variety=bank_variety
+        )
+        bank = [
+            self._sample_and_decode(
+                seed=s + i, steps=steps, temperature=temperature, z_init=z
+            )
+            for i, z in enumerate(latents)
+        ]
+        log.info(
+            "sound_bank",
+            n=n,
+            steps=steps,
+            temperature=temperature,
+            seed=s,
+            bank_mode=bank_mode,
+            bank_variety=bank_variety,
+        )
         return bank
 
     @torch.no_grad()
@@ -450,9 +581,16 @@ class Bank:
         temperature: float = 1.0,
         seed: int | None = None,
         name: str = "bank",
+        bank_mode: str = "canonical",
+        bank_variety: float = 0.5,
     ) -> "Bank":
-        """Generate a bank and wrap it in a Bank."""
+        """Generate a bank (see ``LSDModel.generate_sound_bank``) and wrap it."""
         clips = model.generate_sound_bank(
-            n=n, steps=steps, temperature=temperature, seed=seed
+            n=n,
+            steps=steps,
+            temperature=temperature,
+            seed=seed,
+            bank_mode=bank_mode,
+            bank_variety=bank_variety,
         )
         return cls(model=model, clips=clips, name=name)
