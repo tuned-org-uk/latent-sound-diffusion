@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "d800dad25d5a",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "autoresearch/evals-260814-1825/handoff.json",
+    "autoresearch/evals-260814-1825/plan.md",
+    "autoresearch/evals-260814-1825/summary.md",
+    "notebooks/07_evaluation_metrics.ipynb",
+    "results/fig_variant_diversity.png",
+    "results/table1_reconstruction.csv",
+    "results/table2_ablation.csv",
+    "results/table3_fad_clap.csv",
+    "results/table4_compression.csv",
+    "results/table5_coherence.csv",
+    "results/variant_diversity.csv",
+    "scripts/build_eval_notebook.py",
+    "scripts/run_evaluation.py",
+    "src/ald_sc/eval.py",
+    "tests/test_eval.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d8/00dad25d5a/0/metadata.json",
+      "transcript": "/d8/00dad25d5a/0/full.jsonl",
+      "compact_transcript": "/d8/00dad25d5a/0/transcript.jsonl",
+      "content_hash": "/d8/00dad25d5a/0/content_hash.txt",
+      "prompt": "/d8/00dad25d5a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34023,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 207104,
+    "output_tokens": 1197,
+    "api_call_count": 13
+  }
+}
