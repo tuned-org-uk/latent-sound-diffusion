@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "0345fc1d0320",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "docs/HOW_IT_WORKS.md",
+    "src/ald_sc/sampling.py",
+    "src/ald_sc/spectral_schedule.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/03/45fc1d0320/0/metadata.json",
+      "transcript": "/03/45fc1d0320/0/full.jsonl",
+      "compact_transcript": "/03/45fc1d0320/0/transcript.jsonl",
+      "content_hash": "/03/45fc1d0320/0/content_hash.txt",
+      "prompt": "/03/45fc1d0320/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 235179,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 23041344,
+    "output_tokens": 43281,
+    "api_call_count": 129
+  }
+}
