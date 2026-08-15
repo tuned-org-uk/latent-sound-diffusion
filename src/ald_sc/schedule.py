@@ -53,14 +53,14 @@ class CosineSchedule:
 
     def add_noise(self, z0: Tensor, t: Tensor, noise: Tensor) -> Tensor:
         """Forward corruption: z_t = sqrt(ab) * z0 + sqrt(1-ab) * noise."""
-        ab = self.alpha_bar[t]
+        ab = self.alpha_bar[t].to(z0.device)
         sqrt_ab = ab.sqrt().view(-1, *([1] * (z0.dim() - 1)))
         sqrt_1mab = (1 - ab).sqrt().view(-1, *([1] * (z0.dim() - 1)))
         return sqrt_ab * z0 + sqrt_1mab * noise
 
     def v_target(self, z0: Tensor, t: Tensor, noise: Tensor) -> Tensor:
         """Velocity target: v = sqrt(ab) * noise - sqrt(1-ab) * z0."""
-        ab = self.alpha_bar[t]
+        ab = self.alpha_bar[t].to(z0.device)
         sqrt_ab = ab.sqrt().view(-1, *([1] * (z0.dim() - 1)))
         sqrt_1mab = (1 - ab).sqrt().view(-1, *([1] * (z0.dim() - 1)))
         return sqrt_ab * noise - sqrt_1mab * z0
@@ -108,14 +108,14 @@ class LinearSchedule:
 
     def add_noise(self, z0: Tensor, t: Tensor, noise: Tensor) -> Tensor:
         """Forward corruption: z_t = sqrt(ab) * z0 + sqrt(1-ab) * noise."""
-        ab = self.alpha_bar[t]
+        ab = self.alpha_bar[t].to(z0.device)
         sqrt_ab = ab.sqrt().view(-1, *([1] * (z0.dim() - 1)))
         sqrt_1mab = (1 - ab).sqrt().view(-1, *([1] * (z0.dim() - 1)))
         return sqrt_ab * z0 + sqrt_1mab * noise
 
     def v_target(self, z0: Tensor, t: Tensor, noise: Tensor) -> Tensor:
         """Velocity target: v = sqrt(ab) * noise - sqrt(1-ab) * z0."""
-        ab = self.alpha_bar[t]
+        ab = self.alpha_bar[t].to(z0.device)
         sqrt_ab = ab.sqrt().view(-1, *([1] * (z0.dim() - 1)))
         sqrt_1mab = (1 - ab).sqrt().view(-1, *([1] * (z0.dim() - 1)))
         return sqrt_ab * noise - sqrt_1mab * z0

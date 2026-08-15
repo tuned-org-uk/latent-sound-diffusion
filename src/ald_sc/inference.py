@@ -61,11 +61,12 @@ def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
 
 def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
     """Resample a 1-D (T,) waveform to a target length (mono, no batch)."""
-    wave = wave.unsqueeze(0)  # (1, T)
+    dev = wave.device
+    wave = wave.unsqueeze(0).cpu()  # Resample on CPU (torchaudio MPS-safe)
     resampler = torchaudio.transforms.Resample(
         orig_freq=wave.shape[-1], new_freq=new_length
     )
-    return resampler(wave).squeeze(0)
+    return resampler(wave).squeeze(0).to(dev)
 
 
 def _normalize(audio: Tensor) -> Tensor:
@@ -343,7 +344,7 @@ class LSDModel:
         for _, start, dur in events:
             total_seconds = max(total_seconds, start + dur)
         total_seconds = max(total_seconds, 0.1)
-        out = torch.zeros(1, int(total_seconds * sr) + 1)
+        out = torch.zeros(1, int(total_seconds * sr) + 1, device=bank[0].device)
 
         s = _resolve_seed(seed)
 

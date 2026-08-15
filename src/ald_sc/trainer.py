@@ -183,7 +183,7 @@ def train_audio_diffusion(
             v_target = schedule.v_target(z0, t, noise)
 
             # Unconditional: DiT uses time-only AdaLN (no c_spec)
-            v_pred = dit(z_t, t)
+            v_pred = dit(z_t, t.to(device))
 
             loss = (v_pred - v_target).pow(2).mean()
             loss.backward()

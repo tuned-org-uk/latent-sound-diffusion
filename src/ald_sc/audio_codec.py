@@ -102,6 +102,17 @@ class EnCodecEncoder(nn.Module):
         self.bandwidth = bandwidth
         self._encodec = None
         self._loaded = False
+        self._device = torch.device("cpu")
+
+    def to(self, *args, **kwargs):
+        """Track the target device so lazy-loaded EnCodec lands on it."""
+        if args:
+            self._device = torch.device(args[0])
+        elif "device" in kwargs:
+            self._device = torch.device(kwargs["device"])
+        if self._loaded:
+            self._encodec = self._encodec.to(self._device)
+        return super().to(*args, **kwargs)
 
     def _load_model(self) -> None:
         """Lazily load the EnCodec model (deferred to avoid import on init).
@@ -139,6 +150,7 @@ class EnCodecEncoder(nn.Module):
             for p in self._encodec.parameters():
                 p.requires_grad_(False)
             self._encodec.eval()
+            self._encodec = self._encodec.to(self._device)
             self._loaded = True
         except Exception as e:
             logger.warning("Failed to load EnCodec model: %s", e)
