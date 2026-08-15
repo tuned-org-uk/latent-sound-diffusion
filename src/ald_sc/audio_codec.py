@@ -16,11 +16,15 @@ This module must not add training logic (per AGENTS.md §11).
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import torch
 from torch import Tensor, nn
 
 from ald_sc.arrow_prior import ArrowSpacePrior
+
+if TYPE_CHECKING:
+    from encodec import EncodecModel
 
 __all__ = [
     "EnCodecEncoder",
@@ -100,7 +104,7 @@ class EnCodecEncoder(nn.Module):
         super().__init__()
         self.sample_rate = sample_rate
         self.bandwidth = bandwidth
-        self._encodec = None
+        self._encodec: EncodecModel | None = None
         self._loaded = False
         self._device = torch.device("cpu")
 
@@ -110,7 +114,7 @@ class EnCodecEncoder(nn.Module):
             self._device = torch.device(args[0])
         elif "device" in kwargs:
             self._device = torch.device(kwargs["device"])
-        if self._loaded:
+        if self._loaded and self._encodec is not None:
             self._encodec = self._encodec.to(self._device)
         return super().to(*args, **kwargs)
 
@@ -178,6 +182,7 @@ class EnCodecEncoder(nn.Module):
             Spectral conditioning vector.
         """
         self._load_model()
+        assert self._encodec is not None
 
         with torch.no_grad():
             # EnCodec encoder: (B, 1, T_audio) -> (B, 128, T_frames)
@@ -207,6 +212,7 @@ class EnCodecEncoder(nn.Module):
             Continuous encoder features.
         """
         self._load_model()
+        assert self._encodec is not None
         with torch.no_grad():
             z = self._encodec.encoder(x)
             return z.float()
@@ -326,6 +332,11 @@ class AudioVAE(nn.Module):
         Trainable decoder (GraphDecoder, ClockGatedGraphDecoder, or
         BaselineAudioDecoder).
     """
+
+    # Declared submodule types (nn.Module.__getattr__ would otherwise widen
+    # attribute access to Tensor | Module for static checkers).
+    encoder: "EnCodecEncoder"
+    decoder: nn.Module
 
     def __init__(self, encoder: EnCodecEncoder, decoder: nn.Module) -> None:
         super().__init__()

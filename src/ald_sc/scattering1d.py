@@ -101,11 +101,9 @@ class MorletFilterBank:
         freqs = np.fft.fftfreq(N)  # cycles/sample, [-0.5, 0.5)
 
         # Low-pass: Gaussian averaging kernel with bandwidth T.
-        T = self.cfg.T
+        T = self.cfg.T if self.cfg.T is not None else 2**self.cfg.J
         sigma_phi = T / (2 * np.pi)
-        self.phi_hat = np.exp(-0.5 * (freqs * N / sigma_phi) ** 2).astype(
-            np.complex128
-        )
+        self.phi_hat = np.exp(-0.5 * (freqs * N / sigma_phi) ** 2).astype(np.complex128)
         self.phi_hat /= self.phi_hat.sum() + 1e-12  # unit sum -> averaging
 
         # Morlet wavelets: J octaves x Q per octave, analytic (one-sided).
@@ -197,7 +195,9 @@ class Scattering1D:
         if self.cfg.order >= 2:
             J, Q = self.cfg.J, self.cfg.Q
             wavelets = self.fb.wavelets
-            for idx1, (j1, _q1) in enumerate((j, q) for j in range(J) for q in range(Q)):
+            for idx1, (j1, _q1) in enumerate(
+                (j, q) for j in range(J) for q in range(Q)
+            ):
                 for idx2, (j2, _q2) in enumerate(
                     (j, q) for j in range(J) for q in range(Q)
                 ):

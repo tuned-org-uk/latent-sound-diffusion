@@ -23,11 +23,11 @@ import torch
 from torch import Tensor
 
 try:
-    import arrowspace as asp  # type: ignore
+    import arrowspace as asp  # ty: ignore[unresolved-import]
 
     _HAS_ASP = True
 except Exception:
-    asp = None  # type: ignore
+    asp = None
     _HAS_ASP = False
 
 __all__ = ["WireGraph", "_HAS_ASP"]
@@ -132,7 +132,7 @@ class WireGraph:
         """
         gp = dict(graph_params) if graph_params else None
         if gp and gp.get("eps") is not None:
-            import arrowspace as asp
+            import arrowspace as asp  # ty: ignore[unresolved-import]
 
             gp.pop("tau", None)
             builder = (
@@ -145,7 +145,7 @@ class WireGraph:
             L_np = np.array(gl.to_dense())
             lambdas_np = np.array(aspace.lambdas())
         else:
-            import arrowspace_tuner as arrowspace
+            import arrowspace_tuner as arrowspace  # ty: ignore[unresolved-import]
 
             aspace, gl = arrowspace.optuna(
                 embeddings=items_np,

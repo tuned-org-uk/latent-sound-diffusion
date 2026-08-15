@@ -118,12 +118,12 @@ class ToyAudioDataset(Dataset):
     def __len__(self) -> int:
         return self.num_samples
 
-    def __getitem__(self, idx: int) -> Tensor:
-        torch.manual_seed(3407 + idx)
+    def __getitem__(self, index: int) -> Tensor:
+        torch.manual_seed(3407 + index)
         t = torch.arange(self.audio_length, dtype=torch.float32) / self.sample_rate
 
         # Random frequency sine wave + noise
-        freq = 100.0 + 400.0 * (idx % 10) / 10.0
+        freq = 100.0 + 400.0 * (index % 10) / 10.0
         sine = torch.sin(2 * torch.pi * freq * t)
         noise = 0.1 * torch.randn(self.audio_length)
         waveform = sine + noise
@@ -178,10 +178,10 @@ class MusicSynthDataset(Dataset):
     def __len__(self) -> int:
         return self.num_samples
 
-    def __getitem__(self, idx: int) -> Tensor:
+    def __getitem__(self, index: int) -> Tensor:
         # Reproducible per-index generation
         rng = torch.Generator()
-        rng.manual_seed(self.seed + idx)
+        rng.manual_seed(self.seed + index)
         t = torch.arange(self.audio_length, dtype=torch.float32) / self.sample_rate
 
         # Choose a base note from a pentatonic-ish scale (110-880 Hz)
@@ -202,7 +202,7 @@ class MusicSynthDataset(Dataset):
             ],
         )
         base_idx = torch.randint(0, len(base_freqs), (1,), generator=rng).item()
-        base_freq = base_freqs[base_idx].item()
+        base_freq = base_freqs[int(base_idx)].item()
 
         # Fundamental + harmonics with decaying amplitudes
         waveform = torch.zeros(self.audio_length)
@@ -287,9 +287,9 @@ class AudioFolderDataset(Dataset):
     def __len__(self) -> int:
         return len(self.files)
 
-    def __getitem__(self, idx: int) -> Tensor:
+    def __getitem__(self, index: int) -> Tensor:
         return load_audio_clip(
-            self.files[idx],
+            self.files[index],
             target_sr=self.sample_rate,
             target_length=self.audio_length,
         )
@@ -336,9 +336,9 @@ class Esc50Dataset(Dataset):
     def __len__(self) -> int:
         return len(self.files)
 
-    def __getitem__(self, idx: int) -> Tensor:
+    def __getitem__(self, index: int) -> Tensor:
         return load_audio_clip(
-            self.files[idx],
+            self.files[index],
             target_sr=self.sample_rate,
             target_length=self.audio_length,
         )

@@ -74,6 +74,7 @@ class WaveReconstructionBlock(nn.Module):
         self.feature_to_chart = nn.Conv1d(channels, feature_dim, 1)
         self.chart_to_feature = nn.Conv1d(feature_dim, channels, 1)
         self.chart_to_feature.weight.data.mul_(0.01)
+        assert self.chart_to_feature.bias is not None
         self.chart_to_feature.bias.data.mul_(0.01)
 
         self.norm = nn.GroupNorm(8, channels)

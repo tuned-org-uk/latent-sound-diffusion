@@ -14,6 +14,7 @@ This module must not add training logic (per AGENTS.md §11).
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Literal, overload
 
 import torch
 from torch import Tensor, nn
@@ -58,6 +59,34 @@ def _init_noise(
         device=device,
         generator=gen,
     )
+
+
+@overload
+def sample_euler(
+    model: nn.Module,
+    schedule: CosineSchedule,
+    c_spec: Tensor | None = ...,
+    batch_size: int = ...,
+    steps: int = ...,
+    seed: int = ...,
+    device: torch.device = ...,
+    spectral_schedule: SpectralSchedule | None = ...,
+    return_steps: Literal[False] = ...,
+) -> Tensor: ...
+
+
+@overload
+def sample_euler(
+    model: nn.Module,
+    schedule: CosineSchedule,
+    c_spec: Tensor | None = ...,
+    batch_size: int = ...,
+    steps: int = ...,
+    seed: int = ...,
+    device: torch.device = ...,
+    spectral_schedule: SpectralSchedule | None = ...,
+    return_steps: Literal[True] = ...,
+) -> tuple[Tensor, int]: ...
 
 
 @torch.no_grad()
@@ -133,6 +162,34 @@ def sample_euler(
     if return_steps:
         return x, steps_used
     return x
+
+
+@overload
+def sample_ddim(
+    model: nn.Module,
+    schedule: CosineSchedule,
+    c_spec: Tensor | None = ...,
+    batch_size: int = ...,
+    steps: int = ...,
+    seed: int = ...,
+    device: torch.device = ...,
+    spectral_schedule: SpectralSchedule | None = ...,
+    return_steps: Literal[False] = ...,
+) -> Tensor: ...
+
+
+@overload
+def sample_ddim(
+    model: nn.Module,
+    schedule: CosineSchedule,
+    c_spec: Tensor | None = ...,
+    batch_size: int = ...,
+    steps: int = ...,
+    seed: int = ...,
+    device: torch.device = ...,
+    spectral_schedule: SpectralSchedule | None = ...,
+    return_steps: Literal[True] = ...,
+) -> tuple[Tensor, int]: ...
 
 
 @torch.no_grad()

@@ -130,6 +130,8 @@ class TestScatteringPooledFeatures:
         import time
 
         t0 = time.time()
-        feats = scattering_pooled_features([torch.randn(2, 1, 4000)], signal_length=4000)
+        feats = scattering_pooled_features(
+            [torch.randn(2, 1, 4000)], signal_length=4000
+        )
         assert feats.shape[0] == 2
         assert time.time() - t0 < 30
