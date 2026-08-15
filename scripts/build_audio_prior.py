@@ -18,19 +18,38 @@ import torch
 
 from ald_sc.audio_codec import EnCodecEncoder, extract_encodec_features
 from ald_sc.build_prior import build_arrow_prior
-from ald_sc.data import AudioFolderDataset, Esc50Dataset, ToyAudioDataset, build_audio_dataloader
+from ald_sc.data import (
+    AudioFolderDataset,
+    Esc50Dataset,
+    ToyAudioDataset,
+    build_audio_dataloader,
+)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build ArrowSpace prior from audio corpus")
-    parser.add_argument("--data-root", type=str, default=None,
-                        help="Path to ESC-50 root or audio folder")
-    parser.add_argument("--toy", action="store_true",
-                        help="Use synthetic ToyAudioDataset (no external data)")
-    parser.add_argument("--num-samples", type=int, default=200,
-                        help="Number of samples for toy dataset")
-    parser.add_argument("--audio-length", type=int, default=24000,
-                        help="Audio length in samples (default 24000 = 1s)")
+    parser = argparse.ArgumentParser(
+        description="Build ArrowSpace prior from audio corpus"
+    )
+    parser.add_argument(
+        "--data-root",
+        type=str,
+        default=None,
+        help="Path to ESC-50 root or audio folder",
+    )
+    parser.add_argument(
+        "--toy",
+        action="store_true",
+        help="Use synthetic ToyAudioDataset (no external data)",
+    )
+    parser.add_argument(
+        "--num-samples", type=int, default=200, help="Number of samples for toy dataset"
+    )
+    parser.add_argument(
+        "--audio-length",
+        type=int,
+        default=24000,
+        help="Audio length in samples (default 24000 = 1s)",
+    )
     parser.add_argument("--q", type=int, default=8, help="Spectral modes to retain")
     parser.add_argument("--k", type=int, default=8, help="kNN neighbours")
     parser.add_argument("--batch-size", type=int, default=4)

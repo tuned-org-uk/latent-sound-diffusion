@@ -43,7 +43,11 @@ def evaluate_decoder(
 
     with torch.no_grad():
         for batch in loader:
-            x = batch.to(device) if isinstance(batch, torch.Tensor) else batch[0].to(device)
+            x = (
+                batch.to(device)
+                if isinstance(batch, torch.Tensor)
+                else batch[0].to(device)
+            )
             z, A, c_spec, x_hat = vae(x, prior)
             A_hat = A.detach()
             losses = loss_fn(x, x_hat, A, A_hat)
@@ -104,14 +108,21 @@ def main() -> None:
             return self.proj(x).float()
 
     encoder = StubEncoder()
-    loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=1.0,
-                        lambda_chart=0.5, lambda_smooth=0.1)
+    loss_fn = ALDSCLoss(
+        prior=prior,
+        lambda_rec=1.0,
+        lambda_stft=1.0,
+        lambda_chart=0.5,
+        lambda_smooth=0.1,
+    )
 
     results: dict[str, dict[str, float]] = {}
 
     # Evaluate baseline decoder
     if args.baseline_decoder and Path(args.baseline_decoder).exists():
-        decoder = BaselineAudioDecoder(latent_channels=128, out_channels=1, base_channels=64)
+        decoder = BaselineAudioDecoder(
+            latent_channels=128, out_channels=1, base_channels=64
+        )
         decoder.load_state_dict(torch.load(args.baseline_decoder, weights_only=False))
         vae = AudioVAE(encoder=encoder, decoder=decoder)
         print("\nEvaluating baseline decoder...")
@@ -121,8 +132,13 @@ def main() -> None:
 
     # Evaluate graph decoder
     if args.graph_decoder and Path(args.graph_decoder).exists():
-        decoder = GraphDecoder(latent_channels=128, out_channels=1,
-                               feature_dim=128, base_channels=64, prior=prior)
+        decoder = GraphDecoder(
+            latent_channels=128,
+            out_channels=1,
+            feature_dim=128,
+            base_channels=64,
+            prior=prior,
+        )
         decoder.load_state_dict(torch.load(args.graph_decoder, weights_only=False))
         vae = AudioVAE(encoder=encoder, decoder=decoder)
         print("\nEvaluating graph decoder...")
@@ -132,6 +148,7 @@ def main() -> None:
 
         # λ_ED ablation: with vs without c_spec gating
         print("\nEvaluating graph decoder (no c_spec / λ_ED ablation)...")
+
         # Override c_spec to zeros
         class NoCSPecVAE(AudioVAE):
             def forward(self, x, prior):
@@ -141,17 +158,23 @@ def main() -> None:
                 return z, a, c_spec, x_hat
 
         vae_ablation = NoCSPecVAE(encoder=encoder, decoder=decoder)
-        results["graph_no_cspec"] = evaluate_decoder(vae_ablation, prior, loader, loss_fn, device)
+        results["graph_no_cspec"] = evaluate_decoder(
+            vae_ablation, prior, loader, loss_fn, device
+        )
         for k, v in results["graph_no_cspec"].items():
             print(f"  {k}: {v:.6f}")
 
     if not results:
-        print("No decoders to evaluate. Provide --graph-decoder and/or --baseline-decoder.")
+        print(
+            "No decoders to evaluate. Provide --graph-decoder and/or --baseline-decoder."
+        )
 
     print("\n=== Summary ===")
     for name, metrics in results.items():
-        print(f"{name}: rec={metrics['rec']:.4f} stft={metrics['stft']:.4f} "
-              f"chart={metrics['chart']:.4f} smooth={metrics['smooth']:.4f}")
+        print(
+            f"{name}: rec={metrics['rec']:.4f} stft={metrics['stft']:.4f} "
+            f"chart={metrics['chart']:.4f} smooth={metrics['smooth']:.4f}"
+        )
 
 
 if __name__ == "__main__":

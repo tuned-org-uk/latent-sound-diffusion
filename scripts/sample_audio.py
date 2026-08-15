@@ -69,7 +69,9 @@ def main() -> None:
 
     # Sample latent
     print(f"Sampling latent (steps={args.steps}, seed={args.seed})...")
-    z = sample_ddim(dit, sched, batch_size=1, steps=args.steps, seed=args.seed, device=device)
+    z = sample_ddim(
+        dit, sched, batch_size=1, steps=args.steps, seed=args.seed, device=device
+    )
     print(f"Sampled z shape: {z.shape}")
 
     # Derive c_spec from z (self-consistent decoding)
