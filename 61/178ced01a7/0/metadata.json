@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "61178ced01a7",
+  "session_id": "ses_ff9754612ffeN2xYn4zYV1VNOO",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-15T17:56:14.506038Z",
+  "branch": "feat/bank-mode-comparison",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "notebooks/01_sound_generation.ipynb",
+    "notebooks/02_long_form_generation.ipynb",
+    "notebooks/03_bps_modulation_effects.ipynb",
+    "notebooks/04_latent_concatenation.ipynb",
+    "notebooks/05_full_music_generation.ipynb",
+    "notebooks/06_end_to_end_real_data.ipynb",
+    "notebooks/07_evaluation_metrics.ipynb",
+    "notebooks/07_production_workflow.ipynb",
+    "notebooks/08_bank_variant_modes.ipynb"
+  ],
+  "agent": "OpenCode",
+  "model": "",
+  "turn_id": "c4617bfece11",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 2682,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 91968,
+    "output_tokens": 744,
+    "api_call_count": 10
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 78,
+      "user_lines_removed": 1,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "pyproject.toml": 1,
+        "scripts/ci_run_notebook.py": 77
+      },
+      "user_removed_per_file": {
+        "pyproject.toml": 1
+      }
+    }
+  ]
+}

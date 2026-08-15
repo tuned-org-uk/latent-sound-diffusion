@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "61178ced01a7",
+  "strategy": "manual-commit",
+  "branch": "feat/bank-mode-comparison",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "notebooks/01_sound_generation.ipynb",
+    "notebooks/02_long_form_generation.ipynb",
+    "notebooks/03_bps_modulation_effects.ipynb",
+    "notebooks/04_latent_concatenation.ipynb",
+    "notebooks/05_full_music_generation.ipynb",
+    "notebooks/06_end_to_end_real_data.ipynb",
+    "notebooks/07_evaluation_metrics.ipynb",
+    "notebooks/07_production_workflow.ipynb",
+    "notebooks/08_bank_variant_modes.ipynb"
+  ],
+  "sessions": [
+    {
+      "metadata": "/61/178ced01a7/0/metadata.json",
+      "transcript": "/61/178ced01a7/0/full.jsonl",
+      "compact_transcript": "/61/178ced01a7/0/transcript.jsonl",
+      "content_hash": "/61/178ced01a7/0/content_hash.txt",
+      "prompt": "/61/178ced01a7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2682,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 91968,
+    "output_tokens": 744,
+    "api_call_count": 10
+  }
+}
