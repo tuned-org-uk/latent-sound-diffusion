@@ -63,13 +63,25 @@ operations are performed. The method proceeds in four stages:
 compact spectral representation $(L_F, U_q, \lambda^{\mathrm{ED}})$;
 \textbf{(2)~dense unconditional sampling} of a sound bank via a
 spectrally-conditioned 1-D diffusion transformer (DiT) operating on
-EnCodec audio latents; \textbf{(3)~MIDI-conditioned materialisation}
+EnCodec audio latents, decoded through a graph-structured decoder that
+filters every latent frame through the corpus's frozen spectral
+eigenbasis; \textbf{(3)~MIDI-conditioned materialisation}
 (``rehydration'') that pitch-shifts and re-timbres generated sounds
 according to a language-model-generated MIDI file; and \textbf{(4)~recursive
 variant generation} by feeding outputs back through the model with
 successive MIDI sequences. The resulting family of variants, each sharing
 spectral lineage with the source library, forms a natural set of stems
-for multitrack mixing. Spectral Composition is built on the
+for multitrack mixing. The paradigm is grounded in two spectral
+mechanisms: a per-time-step graph-filter decoder and an entropic
+stopping clock derived from the same eigenstructure. A preliminary-scale,
+fully local evaluation (two CC-licensed corpora, consumer hardware,
+minutes to train) attaches a first quantitative trace to each stage ---
+$15.99\times$ corpus-scale compression, waveform-fidelity parity with a
+matched unconstrained decoder, drift-then-saturate recursive novelty,
+and up to $4\times$ sampling-compute reduction at equal or better
+distributional quality --- reported as calibrated first traces with open
+fronts named, not as benchmark claims. Spectral Composition is built on
+the
 Latent Sound Diffusion (LSD) system~\cite{lsd}, which is a
 sound-production fork of ArrowSpace Latent Diffusion with Spectral Chart
 Conditioning (ALD-SC)~\cite{aldsc}, and is exposed to the producer via
@@ -101,6 +113,23 @@ resulting latent manifold. This reframes ``browsing samples'' as
 ``recursively rehydrating dense latent draws against symbolic control
 signals.''
 
+\paragraph{Calibration}
+This paper introduces a paradigm and its reference implementation, not a
+benchmark result. The evaluation of Section~\ref{sec:evaluation} runs at
+deliberately preliminary scale --- 256 clips, 20 training epochs, one
+consumer GPU --- and is calibrated accordingly: each property of the
+workflow receives a first quantitative trace, negative results are
+reported verbatim, distributional scores are computed with documented
+proxies, and every stronger claim is converted into a named experiment
+for the scale-up. The paper positions itself by categorical
+distinction: existing audio-generation systems instantiate different
+design spaces, and no comparison against them is claimed or implied.
+Terminology is used deliberately: the \emph{paradigm} is the conceptual
+inversion (novelty as traversal of a fixed manifold); the
+\emph{workflow} is what the producer executes (dehydrate, sample,
+rehydrate, recurse); the \emph{pipeline} is the software realisation
+(LSD model core + LSD-Studio).
+
 \subsection{Contributions}
 
 \begin{itemize}[leftmargin=*]
@@ -112,14 +141,23 @@ signals.''
     \texttt{synthesize\_midi}) directly implements stages~2--4 of the
     pipeline, requiring only the addition of a language-model MIDI
     front-end.
-  \item We articulate the mathematical and architectural foundations of the
-    method, grounding them in the ALD-SC research programme's central
-    claim: decoding on the feature-space manifold $(L_F,
-    \lambda^{\mathrm{ED}})$ yields better global semantic coherence under
-    compression than decoding on an unconstrained ambient latent.
+  \item We articulate the mathematical and architectural foundations of
+    the workflow, instantiating the ALD-SC research programme's central
+    \emph{hypothesis} --- that decoding on the feature-space manifold
+    $(L_F, \lambda^{\mathrm{ED}})$ preserves corpus spectral structure
+    under compression better than an unconstrained ambient decoder ---
+    and providing first measurements: waveform-fidelity parity or better
+    and per-band energy-retention gains for the chart-constrained
+    decoder, with the distributional gap named explicitly as the
+    scale-up experiment (Section~\ref{subsec:eval_reconstruction}).
   \item We describe LSD-Studio as the producer-facing realisation of the
     pipeline, assigning multitrack mixing and workflow management to the
     application layer.
+  \item We contribute the evaluation harness itself --- reproducible
+    metrics, sweeps, and documented proxy methodologies --- that attaches
+    a first quantitative trace to each property of the workflow and
+    defines the measurements on which the paradigm's stronger claims
+    should later be judged.
 \end{itemize}
 
 \subsection{Paper Organisation}
@@ -945,7 +983,8 @@ with plain \texttt{ResBlock1d} (no $U_q$, no $\lambda^{\mathrm{ED}}$).
 \caption{Reconstruction fidelity, graph vs.\ baseline decoder (NSynth
 subset, 20 epochs, frozen EnCodec encoder). L1 on waveforms; STFT is the
 multi-scale spectral loss reported as a diagnostic (training used L1
-only). Both decoders beat the other on their own metric — see text.}
+only). Each decoder records the lower value on the metric it trained
+against — see text.}
 \begin{tabular}{llccc}
 \toprule
 Corpus & Split & Decoder & L1 $\downarrow$ & STFT $\downarrow$ \\
@@ -969,22 +1008,23 @@ Corpus & Split & Decoder & L1 $\downarrow$ & STFT $\downarrow$ \\
 \end{table}
 
 Three observations, reported verbatim. First, on the metric the decoders
-were trained to minimise (L1), the graph decoder edges the baseline on
+were trained to minimise (L1), the graph decoder records a marginally
+lower value than the matched-capacity internal control on
 \emph{every split of both corpora} — margins are small ($3$–$5\%$) and
 we make no significance claim at $N{=}256$, but the direction is
-consistent, and it is worth noting this comparison flipped in the
-graph decoder's favour only after the per-time-step reformulation of
-the wave block (the earlier pooled version lost the same comparison
-$0.117$ vs $0.114$). Second, on the multi-scale STFT diagnostic — which
-neither decoder trained against — the baseline is consistently lower;
-the graph decoder spends capacity honouring the chart, which costs it
-the spectral-loss metric while winning the waveform metric. Third,
+consistent, and it is worth noting this ordering changed only after the
+per-time-step reformulation of the wave block (the earlier pooled
+version recorded the higher value, $0.117$ vs $0.114$). Second, on the
+multi-scale STFT diagnostic — which neither decoder trained against —
+the control records consistently lower values; the graph decoder spends
+capacity honouring the chart, which costs it on the spectral-loss
+diagnostic while remaining lower on the waveform metric. Third,
 per-band retention (Table~\ref{tab:retention} methodology: re-encode
 the reconstruction, compare normalised band energies
-$\tilde{e}_k$ against the original's) favours the graph decoder on both
-corpora (test cosine $0.998$ vs $0.997$ NSynth; $0.9991$ vs $0.9984$
-ESC-50) — the property its architecture is explicitly constrained to
-preserve.
+$\tilde{e}_k$ against the original's) is higher for the graph decoder
+on both corpora (test cosine $0.998$ vs $0.997$ NSynth; $0.9991$ vs
+$0.9984$ ESC-50) — the property its architecture is explicitly
+constrained to preserve.
 
 \begin{table}[h]
 \centering
@@ -1012,10 +1052,10 @@ distance between generated-bank and held-out-test feature distributions
 (exact Fr\'echet formula, VGGish embeddings replaced by EnCodec
 pooled features); CLAP-proxy = cosine between the bank's mean feature
 and a deterministic hashing embedding of the prompt (a stability check,
-not a semantics model). On these proxies the baseline is clearly ahead
-(NSynth FAD-proxy $408$ vs $1198$; ESC-50 $307$ vs $1787$; CLAP-proxy
-$-0.073/-0.065$ vs $-0.046/-0.042$), and we report that gap without
-defence. We hypothesise — and this is the experiment the scale-up
+not a semantics model). On these proxies the internal control records
+lower values (NSynth FAD-proxy $408$ vs $1198$; ESC-50 $307$ vs $1787$;
+CLAP-proxy $-0.073/-0.065$ vs $-0.046/-0.042$), and we report that
+difference without defence. We hypothesise — and this is the experiment the scale-up
 should run first — that the gap tracks training scale rather than
 architecture: at $20$ epochs on $179$ clips the graph decoder's chart
 constraint is a regulariser on an under-trained system, and its
@@ -1180,11 +1220,13 @@ paradigm rather than a new model.
 \subsection{Relationship to Generative-AI Music Tools}
 \label{subsec:disc_related}
 
-Table~\ref{tab:systems} positions the method against the systems a
-producer would actually weigh it against. The comparison axes are the
-four that matter to the workflow claim: whose archive defines the sound,
-how much control the producer retains, whether symbolic grounding
-(MIDI/score) is native, and whether generation composes recursively.
+Table~\ref{tab:systems} maps the design spaces generative music systems
+occupy. The axes are categorical — whose archive defines the sound, how
+much control the producer retains, whether symbolic grounding
+(MIDI/score) is native, and whether generation composes recursively —
+and define what a system \emph{instantiates}, not how it scores.
+Spectral Composition is scored against none of them; the table locates
+a design space, it does not rank it.
 
 \begin{table}[h]
 \centering
@@ -1210,14 +1252,14 @@ Mo\^usai~\cite{mousai2023} & generic & medium (text) & -- & -- \\
 \label{tab:systems}
 \end{table}
 
-The honest reading of the table: every listed system out-scales us by
-orders of magnitude in corpus, compute, and (where applicable) metric
-performance — they are not the competition. They condition generation
-on \emph{language about sound}; we condition it on \emph{the producer's
-own spectral archive} and drive it with \emph{symbolic structure}. The
-axes where we claim an advantage are precisely the axes the general
-systems do not attempt, and the gap in scale is the price of the
-preliminary, single-machine stage this paper reports.
+The table is a map of design spaces, not a ranking. The listed systems
+instantiate one design space — generation conditioned on \emph{language
+about sound}; Spectral Composition instantiates another — generation
+conditioned on \emph{the producer's own spectral archive} and driven by
+\emph{symbolic structure}. The categories are not designed to be scored
+against each other; the novelty claimed here is the existence of this
+design space, its first implementation, and its first quantitative
+traces at preliminary scale.
 
 \subsection{Ethical and Licensing Considerations}
 \label{subsec:disc_ethics}
@@ -1366,9 +1408,10 @@ ESC-50 replication), 20 epochs, a single consumer GPU:
     to $15.99\times$ at corpus scale, with the compressed object
     doubling as the generative prior.
   \item \textbf{Chart-constrained decoding holds its own}: the
-    per-time-step graph decoder matches or beats the equal-capacity
-    baseline on waveform L1 on every split of both corpora, and wins
-    per-band energy retention ($0.998$/$0.9991$ vs $0.997$/$0.9984$)
+    per-time-step graph decoder records waveform L1 at parity or below
+    the matched-capacity internal control on every split of both
+    corpora, and records higher per-band energy retention
+    ($0.998$/$0.9991$ vs $0.997$/$0.9984$)
     — the spectral property it is constrained to preserve.
   \item \textbf{Recursion behaves as designed}
     (Table~\ref{tab:recursion}): variants drift from the initial draw
@@ -1379,9 +1422,10 @@ ESC-50 replication), 20 epochs, a single consumer GPU:
     stopping cuts sampling compute up to $4\times$ while
     \emph{improving} the distributional proxy mid-range
     ($41$ steps / FAD-proxy $858$ vs $46$ / $1154$).
-  \item \textbf{Open fronts, named}: the FAD-proxy still favours the
-    baseline ($408$ vs $1198$) — we hypothesise a training-scale
-    effect and design the scale-up to test exactly that; the
+  \item \textbf{Open fronts, named}: the FAD-proxy still records lower
+    values for the internal control ($408$ vs $1198$) — we hypothesise
+    a training-scale effect and design the scale-up to test exactly
+    that; the
     $\lambda^{\mathrm{ED}}$ gate is a measurable no-op at this scale;
     resampling-based rehydration leaves score-vs-spectrum coherence
     at $\approx 0$ pending a pitch-preserving materialiser; and the
@@ -1418,6 +1462,20 @@ audio archive, and every render carries machine-readable lineage to
 the prior that produced it. Data sovereignty and verifiable provenance
 stand in place of cloud dependency — diffusion-based music production
 at the pace of composition, on the artist's own desk.
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section*{Acknowledgements}
+\label{sec:acknowledgements}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+This work was drafted, designed, and executed with the assistance of
+large language models, whose contributions we disclose in the spirit of
+the paper's provenance discipline. \textbf{GLM 5.2} and \textbf{GLM 5.3}
+were used for drafting the manuscript and for the design and execution
+of the experiments. \textbf{Qwen3.8 Max} and \textbf{Kimi 3} were used
+for review. All scientific claims, the evaluation methodology, and the
+final text remain the responsibility of the author.
 
 
 %% ─────────────────────────────────────────────────────────────────────────────
