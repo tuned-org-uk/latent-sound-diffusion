@@ -1,0 +1,9 @@
+Explore the repo at /Users/tuned-silicon/papers/latent-sound-diffusion (medium thoroughness). I need to understand the "graph decoder" and its documented MPS (Apple Metal Performance Shaders) divergence problem (loss 0.76 → 11.1 on MPS vs 0.19 → 0.15 on CPU).
+
+Find and report:
+1. The graph decoder implementation file(s) (likely src/ald_sc/graph_decoder.py or similar) - summarize its architecture: what operations it uses (e.g., eigendecomposition, eigh, scatter/gather, graph convolutions, normalization, complex ops, float64 usage, in-place ops, etc.) - anything that could behave differently on MPS vs CPU.
+2. Any code that forces CPU for the graph decoder (device selection logic, e.g., in scripts/run_evaluation.py or training scripts) - quote the exact lines with file:line.
+3. Documentation of the MPS divergence: search docs/, README.md, autoresearch/ (especially autoresearch/evals-260814-1825/ and any postmortem docs) for mentions of MPS divergence, loss 11.1, or graph decoder device issues. Quote relevant passages with file paths.
+4. Check if there are any tests or repro scripts for the MPS issue.
+
+Return: a structured summary with file:line references, the key architectural ops in the graph decoder that are numerically sensitive, and any documented root-cause hypotheses found in the repo.
