@@ -81,7 +81,15 @@ def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
 
 
 def _normalize(audio: Tensor) -> Tensor:
-    """Peak-normalise a (1, T) waveform; no-op if silent."""
+    """DC-block then peak-normalise a (1, T) waveform; no-op if silent.
+
+    The decoder can emit a large DC component (measured +0.4..+0.56 on
+    generated banks vs |DC| < 0.002 on the corpus) — a constant offset
+    that consumes headroom and renders as a thump/click on playback.
+    Removing the mean before peak-normalisation is applied to every
+    output path (Modes A/B/C).
+    """
+    audio = audio - audio.mean()
     peak = audio.abs().max()
     if peak > 0:
         return audio / peak
@@ -270,11 +278,22 @@ class LSDModel:
             if not draws:
                 return [z_bar]
             resid = torch.cat([(d - z_bar).flatten().unsqueeze(0) for d in draws])
-            k = bank_variety * float(z_bar.std()) / max(float(resid.std()), 1e-12)
+            resid_std = float(resid.std())
+            if resid_std < 1e-4:
+                log.warning(
+                    "residual_mode_roundoff",
+                    resid_std=resid_std,
+                    hint="seed residuals are numerical roundoff at this training "
+                    "scale (contraction); amplified variants may be unplayable",
+                )
+            k = bank_variety * float(z_bar.std()) / max(resid_std, 1e-12)
             return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]
 
-        # bank_mode == "stopvar"
-        lo = max(1, int(round(steps * 0.24)))
+        # bank_mode == "stopvar": bank_variety is the stop-time floor as a
+        # fraction of `steps` (default 0.5). Floors below ~0.5 produced
+        # under-denoised, unplayable clips on the v0.11 checkpoints
+        # (perceptual feedback, PR #59) — kept controllable, not encouraged.
+        lo = max(1, int(round(steps * bank_variety)))
         hi = max(lo + 1, int(round(steps * 0.98)))
         grid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]
         return [
@@ -320,15 +339,19 @@ class LSDModel:
             - ``"jitter"`` — decode ``z_bar + a*std(z_bar)*eps_i``; the
               decoder's latent neighbourhood provides real diversity.
             - ``"residual"`` — amplify the (tiny) seed-to-seed residual
-              to relative std ``bank_variety``.
-            - ``"stopvar"`` — same seed, step count swept across the
-              trajectory (the 1-D contraction path as bank diversity).
+              to relative std ``bank_variety``. At preliminary scale the
+              residual is numerical roundoff (contraction) and the
+              amplified variants may be harsh; a warning is logged.
+            - ``"stopvar"`` — same seed, step count swept from
+              ``bank_variety * steps`` to ``0.98 * steps`` (floor
+              default 0.5; lower floors trade playability for spread).
 
         bank_variety : float
             Diversity dial, interpreted per mode: jitter amplitude
-            (alpha), residual relative std, or (unused for stopvar).
-            Defaults to 0.5 (the gate-passing jitter value; 0.3 passed
-            for residual). 0 disables variation (canonical output).
+            (alpha; stay <= ~0.15 to remain within the decoder's
+            NOISE_INJECT noise tolerance), residual relative std, or
+            the stop-time floor fraction for stopvar. Defaults to 0.5;
+            0 disables variation (canonical output).
 
         Returns
         -------

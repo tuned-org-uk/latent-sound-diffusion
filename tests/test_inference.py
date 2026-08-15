@@ -131,8 +131,8 @@ class TestBankModes:
     def test_stopvar_grid_semantics(self) -> None:
         """stopvar = same seed, step counts spread over the trajectory.
 
-        With steps=4, n=3 the grid is lo=round(4*0.24)=1 to
-        hi=round(4*0.98)=4, i.e. {1, 2, 4}: each latent must equal a
+        With steps=4, n=3, bank_variety=0.5 the grid is lo=round(4*0.5)=2
+        to hi=round(4*0.98)=4, i.e. {2, 3, 4}: each latent must equal a
         fresh DDIM draw at that step count with the SAME seed.
         """
         from ald_sc.sampling import sample_ddim
@@ -141,11 +141,37 @@ class TestBankModes:
         latents = m._bank_latents(
             n=3, steps=4, seed=5, bank_mode="stopvar", bank_variety=0.5
         )
-        for z, s in zip(latents, (1, 2, 4)):
+        for z, s in zip(latents, (2, 3, 4)):
             ref = sample_ddim(
                 m.dit, m.schedule, batch_size=1, steps=s, seed=5, device=z.device
             )
             assert torch.allclose(z, ref, atol=1e-6)
+
+    def test_stopvar_floor_follows_variety(self) -> None:
+        """bank_variety is the stop-time floor: lowest grid entry follows it."""
+        from ald_sc.sampling import sample_ddim
+
+        m = _make_model()
+        latents = m._bank_latents(
+            n=2, steps=10, seed=5, bank_mode="stopvar", bank_variety=0.24
+        )
+        # floor round(10 * 0.24) = 2; ceil entry round(10 * 0.98) = 10
+        ref_lo = sample_ddim(m.dit, m.schedule, batch_size=1, steps=2, seed=5)
+        ref_hi = sample_ddim(m.dit, m.schedule, batch_size=1, steps=10, seed=5)
+        assert torch.allclose(latents[0], ref_lo.to(latents[0].device), atol=1e-6)
+        assert torch.allclose(latents[1], ref_hi.to(latents[1].device), atol=1e-6)
+
+    def test_generated_banks_are_dc_free(self) -> None:
+        """DC-block: outputs must carry no DC offset (PR #59 feedback fix).
+
+        The raw decoder output has a large DC component (+0.4..+0.56
+        measured); _normalize must remove it before peak-normalising.
+        """
+        m = _make_model()
+        for mode in ("canonical", "jitter", "residual", "stopvar"):
+            bank = m.generate_sound_bank(n=2, steps=3, seed=5, bank_mode=mode)
+            for clip in bank:
+                assert abs(float(clip.mean())) < 1e-5, mode
 
     def test_modes_reproducible(self) -> None:
         m = _make_model()

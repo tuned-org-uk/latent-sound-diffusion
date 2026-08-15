@@ -312,16 +312,24 @@ code(
 )
 
 md(
-    "Expected on the artifact checkpoints (from `results/bank_variants.csv`):\n"
+    "Expected on the artifact checkpoints, after the v0.11 perceptual-fix\n"
+    "(DC-block in `_normalize` + stopvar floor, PR #59 feedback):\n"
     "\n"
     "- `canonical`: L1 ≈ 0.000 — the contraction; every draw the same clip\n"
-    "- `jitter_0.5`: L1 ≈ 0.182, spread ≈ 41 Hz\n"
-    "- `residual_0.3`: L1 ≈ 0.112, spread ≈ 192 Hz\n"
-    "- `stopvar`: L1 ≈ 0.073, spread ≈ 51 Hz\n"
+    "- `jitter_0.5`: L1 ≈ 0.211, DC-free basis (pre-fix record: 0.182)\n"
+    "- `residual_0.3`: L1 ≈ 0.162 (pre-fix record: 0.112)\n"
+    "- `stopvar` (floor 0.5): L1 ≈ 0.034 — playable but below the 0.05\n"
+    "  diversity gate; the recorded 0.073 verdict was carried by\n"
+    "  under-denoised, unplayable early-stop clips\n"
     "\n"
-    "With `TRAIN_FROM_SCRATCH = True` the numbers differ (fresh, shorter\n"
-    "training run) but the ordering should hold: canonical ≈ 0 diversity,\n"
-    "variant modes spread."
+    "All banks now carry max|DC| < 1e-5 (was +0.41–+0.56 — the cause of\n"
+    "the \"unplayable\" perceptual feedback). RMS likewise drops to the\n"
+    "honest AC level (~0.13–0.23): the frozen gate's 0.35 RMS floor was\n"
+    "calibrated on DC-inflated values, so the gate column below reads\n"
+    "`-` everywhere post-fix — the diversity (L1) criterion still holds.\n"
+    "With `TRAIN_FROM_SCRATCH =\n"
+    "True` the numbers differ (fresh, shorter training run) but the\n"
+    "ordering should hold: canonical ≈ 0 diversity, variant modes spread."
 )
 
 md(
@@ -430,9 +438,12 @@ code(
 md(
     "## Step 8 — Cross-check against the experiment record\n"
     "\n"
-    "`results/bank_variants.csv` is the frozen decision record (13 arms).\n"
-    "Valid only for the artifact checkpoints — the wired library modes must\n"
-    "reproduce its gate-arm rows bit-for-bit."
+    "`results/bank_variants.csv` is the frozen decision record (13 arms,\n"
+    "measured *before* the perceptual fixes). The v0.11 DC-block changes\n"
+    "the waveform basis (per-clip DC removed before L1), so exact values\n"
+    "shift; what must hold is the **ordering** — canonical ≪ stopvar <\n"
+    "residual < jitter — and closeness within the DC-removal shift\n"
+    "(tolerance 0.06). Valid only for the artifact checkpoints."
 )
 
 code(
@@ -446,13 +457,15 @@ code(
     "    for name, arm in (\n"
     "        ('jitter_0.5', 'jitter_a0.5'),\n"
     "        ('residual_0.3', 'resid_r0.3'),\n"
-    "        ('stopvar', 'stopvar'),\n"
     "    ):\n"
     "        rec = record[arm]\n"
     "        row = next(r for r in rows if r['mode'] == name)\n"
-    "        match = abs(row['L1_mean'] - float(rec['l1_mean'])) < 0.005\n"
+    "        match = abs(row['L1_mean'] - float(rec['l1_mean'])) < 0.06\n"
     "        print(f\"{name:<12} notebook L1 {row['L1_mean']:.4f}  \"\n"
-    "              f\"csv {float(rec['l1_mean']):.4f}  match={match}\")\n"
+    "              f\"csv(pre-fix) {float(rec['l1_mean']):.4f}  close={match}\")\n"
+    "    order = [r['L1_mean'] for r in rows]\n"
+    "    assert order[0] == 0.0 and 0 < order[3] < order[2] < order[1], rows\n"
+    "    print('ordering canonical < stopvar < residual < jitter: OK')\n"
     "else:\n"
     "    print('TRAIN_FROM_SCRATCH=True — fresh models, record cross-check skipped')\n"
     "    assert rows[0]['L1_mean'] < 0.01, 'canonical should contract to near-zero diversity'\n"
