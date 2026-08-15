@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "ee41733e5a87",
+  "session_id": "ses_ffb545a06ffeg3sRf1mDdWp9PT",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-15T10:59:39.789604Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "save_step_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "autoresearch/evals-260815-0945/plan.md",
+    "results/fig_variant_diversity.png",
+    "results/recursive_variants.csv",
+    "results/table1_reconstruction.csv",
+    "results/table2_ablation.csv",
+    "results/table3_fad_clap.csv",
+    "results/table5_coherence.csv",
+    "results/table6_band_retention.csv",
+    "scripts/run_evaluation.py",
+    "src/ald_sc/eval.py",
+    "src/ald_sc/inference.py",
+    "tests/test_eval.py"
+  ],
+  "agent": "OpenCode",
+  "model": "glm-5.3",
+  "turn_id": "d345f1e961f7",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 493832,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 30518656,
+    "output_tokens": 71250,
+    "api_call_count": 229
+  },
+  "session_metrics": {
+    "turn_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-15T10:59:39.713422Z",
+    "agent_lines": 1015,
+    "agent_removed": 103,
+    "human_added": 833,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1848,
+    "total_lines_changed": 2145,
+    "agent_percentage": 52.121212121212125,
+    "metric_version": 2
+  }
+}

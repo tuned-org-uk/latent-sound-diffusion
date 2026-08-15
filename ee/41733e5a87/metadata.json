@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "ee41733e5a87",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".gitignore",
+    "autoresearch/evals-260815-0945/plan.md",
+    "results/fig_variant_diversity.png",
+    "results/recursive_variants.csv",
+    "results/table1_reconstruction.csv",
+    "results/table2_ablation.csv",
+    "results/table3_fad_clap.csv",
+    "results/table5_coherence.csv",
+    "results/table6_band_retention.csv",
+    "scripts/run_evaluation.py",
+    "src/ald_sc/eval.py",
+    "src/ald_sc/inference.py",
+    "tests/test_eval.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ee/41733e5a87/0/metadata.json",
+      "transcript": "/ee/41733e5a87/0/full.jsonl",
+      "compact_transcript": "/ee/41733e5a87/0/transcript.jsonl",
+      "content_hash": "/ee/41733e5a87/0/content_hash.txt",
+      "prompt": "/ee/41733e5a87/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 493832,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 30518656,
+    "output_tokens": 71250,
+    "api_call_count": 229
+  }
+}
