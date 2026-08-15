@@ -1,5 +1,21 @@
-proceed with measuring and writing
+Suggest improvements in framing and positining of the paper according to: the paper is a presentation of a new paradigm so evaluation and results should be calibrated to this objective. we are not putting down strong claims but introducing a novel workflow with scientific backing for a novel diffusion model.
 
 ---
 
-compared to current music production workflows, the exploration and sample generation process are shorter. there is a gain in productivity of the artist
+no mention to state of the art should be present
+
+---
+
+no mention to comparison to state of the art should be present as it is a unique novelty
+
+---
+
+proceed with changes
+
+---
+
+todo: add a acknoledgement section that states which LLMs have been used: GLM 5.2 and 5.3 for drafting and experiments design and execution; Qwen3.8 Max and Kimi 3 for reviewing
+
+---
+
+commit
