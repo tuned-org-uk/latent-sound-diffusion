@@ -1,0 +1,6 @@
+yes, i don't want to add any new version of the model to LSD-studio for now.
+proceed
+
+---
+
+note: latent-sound-diffusion in LSD-studion has already a v0.7.0, next version expected is v0.10.0
