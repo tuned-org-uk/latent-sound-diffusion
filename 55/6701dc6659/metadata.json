@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "556701dc6659",
+  "strategy": "manual-commit",
+  "branch": "feat/bank-variant-modes",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/spectral-composition/document.fdb_latexmk",
+    "docs/spectral-composition/document.fls"
+  ],
+  "sessions": [
+    {
+      "metadata": "/55/6701dc6659/0/metadata.json",
+      "transcript": "/55/6701dc6659/0/full.jsonl",
+      "compact_transcript": "/55/6701dc6659/0/transcript.jsonl",
+      "content_hash": "/55/6701dc6659/0/content_hash.txt",
+      "prompt": "/55/6701dc6659/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 66070,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 10337152,
+    "output_tokens": 9186,
+    "api_call_count": 95
+  }
+}
