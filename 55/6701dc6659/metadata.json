@@ -5,8 +5,19 @@
   "branch": "feat/bank-variant-modes",
   "checkpoints_count": 1,
   "files_touched": [
-    "docs/spectral-composition/document.fdb_latexmk",
-    "docs/spectral-composition/document.fls"
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "src/ald_sc/arrow_prior.py",
+    "src/ald_sc/audio_codec.py",
+    "src/ald_sc/data.py",
+    "src/ald_sc/graph_decoder.py",
+    "src/ald_sc/sampling.py",
+    "src/ald_sc/scattering1d.py",
+    "src/ald_sc/spectral_schedule.py",
+    "src/ald_sc/trainer.py",
+    "src/ald_sc/vae.py",
+    "src/ald_sc/wire_graph.py",
+    "tests/test_scattering1d.py"
   ],
   "sessions": [
     {
@@ -14,14 +25,14 @@
       "transcript": "/55/6701dc6659/0/full.jsonl",
       "compact_transcript": "/55/6701dc6659/0/transcript.jsonl",
       "content_hash": "/55/6701dc6659/0/content_hash.txt",
-      "prompt": "/55/6701dc6659/0/prompt.txt"
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 66070,
+    "input_tokens": 0,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 10337152,
-    "output_tokens": 9186,
-    "api_call_count": 95
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 1
   }
 }

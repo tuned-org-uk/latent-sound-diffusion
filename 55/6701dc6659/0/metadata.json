@@ -3,61 +3,50 @@
   "checkpoint_id": "556701dc6659",
   "session_id": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
   "strategy": "manual-commit",
-  "created_at": "2026-08-15T13:44:45.13238Z",
+  "created_at": "2026-08-15T13:45:01.179969Z",
   "branch": "feat/bank-variant-modes",
   "checkpoints_count": 1,
-  "save_step_count": 1,
   "files_touched": [
-    "docs/spectral-composition/document.fdb_latexmk",
-    "docs/spectral-composition/document.fls"
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "src/ald_sc/arrow_prior.py",
+    "src/ald_sc/audio_codec.py",
+    "src/ald_sc/data.py",
+    "src/ald_sc/graph_decoder.py",
+    "src/ald_sc/sampling.py",
+    "src/ald_sc/scattering1d.py",
+    "src/ald_sc/spectral_schedule.py",
+    "src/ald_sc/trainer.py",
+    "src/ald_sc/vae.py",
+    "src/ald_sc/wire_graph.py",
+    "tests/test_scattering1d.py"
   ],
   "agent": "OpenCode",
   "model": "glm-5.3",
   "turn_id": "771d8f1ebd47",
-  "checkpoint_transcript_start": 100,
-  "transcript_lines_at_start": 100,
-  "compact_transcript_start": 100,
+  "checkpoint_transcript_start": 201,
+  "transcript_lines_at_start": 201,
+  "compact_transcript_start": 201,
   "token_usage": {
-    "input_tokens": 66070,
+    "input_tokens": 0,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 10337152,
-    "output_tokens": 9186,
-    "api_call_count": 95
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 1
   },
   "session_metrics": {
     "turn_count": 9
   },
   "initial_attribution": {
-    "calculated_at": "2026-08-15T13:44:45.033082Z",
-    "agent_lines": 393,
+    "calculated_at": "2026-08-15T13:45:01.08068Z",
+    "agent_lines": 2,
     "agent_removed": 0,
-    "human_added": 390,
+    "human_added": 0,
     "human_modified": 0,
     "human_removed": 0,
-    "total_committed": 783,
-    "total_lines_changed": 816,
-    "agent_percentage": 48.161764705882355,
+    "total_committed": 2,
+    "total_lines_changed": 2,
+    "agent_percentage": 100,
     "metric_version": 2
-  },
-  "prompt_attributions": [
-    {
-      "checkpoint_number": 1,
-      "user_lines_added": 0,
-      "user_lines_removed": 0,
-      "agent_lines_added": 0,
-      "agent_lines_removed": 0
-    },
-    {
-      "checkpoint_number": 2,
-      "user_lines_added": 396,
-      "user_lines_removed": 0,
-      "agent_lines_added": 393,
-      "agent_lines_removed": 388,
-      "user_added_per_file": {
-        "pyrightconfig.json": 6,
-        "src/ald_sc/scattering1d.py": 253,
-        "tests/test_scattering1d.py": 137
-      }
-    }
-  ]
+  }
 }
