@@ -224,3 +224,10 @@ __marimo__/
 # Local datasets and generated outputs
 data/
 notebooks/results/
+
+# LaTeX build artifacts (keep .pdf)
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc

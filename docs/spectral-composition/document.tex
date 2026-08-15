@@ -1,0 +1,782 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{authblk}
+\usepackage{abstract}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\newcommand{\placeholder}[1]{%
+  \textcolor{gray}{\textit{[Placeholder: #1]}}%
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\title{\textbf{Spectral Composition: \\
+A New Paradigm for\\
+Sample-Based Music Creation\\
+via Latent Diffusion}}
+
+\author{Lorenzo Moriondo\\
+\small{tunedconsulting@gmail.com}\\
+\small{lorenzo@genefold.ai}}
+\affil{
+\large{tuned.org.uk}\\
+\large{Genefold AI Ltd}}
+
+\date{\today\\[6pt]
+\small\url{https://github.com/tuned-org-uk/latent-sound-diffusion}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We introduce \emph{Spectral Composition}, a novel method for sample-based
+music production that treats composition as iterative navigation of a
+compressed spectral latent manifold rather than direct waveform or
+symbolic editing. A frozen ArrowSpace graph Laplacian $L_F$ and its
+associated energy-dispersion network $\lambda^{\mathrm{ED}}$, estimated
+once from the producer's entire sample library, define a low-dimensional
+feature-space manifold over which all generative and compositional
+operations are performed. The method proceeds in four stages:
+\textbf{(1)~spectral encoding} (``dehydration'') of the library into a
+compact spectral representation $(L_F, U_q, \lambda^{\mathrm{ED}})$;
+\textbf{(2)~dense unconditional sampling} of a sound bank via a
+spectrally-conditioned 1-D diffusion transformer (DiT) operating on
+EnCodec audio latents; \textbf{(3)~MIDI-conditioned materialisation}
+(``rehydration'') that pitch-shifts and re-timbres generated sounds
+according to a language-model-generated MIDI file; and \textbf{(4)~recursive
+variant generation} by feeding outputs back through the model with
+successive MIDI sequences. The resulting family of variants, each sharing
+spectral lineage with the source library, forms a natural set of stems
+for multitrack mixing. Spectral Composition is built on the
+Latent Sound Diffusion (LSD) system~\cite{lsd}, which is a
+sound-production fork of ArrowSpace Latent Diffusion with Spectral Chart
+Conditioning (ALD-SC)~\cite{aldsc}, and is exposed to the producer via
+the LSD-Studio desktop application~\cite{lsdstudio}.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+Traditional sample-based music production treats a sample library as a
+fixed, enumerable set of audio assets: the producer browses, triggers,
+slices, and layers clips inside a digital audio workstation (DAW), guided
+by perception and taste. This workflow has scaled to industrial size
+through large commercial sample libraries, but it fundamentally limits
+compositional novelty to recombination of existing clips without access
+to the generative structure of the collection.
+
+Spectral Composition proposes a different model: the sample library is a
+\emph{corpus} from which a frozen spectral prior is estimated once, after
+which composition is an act of sampling and recombination inside the
+resulting latent manifold. This reframes ``browsing samples'' as
+``traversing a spectral graph'', and ``arranging a track'' as
+``recursively rehydrating dense latent draws against symbolic control
+signals.''
+
+\subsection{Contributions}
+
+\begin{itemize}[leftmargin=*]
+  \item We define the Spectral Composition pipeline: a four-stage method
+    (dehydration, sampling, materialisation, recursion) that operationalises
+    compositional workflows over a spectral latent manifold.
+  \item We show how the existing LSD inference contract
+    (\texttt{generate\_sound\_bank}, \texttt{condition\_on\_audio},
+    \texttt{synthesize\_midi}) directly implements stages~2--4 of the
+    pipeline, requiring only the addition of a language-model MIDI
+    front-end.
+  \item We articulate the mathematical and architectural foundations of the
+    method, grounding them in the ALD-SC research programme's central
+    claim: decoding on the feature-space manifold $(L_F,
+    \lambda^{\mathrm{ED}})$ yields better global semantic coherence under
+    compression than decoding on an unconstrained ambient latent.
+  \item We describe LSD-Studio as the producer-facing realisation of the
+    pipeline, assigning multitrack mixing and workflow management to the
+    application layer.
+\end{itemize}
+
+\subsection{Paper Organisation}
+
+Section~\ref{sec:background} reviews background in latent diffusion for
+audio, ArrowSpace graph priors, and entropic time scheduling.
+Section~\ref{sec:method} defines the four stages of Spectral Composition.
+Section~\ref{sec:architecture} describes the underlying model architecture.
+Section~\ref{sec:implementation} details the implementation and datasets.
+Section~\ref{sec:evaluation} presents evaluation methodology.
+Section~\ref{sec:discussion} discusses the method as a creative paradigm.
+Section~\ref{sec:futurework} outlines future work, and
+Section~\ref{sec:conclusion} concludes.
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Background}
+\label{sec:background}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Latent Diffusion for Audio}
+\label{subsec:bg_lda}
+
+Latent diffusion models~\cite{rombach2022} move the expensive iterative
+denoising process from pixel (or waveform) space into a compressed
+continuous latent space produced by a pretrained autoencoder, drastically
+reducing computation while retaining high-fidelity synthesis.
+EnCodec~\cite{defossez2022} provides the audio equivalent: a neural codec
+operating at 24\,kHz that encodes mono audio clips into a 1-D continuous
+latent $z \in \mathbb{R}^{D \times T}$ (with $D=128$, $T=375$ for 5-second
+clips) via its pre-quantization continuous features.
+
+\placeholder{Discuss related audio generative models (AudioLM, MusicGen,
+Stable Audio, AudioCraft). Contrast with symbolic-only (MIDI) and
+waveform-only generation. Motivate the spectral-latent approach.}
+
+\subsection{ArrowSpace Graph Priors and Energy-Dispersion Networks}
+\label{subsec:bg_arrowspace}
+
+ArrowSpace~\cite{arrowspace_joss} defines a spectral search framework for
+embeddings in which feature columns of a corpus feature matrix
+$A \in \mathbb{R}^{N \times F}$ are treated as nodes of a feature-space
+graph $G_F = (V_F, W_F)$ with $|V_F|=F$. The feature-space graph
+Laplacian
+\begin{equation}
+  L_F = D^{-1/2}(D - W)D^{-1/2}, \qquad L_F = U\Lambda U^\top,
+  \label{eq:laplacian}
+\end{equation}
+has eigenvectors $U_q \in \mathbb{R}^{F \times q}$ (the $q$ smoothest
+modes) that define the semantic subspace of the corpus.
+
+The Energy Dispersion Network (EDN)~\cite{edn2025} associates to each
+feature $f$ a per-feature energy-dispersion scalar
+$\lambda^{\mathrm{ED}}_f \in [0,1]$, encoding how semantic structure is
+distributed over the feature graph. Projected onto the chart, these give
+per-mode dispersion weights
+\begin{equation}
+  \lambda^{\mathrm{chart}}_k
+  = \sum_{f=1}^{F} \lambda^{\mathrm{ED}}_f \, U_{f,k}^2.
+  \label{eq:chart_dispersion}
+\end{equation}
+
+\placeholder{Expand on the ArrowSpace spectral search paper, the kNN
+graph construction, $\tau$-modulation, and the connection between
+$\lambda^{\mathrm{ED}}$ and semantic coherence under compression.}
+
+\subsection{Entropic Time Scheduling and the Barontini Clock}
+\label{subsec:bg_clock}
+
+The entropic (Barontini) clock~\cite{barontini2026,stancevic2025} provides
+an intrinsic, spectrally-informed stopping criterion for diffusion
+sampling. Per-mode entropy-time coordinates are defined as
+\begin{equation}
+  \tau_k(t) = \nu_k \bar{\alpha}_k(t),
+  \label{eq:entropic_time}
+\end{equation}
+where $\nu_k$ are the eigenvalues of $L_F$ and $\bar{\alpha}_k(t)$ is the
+mode-$k$ noise schedule. The sampler terminates when
+\begin{equation}
+  \sum_{k=1}^{q} \nu_k \, \bar{\alpha}_k(t) < \varepsilon,
+  \label{eq:heat_death}
+\end{equation}
+the ``heat-death'' criterion, replacing an arbitrary fixed step count
+with a spectrally-motivated halting rule~\cite{lsd,aldsc}.
+
+\placeholder{Discuss the connection to the problem of time in quantum
+gravity and cold-atom experiments (Barontini 2026). Relate to prior work
+on adaptive diffusion schedules (DDIM, DPM-Solver, etc.).}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Spectral Composition}
+\label{sec:method}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+We now define the four stages of the Spectral Composition pipeline
+formally. Let $\mathcal{X} = \{x_1, \ldots, x_N\}$ denote the producer's
+sound archive (a set of raw audio clips), and let $\mathcal{M}$ denote a
+trained LSD model (frozen prior + graph decoder + 1-D DiT).
+
+\subsection{Stage 1 — Spectral Encoding (Library Dehydration)}
+\label{subsec:stage1}
+
+\subsubsection{EnCodec feature extraction}
+
+Each clip $x_i \in \mathcal{X}$ is encoded by the frozen EnCodec encoder
+$E_\phi$ (24\,kHz mono, never updated) to produce:
+\begin{equation}
+  (z_i,\; A_i) = E_\phi(x_i),
+  \qquad
+  z_i \in \mathbb{R}^{D \times T},\quad
+  A_i = \mathrm{Pool}(z_i) \in \mathbb{R}^F.
+  \label{eq:encodec}
+\end{equation}
+The pooled feature field $A_i$ is the row contributed by clip $i$ to the
+corpus feature matrix $A \in \mathbb{R}^{N \times F}$.
+
+\subsubsection{ArrowSpace prior construction}
+
+From $A$ the ArrowSpace adapter builds the frozen feature-space graph
+Laplacian $L_F$ and energy-dispersion network $\lambda^{\mathrm{ED}}$
+via the \texttt{pyarrowspace} library~\cite{pyarrowspace}. The eigenvectors
+$U_q$ and eigenvalues $\nu_k$ are stored as non-trainable buffers. The
+spectral conditioning vector for a clip is
+\begin{equation}
+  c_{\mathrm{spec}} =
+  \bigl[\tilde{e},\; \lambda^{\mathrm{chart}},\; \nu\bigr]
+  \in \mathbb{R}^{3q},
+  \label{eq:cspec}
+\end{equation}
+where $\tilde{e}_k$ is the per-mode band energy. The entire library is
+now represented by the compact frozen objects
+$(L_F, U_q, \lambda^{\mathrm{ED}})$ — the \emph{dehydrated} spectral
+representation.
+
+\subsubsection{Two-stage model training}
+
+Training proceeds as two frozen-then-fine-tuned phases.
+In Phase 1 the graph decoder is trained with optional latent-space noise
+injection (parameter \texttt{NOISE\_INJECT} $\in [0, \infty)$).
+In Phase 2 the 1-D DiT denoiser is trained on the corpus latents
+$\{z_i\}$ conditioned on $c_{\mathrm{spec}}$:
+\begin{equation}
+  \mathcal{L}_{\mathrm{diff}}
+  = \mathbb{E}_{z_0,\epsilon,t}
+    \left\|v - v_\theta(z_t,\, t,\, c_{\mathrm{spec}})\right\|_2^2,
+  \label{eq:diffusion_loss}
+\end{equation}
+using $v$-prediction for numerical stability.
+
+\placeholder{Describe the full training loss including $\mathcal{L}_{\mathrm{rec}}$
+(L1 + multi-scale STFT), $\mathcal{L}_{\mathrm{chart}}$, and
+$\mathcal{L}_{\mathrm{smooth}}$. Discuss the non-repeatable training
+design (SEED=None, NOISE\_INJECT).}
+
+\subsection{Stage 2 — Dense Unconditional Sampling (Sound-Bank Generation)}
+\label{subsec:stage2}
+
+Given trained $\mathcal{M}$, a sound bank $\mathcal{B}$ of $n$ clips is
+generated by running the DDIM or Euler sampler on the 1-D DiT
+unconditionally, then decoding through the
+\texttt{ClockGatedGraphDecoder}:
+\begin{equation}
+  \hat{z}^{(j)} \sim p_\theta(z \mid c_{\mathrm{spec}}),
+  \qquad j = 1, \ldots, n,
+  \label{eq:sampling}
+\end{equation}
+\begin{equation}
+  \hat{x}^{(j)} = D_\psi\!\left(\hat{z}^{(j)};\;
+    U_q,\; \lambda^{\mathrm{ED}},\; c_{\mathrm{spec}}^{(j)}\right),
+  \label{eq:decoding}
+\end{equation}
+where $c_{\mathrm{spec}}^{(j)}$ is derived \emph{self-consistently} from
+$\hat{z}^{(j)}$ itself (no separate chart sampling required). The bank
+$\mathcal{B} = \{\hat{x}^{(1)}, \ldots, \hat{x}^{(n)}\}$ consists of
+samples that are perceptually self-similar — drawn from the same frozen
+manifold — yet acoustically distinct because \texttt{SEED=None} is the
+default.
+
+\placeholder{Discuss the ``super-dense'' character of the bank: why
+all samples share stylistic identity while varying locally. Relate to the
+frozen prior design constraint (corpus-level prior, not per-clip).}
+
+\subsection{Stage 3 — MIDI-Conditioned Materialisation (Rehydration)}
+\label{subsec:stage3}
+
+\subsubsection{Language-model MIDI generation}
+
+A language model (e.g.\ a GPT-based symbolic music model) generates a MIDI
+file $\mathcal{P}$ = $\{(p_i, t_i, d_i)\}$ where $p_i$ is the MIDI pitch,
+$t_i$ the onset time, and $d_i$ the duration of note $i$.
+
+\placeholder{Describe the GPT-MIDI generation front-end: prompt design,
+conditioning on genre/key/BPM, and the interface to LSD-Studio. Discuss
+alternative symbolic sources (human MIDI, rule-based generation, MusicXML).}
+
+\subsubsection{Pitch-shifted decoding (synthesize\_midi)}
+
+For each note $(p_i, t_i, d_i)$ the adapter selects a bank clip
+$\hat{x}^{(j)}$ and applies pitch-shifting to MIDI pitch $p_i$ via the
+\texttt{synthesize\_midi} method of \texttt{LSDModel}:
+\begin{equation}
+  y_i = \mathrm{PitchShift}\!\left(\hat{x}^{(j)},\;
+    \Delta p_i\right)\bigg|_{[t_i,\; t_i + d_i]},
+  \label{eq:pitchshift}
+\end{equation}
+where $\Delta p_i$ is the semitone offset from the bank clip's reference
+pitch. The materialised output is
+\begin{equation}
+  Y^{(1)} = \sum_i y_i,
+  \label{eq:materialise}
+\end{equation}
+a waveform that follows the symbolic structure of $\mathcal{P}$ while
+carrying the spectral identity of the source library.
+
+\subsubsection{Audio-conditioned variant generation}
+
+Optionally, the materialised output $Y^{(1)}$ is fed back into the model
+via \texttt{condition\_on\_audio} (Mode~B) to generate variants:
+\begin{equation}
+  \hat{z}' \sim p_\theta(z \mid z_{\mathrm{cond}} + \eta),
+  \qquad \eta \sim \mathcal{N}(0, \sigma^2 I),
+  \label{eq:conditioned_sampling}
+\end{equation}
+where $z_{\mathrm{cond}} = E_\phi(Y^{(1)})$ is the conditioning latent
+and $\sigma$ is the perturbation strength. The chart conditioning
+$c_{\mathrm{spec}}$ is re-derived from $\hat{z}'$, keeping the output on
+the archive manifold.
+
+\subsection{Stage 4 — Recursive Variant Generation}
+\label{subsec:stage4}
+
+Stages~2 and~3 are applied recursively. Let $\mathcal{P}^{(1)}, \ldots,
+\mathcal{P}^{(R)}$ be $R$ distinct MIDI files (generated by the language
+model or supplied by the producer). The recursive scheme is:
+\begin{align}
+  \mathcal{B}^{(0)} &= \texttt{generate\_sound\_bank}(n),
+  \label{eq:recursive_init}\\
+  Y^{(r)} &= \texttt{synthesize\_midi}\!\left(\mathcal{P}^{(r)},\;
+    \mathcal{B}^{(r-1)}\right),
+  \label{eq:recursive_synth}\\
+  \mathcal{B}^{(r)} &= \texttt{condition\_on\_audio}\!\left(Y^{(r)},\;
+    n,\; \sigma_r\right),
+  \qquad r = 1, \ldots, R.
+  \label{eq:recursive_cond}
+\end{align}
+Each round deepens the stylistic imprint of the source library while
+incorporating new symbolic content from $\mathcal{P}^{(r)}$. The family
+$\{Y^{(1)}, \ldots, Y^{(R)}\}$ constitutes a set of \emph{variants}
+related by shared spectral ancestry.
+
+\subsubsection{Convergence and heat-death stopping}
+
+The recursive process is bounded intrinsically by the heat-death criterion
+(Eq.~\ref{eq:heat_death}): if the conditioning latent $z_{\mathrm{cond}}$
+has collapsed to a near-constant spectral chart, additional conditioning
+passes yield diminishing novelty. In practice, the producer controls depth
+via $R$ and the perturbation schedule $\{\sigma_r\}$.
+
+\subsection{Final Assembly — Multitrack Mixing}
+\label{subsec:mixing}
+
+The variant outputs $\{Y^{(1)}, \ldots, Y^{(R)}\}$ plus any selections
+from the unconditional bank $\mathcal{B}^{(0)}$ form a natural stem set
+for a multitrack mix. Within LSD-Studio, these are routed to a mix bus
+with per-stem gain, panning, and effect chains. Additional post-processing
+(overlap-and-add long-form generation, BPS-synchronised modulation,
+latent-space concatenation) is available via the notebook series
+(02--04)~\cite{lsd}.
+
+\placeholder{Describe the DAW integration and MIDI synchronisation in
+LSD-Studio. Discuss how BPM and key are propagated from the LM-generated
+MIDI through to the mix.}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{System Architecture}
+\label{sec:architecture}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Frozen ArrowSpace Prior and Manifold Construction}
+\label{subsec:arch_prior}
+
+The ArrowSpace prior is built once from the corpus by \texttt{build\_prior.py}
+and stored as non-trainable buffers:
+\begin{equation}
+  \Pi_q = U_q U_q^\top \in \mathbb{R}^{F \times F},
+  \label{eq:projector}
+\end{equation}
+the spectral projector onto the smooth subspace. The frozen design
+constraint means that $L_F$ and $U_q$ never receive gradient updates;
+only the graph decoder and DiT are trained. This ensures that the
+manifold geometry is a property of the \emph{corpus}, not a function of
+any single training run.
+
+\placeholder{Describe the kNN graph construction, the ArrowSpace library
+API (\texttt{gl}, \texttt{lambdas()}), and the fallback behaviour when
+\texttt{pyarrowspace} bindings are unavailable.}
+
+\subsection{1-D DiT Denoiser}
+\label{subsec:arch_dit}
+
+The denoiser \texttt{MinimalDiT} patchifies the 1-D latent
+$z \in \mathbb{R}^{D \times T}$ with stride-$s$ convolutions, applies
+$L$ transformer blocks with AdaLN conditioning on $(t, c_{\mathrm{spec}})$,
+and unpatchifies to predict velocity $v$. Classifier-free guidance (CFG)
+is applied by randomly dropping $c_{\mathrm{spec}}$ during training with
+probability $p_{\mathrm{drop}}$, enabling guidance-scale control at
+inference.
+
+\subsection{Graph Decoder}
+\label{subsec:arch_decoder}
+
+The \texttt{ClockGatedGraphDecoder} processes the denoised latent
+$\hat{z}$ through a sequence of \texttt{WaveReconstructionBlock}s:
+\begin{align}
+  \hat{H} &= A \cdot U_q,
+  \label{eq:project_chart}\\
+  g &= \sigma(W_g \cdot c_{\mathrm{spec}})\; \odot\; \bar{\alpha}(t),
+  \label{eq:gate}\\
+  A' &= (\hat{H} \odot g) \cdot U_q^\top + A_{\mathrm{res}},
+  \label{eq:lift}
+\end{align}
+where $A_{\mathrm{res}}$ is a residual convolution path and
+$\bar{\alpha}(t)$ is the Barontini clock gate (weak early in denoising,
+strong late). The decoder thus allocates reconstruction energy according
+to the corpus dispersion $\lambda^{\mathrm{ED}}$, not arbitrary learned
+weights.
+
+\subsection{Inference Contract (A / B / C)}
+\label{subsec:arch_inference}
+
+\texttt{LSDModel} (defined in \texttt{src/ald\_sc/inference.py})
+exposes three methods that directly implement Stages~2--4:
+
+\begin{description}
+  \item[Mode A: \texttt{generate\_sound\_bank(n, steps, temperature, seed)}]
+    Unconditional DiT sampling + graph decode. Implements Stage~2.
+  \item[Mode B: \texttt{condition\_on\_audio(audio, n, strength, seed)}]
+    Conditioned sampling with SDE bridge toward the input latent.
+    Used in Stage~4 feedback loops.
+  \item[Mode C: \texttt{synthesize\_midi(midi\_path, bank, seed)}]
+    Pitch-shifted bank decoding driven by a MIDI file.
+    Implements Stage~3.
+\end{description}
+
+\subsection{LSD-Studio: Producer UX and Mix Bus}
+\label{subsec:arch_studio}
+
+LSD-Studio~\cite{lsdstudio} is a Rust + \texttt{iced} desktop
+application that wraps the Python LSD model workers and exposes the
+full Spectral Composition workflow to the producer: library ingestion,
+model baking, sound-bank auditioning, MIDI sequencing, recursive
+generation, and multitrack mixing. The application builds to a single
+self-contained binary; Python workers are embedded at compile time.
+
+\placeholder{Architecture diagram of the IPC bridge between Rust frontend
+and Python workers. Describe the preset system and mix-bus signal flow.}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Implementation and Datasets}
+\label{sec:implementation}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Software Stack}
+\label{subsec:impl_stack}
+
+The LSD model core is implemented in Python~3.13 with PyTorch~$\geq$2.2,
+using \texttt{uv} for dependency management. The graph prior is computed
+via \texttt{pyarrowspace} (Rust bindings). LSD-Studio is implemented in
+Rust (stable) with the \texttt{iced} GUI framework and communicates with
+Python workers over a JSON-RPC IPC channel. The full source code,
+evaluation pipeline, and trained-model checkpoints are available at
+\url{https://github.com/tuned-org-uk/latent-sound-diffusion}.
+
+\subsection{Sound Archive and Licensing}
+\label{subsec:impl_datasets}
+
+LSD-Studio ships with support for four commercially-licensed datasets,
+all carrying CC0 or CC~BY~4.0 licences suitable for commercial
+production:
+
+\begin{table}[h]
+\centering
+\caption{Supported sound archive datasets.}
+\begin{tabular}{llll}
+\toprule
+Dataset & Size & Content & Licence \\
+\midrule
+NSynth~\cite{nsynth} & 300K notes & Musical notes, 1006 instruments & CC BY 4.0 \\
+Clotho~\cite{clotho} & $\sim$5K clips & Environmental audio with captions & CC BY 4.0 \\
+FSD50K-CC0 & $\sim$10K clips & Diverse environmental audio & CC0 \\
+Freesound Loop Dataset & $\sim$9700 clips & Loop clips & CC0 \\
+\bottomrule
+\end{tabular}
+\label{tab:datasets}
+\end{table}
+
+\subsection{Training Details}
+\label{subsec:impl_training}
+
+Two design decisions make each training run artistically non-repeatable:
+\textbf{(i)}~\texttt{SEED=None}: a fresh random seed is sampled at the
+start of each run, so no two trained models are identical;
+\textbf{(ii)}~\texttt{NOISE\_INJECT}: a scalar $\sigma_{\mathrm{inj}} \geq 0$
+controls noise injected into the EnCodec latent $z$ before the graph
+decoder's training pass, increasing acoustic variety at the cost of
+reconstruction fidelity.
+
+\placeholder{Table of hyperparameters (learning rate, batch size,
+decoder/DiT architecture dimensions, $q$, $K$, \texttt{NOISE\_INJECT}
+sweep). Training time on target hardware.}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Evaluation}
+\label{sec:evaluation}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Perceptual Coherence of Recursive Variants}
+\label{subsec:eval_recursive}
+
+\placeholder{
+Propose a listening study evaluating whether recursive variants are
+perceived as stylistically related to the source library across $R$
+rounds. Metrics: pairwise timbral similarity (e.g.\ CLAP embedding
+cosine distance), spectral centroid/rolloff drift over rounds, producer
+preference ratings.
+}
+
+\subsection{Reconstruction Fidelity: Graph Decoder vs.\ Baseline}
+\label{subsec:eval_reconstruction}
+
+The primary controlled comparison isolates the graph decoder
+(\texttt{WaveReconstructionBlock} + $U_q$ + $\lambda^{\mathrm{ED}}$) against
+a baseline decoder of identical channel widths and upsampling strides but
+with plain \texttt{ResBlock1d} (no $U_q$, no $\lambda^{\mathrm{ED}}$).
+
+\placeholder{
+Report multi-scale STFT reconstruction loss, audio FAD (once dependency
+issues with \texttt{fadtk} are resolved), and per-band spectral energy
+retention for graph vs.\ baseline on ESC-50 and NSynth subsets.
+}
+
+\subsection{Ablation Studies}
+\label{subsec:eval_ablation}
+
+\placeholder{
+Ablation over: (1) $q$ (number of retained spectral modes), (2)
+\texttt{NOISE\_INJECT} level, (3) CFG guidance scale, (4) heat-death
+threshold $\varepsilon$, (5) recursion depth $R$. Metrics: diversity
+(mean pairwise distance in CLAP space) vs.\ fidelity (STFT loss).
+}
+
+\subsection{Limitations and Open Issues}
+\label{subsec:eval_limitations}
+
+\placeholder{
+Discuss: FAD computation (\texttt{fadtk} removed; multi-scale STFT used
+as fallback); real-data experiments pending (ESC-50, NSynth);
+pitch-shifting artefacts in \texttt{synthesize\_midi}; scalability of
+ArrowSpace graph construction to large archives ($N > 10$K); and the
+absence of long-form ($>$8s) compositional structure in the current
+recursive scheme.
+}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Spectral Composition as a Creative Paradigm}
+\label{subsec:disc_paradigm}
+
+\placeholder{
+Contrast Spectral Composition with (a) loop-based composition (static
+library, manual arrangement), (b) sample-based AI tools that generate
+independent clips (AudioCraft, Stable Audio), and (c) purely symbolic
+generative models (MusicGen, Jukebox). Argue that the manifold-constrained,
+recursively rehydrated workflow occupies a distinct position: it maintains
+strong stylistic identity with the producer's own archive while enabling
+genuine novelty.
+}
+
+\subsection{Relationship to Generative-AI Music Tools}
+\label{subsec:disc_related}
+
+\placeholder{
+Survey of relevant systems: Google MusicLM, Meta AudioCraft/MusicGen,
+Stability Audio, Riffusion, Moûsai, AudioLDM 2. Situate Spectral
+Composition relative to each with respect to: (1) source identity
+preservation, (2) producer control, (3) symbolic grounding via MIDI,
+(4) recursive/iterative generation.
+}
+
+\subsection{Ethical and Licensing Considerations}
+\label{subsec:disc_ethics}
+
+\placeholder{
+Discuss: training on commercially-licensed datasets (all CC0/CC~BY~4.0);
+the dehydration step as a form of model-mediated compression of the
+producer's private library; implications for sample clearance; and the
+``sound of the future'' framing as a creative rather than extractive
+application.
+}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Future Work}
+\label{sec:futurework}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Text/CLAP Conditioning and Genre Control}
+
+\placeholder{
+Extend Stage~2 and Stage~3 with text and CLAP conditioning (tracked as
+LSD Phase~2). Discuss joint text + graph CFG guidance and genre-conditioned
+bank generation.
+}
+
+\subsection{Long-Form Generation and Wave Recurrence}
+
+\placeholder{
+Describe the overlap-and-add notebook (02) and latent-space concatenation
+(04) as current approximations to long-form composition. Motivate the
+ESDM wave-recurrence mechanism~\cite{esdm} as a principled replacement,
+enabling second-order graph-wave propagation in the decoder.
+}
+
+\subsection{Full Entropic Training Schedules}
+
+\placeholder{
+The current model uses the entropic clock only at inference (sampling
+stopping criterion). Discuss training with per-mode noise schedules as
+an open research direction~\cite{aldsc} (issue \#11).
+}
+
+\subsection{Federated and Personalised Priors}
+
+\placeholder{
+Motivate federated training of ArrowSpace priors across multiple producers'
+private archives without sharing raw audio, as a privacy-preserving
+extension of the dehydration step.
+}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+%% ─────────────────────────────────────────────────────────────────────────────
+
+Spectral Composition introduces a four-stage compositional workflow —
+dehydration, dense sampling, MIDI-conditioned materialisation, and
+recursive variant generation — that grounds sample-based music production
+in a compressed spectral latent manifold estimated from the producer's
+own library. The method is fully implemented in the LSD model core and
+LSD-Studio application, requiring only the addition of a language-model
+MIDI front-end to complete the pipeline. By anchoring every generative
+and compositional operation to the same frozen ArrowSpace prior
+$(L_F, U_q, \lambda^{\mathrm{ED}})$, Spectral Composition ensures that
+all generated and rehydrated sounds share spectral lineage with the
+source archive, yielding variant families that are simultaneously novel
+and stylistically coherent.
+
+\placeholder{Summarise the main experimental findings (to be filled once
+evaluation is complete).}
+
+
+%% ─────────────────────────────────────────────────────────────────────────────
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+\bibitem{lsd}
+tuned-org-uk.
+\newblock {Latent Sound Diffusion (LSD)}: Sound-generation fork of ALD-SC.
+\newblock GitHub repository, 2026.
+\newblock \url{https://github.com/tuned-org-uk/latent-sound-diffusion}
+
+\bibitem{aldsc}
+tuned-org-uk.
+\newblock {ArrowSpace Latent Diffusion with Spectral Chart Conditioning (ALD-SC)}.
+\newblock GitHub repository, 2026.
+\newblock \url{https://github.com/tuned-org-uk/arrowspace-latent-diffusion}
+
+\bibitem{lsdstudio}
+tuned-org-uk.
+\newblock {LSD Studio}: Latent Sound Diffusion desktop application.
+\newblock GitHub repository, 2026.
+\newblock \url{https://github.com/tuned-org-uk/LSD-studio}
+
+\bibitem{esdm}
+tuned-org-uk.
+\newblock {Entropic Semantic Diffusion Model (ESDM)}.
+\newblock GitHub repository, 2026.
+\newblock \url{https://github.com/tuned-org-uk/entropic-semantic-diffusion}
+
+\bibitem{pyarrowspace}
+tuned-org-uk.
+\newblock {pyarrowspace}: ArrowSpace library (Rust bindings).
+\newblock GitHub repository, 2026.
+\newblock \url{https://github.com/tuned-org-uk/pyarrowspace}
+
+\bibitem{arrowspace_joss}
+L.\ Moriondo et al.
+\newblock {ArrowSpace}: Spectral search for embeddings.
+\newblock \textit{Journal of Open Source Software}, 2026.
+\newblock \url{https://doi.org/10.21105/joss.09002}
+
+\bibitem{edn2025}
+tuned-org-uk.
+\newblock Energy Dispersion Networks.
+\newblock arXiv:2606.21535, 2025.
+\newblock \url{https://arxiv.org/abs/2606.21535}
+
+\bibitem{rombach2022}
+R.\ Rombach, A.\ Blattmann, D.\ Lorenz, P.\ Esser, and B.\ Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In \textit{CVPR}, 2022.
+
+\bibitem{defossez2022}
+A.\ D\'{e}fossez, J.\ Copet, G.\ Synnaeve, and Y.\ Adi.
+\newblock {EnCodec}: High fidelity neural audio compression.
+\newblock arXiv:2210.13438, 2022.
+
+\bibitem{barontini2026}
+F.\ Barontini.
+\newblock Testing the problem of time with cold atoms.
+\newblock \textit{Physical Review Letters}, 2026.
+
+\bibitem{stancevic2025}
+I.\ Stancevic et al.
+\newblock Entropic time schedulers for generative diffusion models.
+\newblock arXiv preprint, 2025.
+
+\bibitem{nsynth}
+J.\ Engel et al.
+\newblock Neural audio synthesis of musical notes with {WaveNet} autoencoders.
+\newblock In \textit{ICML}, 2017.
+
+\bibitem{clotho}
+K.\ Drossos, S.\ Lipping, and T.\ Virtanen.
+\newblock Clotho: An audio captioning dataset.
+\newblock In \textit{ICASSP}, 2020.
+
+\bibitem{piczak2015}
+K.\ J.\ Piczak.
+\newblock {ESC}: Dataset for environmental sound classification.
+\newblock In \textit{ACM Multimedia}, 2015.
+
+\bibitem{spectral_blog}
+tuned.org.uk.
+\newblock Diffusion as spectral-geometric projection, 2024.
+\newblock \url{https://www.tuned.org.uk/posts/021_diffusion_as_spectral_geometric_projection/}
+
+\end{thebibliography}
+
+\end{document}
