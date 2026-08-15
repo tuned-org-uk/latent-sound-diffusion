@@ -3,7 +3,7 @@
   "checkpoint_id": "d162af86a632",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "docs/spectral-composition/document.pdf",
     "docs/spectral-composition/document.tex"
@@ -15,13 +15,20 @@
       "compact_transcript": "/d1/62af86a632/0/transcript.jsonl",
       "content_hash": "/d1/62af86a632/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/d1/62af86a632/1/metadata.json",
+      "transcript": "/d1/62af86a632/1/full.jsonl",
+      "compact_transcript": "/d1/62af86a632/1/transcript.jsonl",
+      "content_hash": "/d1/62af86a632/1/content_hash.txt",
+      "prompt": "/d1/62af86a632/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 20846,
+    "cache_creation_tokens": 410705,
+    "cache_read_tokens": 6891026,
+    "output_tokens": 10770,
+    "api_call_count": 21
   }
 }
