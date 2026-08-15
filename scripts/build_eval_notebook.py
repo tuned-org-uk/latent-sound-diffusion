@@ -4,7 +4,8 @@ The notebook presents all evaluation deliverables. By default it loads the
 pre-computed results produced by ``scripts/run_evaluation.py`` (the faithful
 full training pipeline) so it executes in seconds with real output cells.
 Set ``TRAIN_FROM_SCRATCH = True`` to re-run the full pipeline in-notebook
-(~20 min CPU / ~5 min MPS for the baseline+DiT; graph decoder must use CPU).
+(~20 min CPU / ~5 min MPS; the graph decoder no longer requires CPU —
+MPS parity is validated, see scripts/repro_mps_divergence.py and issue #51).
 
     uv run python scripts/build_eval_notebook.py
     uv run jupyter nbconvert --to notebook --execute notebooks/07_evaluation_metrics.ipynb

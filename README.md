@@ -165,6 +165,7 @@ isolates graph structure as the only variable.
 - [#1](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/1) — Sound generation: end-to-end audio synthesis via ALD-SC
 - FAD computation (`fadtk` removed due to dependency conflicts; multi-scale STFT used as fallback)
 - Real-data experiments on ESC-50 with real EnCodec (notebooks 05 and 06 use real EnCodec; notebook 01 is a CPU demo)
+- [#51](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/51) — graph-decoder MPS divergence: resolved (collateral of the EnCodec lazy-load device bug); `train_audio_decoder` now clips gradients (default 1.0) with a non-finite guard, and CPU/MPS parity is locked in by `tests/test_device_parity.py` + `scripts/repro_mps_divergence.py`
 
 ---
 

@@ -13,6 +13,7 @@ This module must not define model architectures (per AGENTS.md §11).
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator
 
 import structlog
@@ -41,6 +42,7 @@ def train_audio_decoder(
     lr: float = 1e-4,
     device: torch.device = torch.device("cpu"),
     noise_std: float = 0.0,
+    grad_clip: float | None = 1.0,
 ) -> Iterator[dict[str, float]]:
     """Phase 1 audio decoder training loop.
 
@@ -66,11 +68,22 @@ def train_audio_decoder(
         reproduces the deterministic baseline. Larger values produce
         different, non-repeatable training runs — a feature for artistic
         exploration rather than a bug.
+    grad_clip : float | None
+        Max global gradient norm for ``clip_grad_norm_``. Default 1.0
+        guards against the edge-of-stability gradient spikes observed at
+        lr >= 1e-3 (see issue #51); None disables clipping.
 
     Yields
     ------
     dict[str, float]
-        Loss dict with 'epoch', 'loss', 'rec', 'stft', 'chart', 'smooth'.
+        Loss dict with 'epoch', 'loss', 'rec', 'stft', 'chart', 'smooth',
+        'grad_norm' (NaN when clipping is disabled).
+
+    Raises
+    ------
+    RuntimeError
+        If the loss or gradient norm becomes non-finite, so divergence is
+        a diagnosable event instead of a silent runaway.
     """
     audio_vae = audio_vae.to(device)
     prior = prior.to(device)
@@ -87,7 +100,7 @@ def train_audio_decoder(
     is_baseline = isinstance(decode, BaselineAudioDecoder)
 
     for epoch in range(epochs):
-        for batch in loader:
+        for step, batch in enumerate(loader):
             x = batch.to(device) if isinstance(batch, Tensor) else batch[0].to(device)
             optimizer.zero_grad()
 
@@ -104,16 +117,37 @@ def train_audio_decoder(
             A_hat = A.detach()
             losses = loss_fn(x, x_hat, A, A_hat)
 
-            losses["total"].backward()
+            total = losses["total"]
+            if not math.isfinite(float(total.item())):
+                raise RuntimeError(
+                    f"Non-finite decoder loss at epoch {epoch} step {step} "
+                    f"(lr={lr}, grad_clip={grad_clip}). Diverging run — "
+                    "lower lr or keep grad_clip enabled (issue #51)."
+                )
+
+            total.backward()
+            if grad_clip is not None:
+                grad_norm = float(
+                    torch.nn.utils.clip_grad_norm_(decoder_params, grad_clip)
+                )
+                if not math.isfinite(grad_norm):
+                    raise RuntimeError(
+                        f"Non-finite gradient norm ({grad_norm}) at epoch "
+                        f"{epoch} step {step} (lr={lr}). Diverging run — "
+                        "lower lr (issue #51)."
+                    )
+            else:
+                grad_norm = float("nan")
             optimizer.step()
 
             yield {
                 "epoch": epoch,
-                "loss": float(losses["total"].item()),
+                "loss": float(total.item()),
                 "rec": float(losses["rec"].item()),
                 "stft": float(losses["stft"].item()),
                 "chart": float(losses["chart"].item()),
                 "smooth": float(losses["smooth"].item()),
+                "grad_norm": grad_norm,
             }
 
 

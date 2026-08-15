@@ -163,6 +163,84 @@ class TestTrainAudioDecoder:
             assert d["loss"] >= 0.0
             assert "epoch" in d and "loss" in d
 
+    def test_yields_grad_norm(self) -> None:
+        """Default grad_clip=1.0 yields finite pre-clip grad norms."""
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        vae = _make_vae(base_channels=16)
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=4, audio_length=320 * 16)
+
+        losses = list(
+            train_audio_decoder(loader, vae, prior, loss_fn, epochs=1, lr=1e-3)
+        )
+        assert len(losses) > 0
+        for d in losses:
+            assert "grad_norm" in d
+            assert d["grad_norm"] == d["grad_norm"]  # finite (not NaN)
+
+    def test_grad_clip_bounds_gradient_norm(self) -> None:
+        """With clip active, post-step parameter grads respect the bound."""
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        vae = _make_vae(base_channels=16)
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=4, audio_length=320 * 16)
+        clip = 1e-3
+
+        list(
+            train_audio_decoder(
+                loader, vae, prior, loss_fn, epochs=1, lr=1e-3, grad_clip=clip
+            )
+        )
+        for p in vae.decoder.parameters():
+            if p.grad is not None:
+                assert float(p.grad.norm()) <= clip * 1.001
+
+    def test_grad_clip_disabled_yields_nan_grad_norm(self) -> None:
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        vae = _make_vae(base_channels=16)
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=4, audio_length=320 * 16)
+
+        losses = list(
+            train_audio_decoder(
+                loader, vae, prior, loss_fn, epochs=1, lr=1e-3, grad_clip=None
+            )
+        )
+        assert len(losses) > 0
+        for d in losses:
+            assert d["grad_norm"] != d["grad_norm"]  # NaN sentinel
+
+    def test_nonfinite_loss_raises(self) -> None:
+        """A NaN decoder output must raise a clear RuntimeError, not yield."""
+        import pytest
+
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+
+        class NanDecoder(nn.Module):
+            def __init__(self) -> None:
+                super().__init__()
+                self.dummy = nn.Parameter(torch.zeros(1))
+
+            def forward(self, z: Tensor, c_spec: Tensor) -> Tensor:
+                out = torch.zeros(z.shape[0], 1, z.shape[2] * 320, device=z.device)
+                return out * float("nan")
+
+        encoder = StubEncoder(latent_dim=128)
+        vae = AudioVAE(encoder=encoder, decoder=NanDecoder())
+        loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0)
+        loader = _make_dataloader(n=4, audio_length=320 * 16)
+
+        with pytest.raises(RuntimeError, match="Non-finite decoder loss"):
+            list(train_audio_decoder(loader, vae, prior, loss_fn, epochs=1))
+
 
 class TestTrainAudioDiffusion:
     def test_diffusion_loss_decreases(self) -> None:
