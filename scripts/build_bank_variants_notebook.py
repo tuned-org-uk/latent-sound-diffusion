@@ -1,0 +1,498 @@
+"""Build notebooks/08_bank_variant_modes.ipynb for issue #53 (v0.11.0).
+
+The notebook exercises the bank-variant modes wired into
+``LSDModel.generate_sound_bank`` (``bank_mode`` / ``bank_variety``) with a
+full training + inference pipeline, comparing the generated audio across
+modes like the other notebooks (audible ``IPython.display.Audio`` players,
+spectrograms, and a reference training clip):
+
+- ``TRAIN_FROM_SCRATCH = False`` (default): load the trained checkpoints
+  from ``results/artifacts/`` — the same models behind
+  ``results/bank_variants.csv``.
+- ``TRAIN_FROM_SCRATCH = True``: build the prior from the training split,
+  train the graph decoder (NOISE_INJECT) and the 1-D DiT in-notebook
+  (same trainers as ``scripts/run_evaluation.py`` / notebook 07), then run
+  the identical comparison.
+
+Measures the diversity metrics of the pre-registered gate (pairwise
+waveform L1, centroid spread, RMS), sweeps the ``bank_variety`` dial,
+writes audition WAVs, and — on the artifact checkpoints — cross-checks
+against the recorded experiment CSV (``results/bank_variants.csv``).
+
+    uv run python scripts/build_bank_variants_notebook.py
+    uv run jupyter nbconvert --to notebook --execute notebooks/08_bank_variant_modes.ipynb
+"""
+
+from __future__ import annotations
+
+import nbformat as nbf
+
+nb = nbf.v4.new_notebook()
+nb.metadata = {
+    "kernelspec": {
+        "display_name": "Python 3 (ipykernel)",
+        "language": "python",
+        "name": "python3",
+    },
+    "language_info": {
+        "codemirror_mode": {"name": "ipython", "version": 3},
+        "file_extension": ".py",
+        "mimetype": "text/x-python",
+        "name": "python",
+        "nbconvert_exporter": "python",
+        "pygments_lexer": "ipython",
+        "version": "3.13.12",
+    },
+}
+
+cells = []
+
+
+def md(src: str) -> None:
+    cells.append(nbf.v4.new_markdown_cell(src))
+
+
+def code(src: str) -> None:
+    cells.append(nbf.v4.new_code_cell(src))
+
+
+md(
+    "# Bank Variant Modes — Training & Inference Comparison (v0.11.0, issue #53)\n"
+    "\n"
+    "v0.11.0 added explicit **variant modes** to bank generation. The\n"
+    "undertrained unconditional DiT contracts every noise draw to (nearly)\n"
+    "one latent (#52), so raw DDIM draws yield n near-identical clips. The\n"
+    "decoder, however, trained with NOISE_INJECT, tolerates a latent\n"
+    "neighbourhood — so we vary *around the canonical draw* $\\bar{z}$ and\n"
+    "decode each variant.\n"
+    "\n"
+    "Interface (`LSDModel.generate_sound_bank`):\n"
+    "\n"
+    "| `bank_mode` | latent rule | `bank_variety` |\n"
+    "|---|---|---|\n"
+    "| `canonical` (default) | n independent DDIM draws | — |\n"
+    "| `jitter` | $\\bar{z} + \\alpha\\,\\sigma_z\\,\\varepsilon_i$ | noise amplitude $\\alpha$ |\n"
+    "| `residual` | $\\bar{z} + k\\,(z_i - \\bar{z})$ | amplified residual rel. std |\n"
+    "| `stopvar` | same seed, step count swept 0.24–0.98·steps | unused |\n"
+    "\n"
+    "This notebook runs the **full pipeline** — data → prior → (train or\n"
+    "load) decoder + DiT → banks in every mode → metrics, spectrograms and\n"
+    "audible comparisons against a reference training clip — like the other\n"
+    "workflow notebooks. Pre-registered gate (#53): **USEFUL iff pairwise\n"
+    "L1 ≥ 0.05 AND FAD ≤ 1200 AND RMS ≥ 0.35 AND centroid spread > 20 Hz**;\n"
+    "gate-passing arms: `jitter_a0.5` (L1 0.182), `resid_r0.3` (0.112),\n"
+    "`stopvar` (0.073)."
+)
+
+md(
+    "## Setup\n"
+    "\n"
+    "`TRAIN_FROM_SCRATCH = False` (default) loads the checkpoints in\n"
+    "`results/artifacts/` — the exact models behind the frozen decision\n"
+    "record `results/bank_variants.csv`. Set `True` to train the prior,\n"
+    "graph decoder (NOISE_INJECT `σ=0.1`) and 1-D DiT in-notebook on the\n"
+    "archive subset (same trainers as `scripts/run_evaluation.py`; a few\n"
+    "minutes on MPS at the default epochs). MPS is used when available."
+)
+
+code(
+    "# --- Knobs ---\n"
+    "TRAIN_FROM_SCRATCH = False\n"
+    "\n"
+    "SEED = 3407\n"
+    "N_BANK, STEPS = 8, 50\n"
+    "AUDIO_LENGTH, SAMPLE_RATE = 96000, 24000   # latent length = 96000 / 320 = 300\n"
+    "SUBSET_SIZE, TRAIN_FRAC, VAL_FRAC = 256, 0.7, 0.15\n"
+    "Q, K = 8, 4\n"
+    "BATCH_SIZE, LR = 8, 1e-3\n"
+    "DECODER_EPOCHS, DIFFUSION_EPOCHS, NOISE_INJECT = 20, 20, 0.1\n"
+    "\n"
+    "from pathlib import Path\n"
+    "\n"
+    "REPO = Path.cwd().parent if Path.cwd().name == 'notebooks' else Path.cwd()\n"
+    "ARTIFACTS = REPO / 'results' / 'artifacts'\n"
+    "OUT_DIR = REPO / 'notebooks' / 'results' / 'bank_variants'\n"
+    "OUT_DIR.mkdir(parents=True, exist_ok=True)\n"
+    "\n"
+    "if not TRAIN_FROM_SCRATCH:\n"
+    "    assert (ARTIFACTS / 'dit.pt').exists(), (\n"
+    "        'results/artifacts/ missing — run scripts/run_evaluation.py first '\n"
+    "        'or set TRAIN_FROM_SCRATCH = True'\n"
+    "    )\n"
+    "print(f'train_from_scratch={TRAIN_FROM_SCRATCH}, seed={SEED}, n={N_BANK}, steps={STEPS}')"
+)
+
+code(
+    "import random\n"
+    "import statistics\n"
+    "\n"
+    "import matplotlib.pyplot as plt\n"
+    "import soundfile as sf\n"
+    "import torch\n"
+    "from IPython.display import Audio, display\n"
+    "\n"
+    "from ald_sc.audio_codec import AudioVAE, EnCodecEncoder\n"
+    "from ald_sc.build_prior import build_arrow_prior\n"
+    "from ald_sc.data import AudioFolderDataset, build_audio_dataloader\n"
+    "from ald_sc.dit import MinimalDiT\n"
+    "from ald_sc.eval import spectral_centroid, split_files\n"
+    "from ald_sc.graph_decoder import GraphDecoder\n"
+    "from ald_sc.inference import BANK_MODES, LSDModel\n"
+    "from ald_sc.losses import ALDSCLoss\n"
+    "from ald_sc.schedule import CosineSchedule\n"
+    "from ald_sc.trainer import log_training, train_audio_decoder, train_audio_diffusion\n"
+    "\n"
+    "device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')\n"
+    "random.seed(SEED)\n"
+    "torch.manual_seed(SEED)\n"
+    "print(f'device={device}, BANK_MODES={BANK_MODES}')"
+)
+
+md(
+    "## Step 1 — Archive and split\n"
+    "\n"
+    "Same protocol as `scripts/run_evaluation.py`: a seeded subset of the\n"
+    "archive, split 70/15/15 train/val/test. The training split feeds the\n"
+    "prior (and the trainers, when `TRAIN_FROM_SCRATCH`); a held-out clip\n"
+    "serves as the audible reference."
+)
+
+code(
+    "all_files = sorted((REPO / 'data').glob('*.wav'))\n"
+    "selected = random.Random(SEED).sample(all_files, min(SUBSET_SIZE, len(all_files)))\n"
+    "train_files, val_files, test_files = split_files(selected, TRAIN_FRAC, VAL_FRAC, seed=SEED)\n"
+    "\n"
+    "def make_ds(files):\n"
+    "    ds = AudioFolderDataset(root=str(REPO / 'data'), audio_length=AUDIO_LENGTH,\n"
+    "                            sample_rate=SAMPLE_RATE)\n"
+    "    ds.files = files\n"
+    "    return ds\n"
+    "\n"
+    "train_ds = make_ds(train_files)\n"
+    "print(f'archive={len(all_files)}, subset={len(selected)}, '\n"
+    "      f'train={len(train_files)} val={len(val_files)} test={len(test_files)}')"
+)
+
+md(
+    "## Step 2 — Model: load the shipped checkpoints, or train from scratch\n"
+    "\n"
+    "Both paths produce the same bundle: frozen ArrowSpace prior + graph\n"
+    "decoder + 1-D DiT + frozen EnCodec encoder, wrapped in `LSDModel`."
+)
+
+code(
+    "encoder = EnCodecEncoder(sample_rate=SAMPLE_RATE, bandwidth=24).to(device).eval()\n"
+    "\n"
+    "if TRAIN_FROM_SCRATCH:\n"
+    "    # Prior from training-set pooled EnCodec features (run_evaluation.py protocol)\n"
+    "    feat_loader = build_audio_dataloader(train_ds, batch_size=BATCH_SIZE, shuffle=False)\n"
+    "    feats = [encoder.extract_features(b).mean(dim=2) for b in feat_loader]\n"
+    "    embeddings = torch.cat(feats, dim=0).cpu()\n"
+    "    prior = build_arrow_prior(embeddings, q=Q, k=K).to(device)\n"
+    "    print(f'prior built from {embeddings.shape[0]} clips: '\n"
+    "          f'L_F={tuple(prior.L_F.shape)}, q={prior.q}')\n"
+    "\n"
+    "    loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0,\n"
+    "                        lambda_chart=0.5, lambda_smooth=0.1)\n"
+    "    train_loader = build_audio_dataloader(train_ds, batch_size=BATCH_SIZE, shuffle=True)\n"
+    "\n"
+    "    decoder = GraphDecoder(latent_channels=128, out_channels=1, feature_dim=128,\n"
+    "                           base_channels=32, prior=prior, upsample_strides=(2, 4, 5, 8))\n"
+    "    vae = AudioVAE(encoder=encoder, decoder=decoder)\n"
+    "    print(f'training graph decoder ({DECODER_EPOCHS} epochs, noise_inject={NOISE_INJECT})...')\n"
+    "    list(log_training(\n"
+    "        train_audio_decoder(train_loader, vae, prior, loss_fn,\n"
+    "                            epochs=DECODER_EPOCHS, lr=LR, device=device,\n"
+    "                            noise_std=NOISE_INJECT),\n"
+    "        label='graph-decoder',\n"
+    "    ))\n"
+    "\n"
+    "    dit = MinimalDiT(latent_channels=128, latent_length=AUDIO_LENGTH // 320,\n"
+    "                     patch_size=8, dim=64, depth=2, num_heads=4, spec_dim=3 * Q)\n"
+    "    sched = CosineSchedule(num_steps=1000)\n"
+    "    for p in vae.parameters():\n"
+    "        p.requires_grad_(False)\n"
+    "    print(f'training DiT ({DIFFUSION_EPOCHS} epochs)...')\n"
+    "    list(log_training(\n"
+    "        train_audio_diffusion(train_loader, vae, dit, prior, sched,\n"
+    "                              epochs=DIFFUSION_EPOCHS, lr=LR, device=device),\n"
+    "        label='dit',\n"
+    "    ))\n"
+    "else:\n"
+    "    prior = build_arrow_prior(\n"
+    "        torch.load(ARTIFACTS / 'embeddings.pt', weights_only=False), q=Q, k=K\n"
+    "    ).to(device)\n"
+    "    decoder = GraphDecoder(\n"
+    "        latent_channels=128, out_channels=1, feature_dim=128,\n"
+    "        base_channels=32, prior=prior, upsample_strides=(2, 4, 5, 8),\n"
+    "    ).to(device).eval()\n"
+    "    decoder.load_state_dict(\n"
+    "        torch.load(ARTIFACTS / 'graph_dec.pt', weights_only=False, map_location='cpu')\n"
+    "    )\n"
+    "    dit = MinimalDiT(\n"
+    "        latent_channels=128, latent_length=300, patch_size=8,\n"
+    "        dim=64, depth=2, num_heads=4, spec_dim=24,\n"
+    "    ).to(device).eval()\n"
+    "    dit.load_state_dict(\n"
+    "        torch.load(ARTIFACTS / 'dit.pt', weights_only=False, map_location='cpu')\n"
+    "    )\n"
+    "    sched = CosineSchedule(num_steps=1000)\n"
+    "    print('loaded checkpoints from results/artifacts/ (run_evaluation.py models)')\n"
+    "\n"
+    "model = LSDModel(prior=prior, dit=dit, decoder=decoder, encoder=encoder,\n"
+    "                 schedule=sched, sample_rate=SAMPLE_RATE)\n"
+    "print('LSDModel ready.')"
+)
+
+md(
+    "## Step 3 — Generate a bank in every mode\n"
+    "\n"
+    "Defaults follow the gate-passing arms: `jitter` at variety 0.5,\n"
+    "`residual` at 0.3. Each bank is n=8 clips, 50 DDIM steps."
+)
+
+code(
+    "banks = {\n"
+    "    'canonical': model.generate_sound_bank(n=N_BANK, steps=STEPS, seed=SEED),\n"
+    "    'jitter_0.5': model.generate_sound_bank(\n"
+    "        n=N_BANK, steps=STEPS, seed=SEED, bank_mode='jitter', bank_variety=0.5\n"
+    "    ),\n"
+    "    'residual_0.3': model.generate_sound_bank(\n"
+    "        n=N_BANK, steps=STEPS, seed=SEED, bank_mode='residual', bank_variety=0.3\n"
+    "    ),\n"
+    "    'stopvar': model.generate_sound_bank(\n"
+    "        n=N_BANK, steps=STEPS, seed=SEED, bank_mode='stopvar'\n"
+    "    ),\n"
+    "}\n"
+    "banks_cpu = {k: [c.cpu() for c in v] for k, v in banks.items()}\n"
+    "print({k: len(v) for k, v in banks_cpu.items()})"
+)
+
+md(
+    "## Step 4 — Measure the gate metrics per mode\n"
+    "\n"
+    "Pairwise waveform L1 (diversity), centroid spread (Hz), RMS\n"
+    "(degeneracy guard) — the same metrics as the pre-registered gate\n"
+    "(FAD-proxy omitted here for speed; see `scripts/bank_variants.py`\n"
+    "for the full protocol)."
+)
+
+code(
+    "def bank_metrics(clips):\n"
+    "    l1 = [\n"
+    "        float((clips[a] - clips[b]).abs().mean())\n"
+    "        for a in range(len(clips))\n"
+    "        for b in range(a + 1, len(clips))\n"
+    "    ]\n"
+    "    cents = [float(spectral_centroid(c).mean()) for c in clips]\n"
+    "    rms = float(\n"
+    "        torch.cat([c.pow(2).mean().unsqueeze(0) for c in clips]).sqrt().mean()\n"
+    "    )\n"
+    "    return {\n"
+    "        'L1_mean': round(statistics.mean(l1), 4),\n"
+    "        'L1_min': round(min(l1), 4),\n"
+    "        'L1_max': round(max(l1), 4),\n"
+    "        'spread_hz': round(statistics.stdev(cents), 1),\n"
+    "        'centroid_hz': round(statistics.mean(cents), 1),\n"
+    "        'RMS': round(rms, 3),\n"
+    "    }\n"
+    "\n"
+    "rows = []\n"
+    "for name, clips in banks_cpu.items():\n"
+    "    m = bank_metrics(clips)\n"
+    "    m.update(mode=name, gate='USEFUL' if (\n"
+    "        m['L1_mean'] >= 0.05 and m['RMS'] >= 0.35 and m['spread_hz'] > 20\n"
+    "    ) else '-')\n"
+    "    rows.append(m)\n"
+    "\n"
+    "print(f\"{'mode':<12} {'L1':>7} {'spread':>7} {'RMS':>6}  gate\")\n"
+    "for r in rows:\n"
+    "    print(f\"{r['mode']:<12} {r['L1_mean']:>7} {r['spread_hz']:>7} \"\n"
+    "          f\"{r['RMS']:>6}  {r['gate']}\")"
+)
+
+md(
+    "Expected on the artifact checkpoints, after the v0.11 perceptual-fix\n"
+    "(DC-block in `_normalize` + stopvar floor, PR #59 feedback):\n"
+    "\n"
+    "- `canonical`: L1 ≈ 0.000 — the contraction; every draw the same clip\n"
+    "- `jitter_0.5`: L1 ≈ 0.211, DC-free basis (pre-fix record: 0.182)\n"
+    "- `residual_0.3`: L1 ≈ 0.162 (pre-fix record: 0.112)\n"
+    "- `stopvar` (floor 0.5): L1 ≈ 0.034 — playable but below the 0.05\n"
+    "  diversity gate; the recorded 0.073 verdict was carried by\n"
+    "  under-denoised, unplayable early-stop clips\n"
+    "\n"
+    "All banks now carry max|DC| < 1e-5 (was +0.41–+0.56 — the cause of\n"
+    "the \"unplayable\" perceptual feedback). RMS likewise drops to the\n"
+    "honest AC level (~0.13–0.23): the frozen gate's 0.35 RMS floor was\n"
+    "calibrated on DC-inflated values, so the gate column below reads\n"
+    "`-` everywhere post-fix — the diversity (L1) criterion still holds.\n"
+    "With `TRAIN_FROM_SCRATCH =\n"
+    "True` the numbers differ (fresh, shorter training run) but the\n"
+    "ordering should hold: canonical ≈ 0 diversity, variant modes spread."
+)
+
+md(
+    "## Step 5 — Sweep the `bank_variety` dial (jitter)\n"
+    "\n"
+    "`bank_variety` is the 0–1 diversity slider (LSD-studio mapping:\n"
+    "dropdown = `bank_mode`, slider = `bank_variety`). Diversity should be\n"
+    "monotone in the dial, with 0 collapsing to the canonical clip."
+)
+
+code(
+    "sweep = []\n"
+    "for a in (0.0, 0.05, 0.1, 0.25, 0.5):\n"
+    "    bank = model.generate_sound_bank(\n"
+    "        n=N_BANK, steps=STEPS, seed=SEED,\n"
+    "        bank_mode='jitter', bank_variety=a,\n"
+    "    )\n"
+    "    m = bank_metrics([c.cpu() for c in bank])\n"
+    "    m.update(alpha=a)\n"
+    "    sweep.append(m)\n"
+    "\n"
+    "print(f\"{'alpha':>6} {'L1':>7} {'spread':>7} {'RMS':>6}\")\n"
+    "for r in sweep:\n"
+    "    print(f\"{r['alpha']:>6} {r['L1_mean']:>7} {r['spread_hz']:>7} {r['RMS']:>6}\")"
+)
+
+md(
+    "## Step 6 — Compare the audio, as in the other notebooks\n"
+    "\n"
+    "Audition the palette: a **reference training clip**, the **canonical\n"
+    'bank** (n near-identical "house voice" clips), and the first clip of\n'
+    "each **variant bank** — the qualitative claim behind the gate: same\n"
+    "frozen manifold (one sound), audible intra-bank variation (many\n"
+    "voices)."
+)
+
+code(
+    "ref = train_ds[0].cpu()          # (1, T) reference training clip\n"
+    "display(Audio(ref.numpy(), rate=SAMPLE_RATE))\n"
+    "print('^^ reference training clip')\n"
+    "\n"
+    "for i in (0, 1, 2):\n"
+    "    display(Audio(banks_cpu['canonical'][i].numpy(), rate=SAMPLE_RATE))\n"
+    "print('^^ canonical bank clips 0-2 (the contraction: near-identical)')\n"
+    "\n"
+    "for mode in ('jitter_0.5', 'residual_0.3', 'stopvar'):\n"
+    "    display(Audio(banks_cpu[mode][0].numpy(), rate=SAMPLE_RATE))\n"
+    "    print(f'^^ {mode} — clip 0 (same seed/z-bar as canonical clip 0)')\n"
+    "    display(Audio(banks_cpu[mode][N_BANK // 2].numpy(), rate=SAMPLE_RATE))\n"
+    "    print(f'^^ {mode} — clip {N_BANK // 2} (a different variant)')"
+)
+
+code(
+    "# Spectrogram grid: reference vs canonical vs one clip per variant mode\n"
+    "import numpy as np\n"
+    "import scipy.signal as scisig\n"
+    "\n"
+    "panels = [('reference (train)', ref)] + [\n"
+    "    (name, banks_cpu[name][0]) for name in banks_cpu\n"
+    "]\n"
+    "fig, axes = plt.subplots(len(panels), 1, figsize=(8, 2.1 * len(panels)),\n"
+    "                          sharex=True)\n"
+    "for ax, (name, clip) in zip(axes, panels):\n"
+    "    f, t, Sx = scisig.spectrogram(\n"
+    "        clip.squeeze(0).numpy(), fs=SAMPLE_RATE, nperseg=1024)\n"
+    "    ax.pcolormesh(t, f, 10 * np.log10(Sx + 1e-10), shading='auto', cmap='magma')\n"
+    "    ax.set_ylabel(f'{name}\\n(Hz)')\n"
+    "axes[-1].set_xlabel('time (s)')\n"
+    "fig.suptitle('Reference vs generated banks, per variant mode')\n"
+    "fig.tight_layout()\n"
+    "plt.show()"
+)
+
+md(
+    "## Step 7 — Write audition WAVs, then play them back\n"
+    "\n"
+    "One subdirectory per mode, `NN.wav` per clip, plus the reference clip.\n"
+    "The artifacts are then reloaded **from disk** and played back —\n"
+    "auditioning exactly what was written."
+)
+
+code(
+    "for name, clips in banks_cpu.items():\n"
+    "    mode_dir = OUT_DIR / name\n"
+    "    mode_dir.mkdir(parents=True, exist_ok=True)\n"
+    "    for i, clip in enumerate(clips):\n"
+    "        sf.write(str(mode_dir / f'{i:02d}.wav'), clip.squeeze(0).numpy(), SAMPLE_RATE)\n"
+    "sf.write(str(OUT_DIR / 'reference_train.wav'), ref.squeeze(0).numpy(), SAMPLE_RATE)\n"
+    "\n"
+    "written = sorted(OUT_DIR.glob('*/*.wav')) + [OUT_DIR / 'reference_train.wav']\n"
+    "print(f'wrote {len(written)} WAVs under {OUT_DIR}')\n"
+    "\n"
+    "# Playback the written artifacts (from disk)\n"
+    "for name in ('canonical', 'jitter_0.5', 'residual_0.3', 'stopvar'):\n"
+    "    w0, _ = sf.read(OUT_DIR / name / '00.wav')\n"
+    "    w4, _ = sf.read(OUT_DIR / name / '04.wav')\n"
+    "    print(f'--- {name}: artifact 00.wav')\n"
+    "    display(Audio(w0, rate=SAMPLE_RATE))\n"
+    "    print(f'--- {name}: artifact 04.wav')\n"
+    "    display(Audio(w4, rate=SAMPLE_RATE))\n"
+    "wref, _ = sf.read(OUT_DIR / 'reference_train.wav')\n"
+    "print('--- reference_train.wav (written artifact)')\n"
+    "display(Audio(wref, rate=SAMPLE_RATE))"
+)
+
+md(
+    "## Step 8 — Cross-check against the experiment record\n"
+    "\n"
+    "`results/bank_variants.csv` is the frozen decision record (13 arms,\n"
+    "measured *before* the perceptual fixes). The v0.11 DC-block changes\n"
+    "the waveform basis (per-clip DC removed before L1), so exact values\n"
+    "shift; what must hold is the **ordering** — canonical ≪ stopvar <\n"
+    "residual < jitter — and closeness within the DC-removal shift\n"
+    "(tolerance 0.06). Valid only for the artifact checkpoints."
+)
+
+code(
+    "import csv\n"
+    "\n"
+    "if not TRAIN_FROM_SCRATCH:\n"
+    "    csv_path = REPO / 'results' / 'bank_variants.csv'\n"
+    "    with open(csv_path) as f:\n"
+    "        record = {r['arm']: r for r in csv.DictReader(f)}\n"
+    "\n"
+    "    for name, arm in (\n"
+    "        ('jitter_0.5', 'jitter_a0.5'),\n"
+    "        ('residual_0.3', 'resid_r0.3'),\n"
+    "    ):\n"
+    "        rec = record[arm]\n"
+    "        row = next(r for r in rows if r['mode'] == name)\n"
+    "        match = abs(row['L1_mean'] - float(rec['l1_mean'])) < 0.06\n"
+    "        print(f\"{name:<12} notebook L1 {row['L1_mean']:.4f}  \"\n"
+    "              f\"csv(pre-fix) {float(rec['l1_mean']):.4f}  close={match}\")\n"
+    "    order = [r['L1_mean'] for r in rows]\n"
+    "    assert order[0] == 0.0 and 0 < order[3] < order[2] < order[1], rows\n"
+    "    print('ordering canonical < stopvar < residual < jitter: OK')\n"
+    "else:\n"
+    "    print('TRAIN_FROM_SCRATCH=True — fresh models, record cross-check skipped')\n"
+    "    assert rows[0]['L1_mean'] < 0.01, 'canonical should contract to near-zero diversity'\n"
+    "    print('canonical contraction reproduced on the fresh model: OK')"
+)
+
+md(
+    "## Reproducibility & interface notes\n"
+    "\n"
+    "- Same seed → identical banks per mode (unit-tested in\n"
+    "  `tests/test_inference.py::TestBankModes`).\n"
+    "- `bank_variety=0` reduces `jitter`/`residual` exactly to the canonical\n"
+    '  clip — the slider\'s left end is a safe "same as Stock" anchor.\n'
+    "- Invalid `bank_mode` raises `ValueError`; the UI should bind its\n"
+    "  dropdown directly to the exported `BANK_MODES` tuple.\n"
+    "- `Bank.from_generation(model, bank_mode=..., bank_variety=...)`\n"
+    "  wraps generation with provenance for studio storage.\n"
+    "\n"
+    "Related: [issue #53](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/53) "
+    "(decision record), [issue #58](https://github.com/tuned-org-uk/latent-sound-diffusion/issues/58) "
+    "(output-noise follow-up), PR #55 (implementation)."
+)
+
+nb.cells = cells
+
+out = __import__("pathlib").Path(__file__).resolve().parent.parent / "notebooks"
+out.mkdir(exist_ok=True)
+path = out / "08_bank_variant_modes.ipynb"
+nbf.write(nb, str(path))
+print(f"wrote {path} ({len(cells)} cells)")
