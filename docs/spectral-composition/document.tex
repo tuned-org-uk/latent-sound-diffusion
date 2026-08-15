@@ -505,6 +505,25 @@ in max-norm collapse to $1.2\times10^{-6}$ after 49 DDIM steps), so the
 ``many voices'' property is a design target and an explicit open front
 of the scale-up, not a currently demonstrated behaviour.
 
+\paragraph{Role of the sampler at preliminary scale}
+The contraction measurement lets us state precisely what DDIM does and
+does not contribute at this training scale. It \emph{is} the manifold
+projector — the map from noise onto whatever the DiT learned — but
+projecting onto a near-single-point manifold, so each bank draw yields
+the model's canonical sound (the bake's ``house voice''), coherent by
+construction. It is also the carrier of the heat-death clock, and that
+function is already productive: the $\varepsilon$ sweep of
+Section~\ref{subsec:eval_ablation} rides on the DDIM trajectory and
+buys its compute/quality tradeoff there. What the sampler does
+\emph{not} currently provide is spread across the corpus distribution —
+that role is deferred until $v_\theta$ becomes input-dependent at
+scale, requiring no pipeline change. Meanwhile variety in the workflow
+comes from the sampler-bypassing paths: Mode-B latent interpolation
+(Stage~3) and the \texttt{NOISE\_INJECT} training dial. At preliminary
+scale the division of labour is therefore: DDIM for the canonical sound
+and the stopping dial, interpolation for the variety; the scale-up
+re-merges the two roles as designed.
+
 \subsection{Stage 3 — MIDI-Conditioned Materialisation (Rehydration)}
 \label{subsec:stage3}
 
@@ -661,11 +680,20 @@ path (Section~\ref{subsec:eval_limitations}).
 
 The denoiser \texttt{MinimalDiT} patchifies the 1-D latent
 $z \in \mathbb{R}^{D \times T}$ with stride-$s$ convolutions, applies
-$L$ transformer blocks with AdaLN conditioning on $(t, c_{\mathrm{spec}})$,
-and unpatchifies to predict velocity $v$. Classifier-free guidance (CFG)
-is applied by randomly dropping $c_{\mathrm{spec}}$ during training with
-probability $p_{\mathrm{drop}}$, enabling guidance-scale control at
-inference.
+$L$ transformer blocks with AdaLN conditioning, and unpatchifies to
+predict velocity $v$. The architecture admits spectral conditioning on
+$c_{\mathrm{spec}}$ with classifier-free-guidance dropout, enabling
+guidance-scale control at inference; in the configuration reported
+here, however, the DiT is trained \emph{unconditionally} (time-only
+AdaLN), so guidance is inactive and $c_{\mathrm{spec}}$ enters the
+pipeline only through the decoder
+(Section~\ref{subsec:arch_decoder}). The contraction measurement of
+Section~\ref{subsec:eval_ablation} characterises this instance rather
+than the sampler: with an undertrained, input-independent $v_\theta$,
+every DDIM trajectory converges regardless of its initial noise.
+Input-dependence at scale restores the sampler's intended role —
+spreading draws across the corpus distribution
+(Section~\ref{subsec:stage2}).
 
 \subsection{Graph Decoder}
 \label{subsec:arch_decoder}
