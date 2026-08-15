@@ -529,16 +529,20 @@ re-merges the two roles as designed.
 
 \subsubsection{Language-model MIDI generation}
 
-A language model (e.g.\ a GPT-based symbolic music model) generates a MIDI
+A language model (e.g.\ MIDI-GPT~\cite{midigpt2025}, a GPT-2-based
+symbolic music model) generates a MIDI
 file $\mathcal{P}$ = $\{(p_i, t_i, d_i)\}$ where $p_i$ is the MIDI pitch,
 $t_i$ the onset time, and $d_i$ the duration of note $i$.
 
 \emph{Implementation status.} This front-end is implemented in the
-shipped system: LSD-Studio carries a proprietary symbolic-generation
-worker that emits quantised event lists conforming to the
+shipped system: LSD-Studio's symbolic-generation worker leverages the
+open-source MIDI-GPT model~\cite{midigpt2025} and emits quantised event
+lists conforming to the
 $(p_i, t_i, d_i)$ schema \texttt{synthesize\_midi} consumes, with
 producer controls over musical role (melodic, chordal, bass,
-percussive), length, and note density. Its design is undisclosed; what
+percussive), length, and note density. The underlying symbolic model is
+open-source and cited~\cite{midigpt2025}; the studio-side integration is
+proprietary. What
 matters for the pipeline is the interface, which is deliberately
 swappable: any source of symbolic material — hand-played MIDI,
 rule-based generators, imported MusicXML rendered to MIDI, or clip
@@ -1515,7 +1519,7 @@ final text remain the responsibility of the author.
 
 Figure~\ref{fig:studio} shows the shipped Train surface of
 LSD-Studio~\cite{lsdstudio}. Generation and shaping modes are exposed
-as tabs --- LSD, LSD+ENV, MIDI-GPT, MIDI+ENV, Playback --- alongside
+as tabs --- LSD, LSD+ENV, MIDI-GPT~\cite{midigpt2025}, MIDI+ENV, Playback --- alongside
 training controls over the producer's own archive. The stored-models
 list records, for every baked model, its provenance: creation date,
 epoch count, final loss, training corpus, and LSD version. This is the
@@ -1660,6 +1664,13 @@ high-quality music and speech synthesis.
 P.\ Schneider, F.\ Camero, J.\ Thickstun, and S.\ Ermon.
 \newblock Mo\^usai: Symbolic music generation with diffusion.
 \newblock In \textit{ICML}, 2023.
+
+\bibitem{midigpt2025}
+P.\ Pasquier, J.\ Ens, N.\ Fradet, P.\ Triana, D.\ Rizzotti,
+J.-B.\ Rolland, and M.\ Safi.
+\newblock {MIDI-GPT}: A controllable generative model for
+computer-assisted multitrack music composition.
+\newblock arXiv preprint arXiv:2501.17011, 2025.
 
 \bibitem{connesrovelli1994}
 A.\ Connes and C.\ Rovelli.
