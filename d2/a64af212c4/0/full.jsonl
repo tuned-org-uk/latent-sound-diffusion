@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 8.228970669999999,
+    "cost": 8.35929275,
     "tokens": {
-      "input": 580002,
-      "output": 48054,
+      "input": 581224,
+      "output": 49045,
       "reasoning": 45800,
       "cache": {
-        "read": 24884805,
+        "read": 25362693,
         "write": 212759
       }
     },
     "time": {
       "created": 1786798004702,
-      "updated": 1786814442541
+      "updated": 1786814499789
     }
   },
   "messages": [
@@ -26899,21 +26899,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.0428294,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 159520,
+          "input": 211,
+          "output": 269,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 159040
           }
         },
         "modelID": "glm-5.3",
         "providerID": "opencode-go",
         "time": {
-          "created": 1786814442539
+          "created": 1786814442539,
+          "completed": 1786814478275
         },
+        "finish": "tool-calls",
         "id": "msg_00670ac2b002Aa3CZSia4PXfJd",
         "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
       },
@@ -26930,21 +26933,202 @@
           "tool": "bash",
           "callID": "call_42f886b68339422a82422fea",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add scripts/compare_bank_modes.py scripts/build_bank_variants_notebook.py notebooks/08_bank_variant_modes.ipynb results/bank_mode_comparison.csv && git commit -m \"feat: comparative bank-mode similarity test + variants-system notebook (issue #53)\n\n- scripts/compare_bank_modes.py: generates banks through the library\n  interface in every bank_mode x variety setting and measures\n  within-bank diversity (pairwise L1, EnCodec-feature cosine) plus\n  anchoring (feature cosine to the canonical z-bar clip); writes\n  results/bank_mode_comparison.csv. Reproduces the #53 gate arms\n  exactly; new finding: all variant banks stay >=0.9937 cosine to the\n  canonical voice (measured 'one bank, many voices, one sound')\n- notebooks/08_bank_variant_modes.ipynb (+ builder script): hands-on\n  test of the v0.11.0 variations system — all modes, gate metrics,\n  bank_variety sweep, audition WAVs, cross-check vs the frozen CSV\n- 249 tests pass; ruff + ty clean\" && git push -u origin feat/bank-mode-comparison 2>&1 | tail -1",
               "timeout": 120000
             },
+            "output": "[feat/bank-mode-comparison 1b2633e] feat: comparative bank-mode similarity test + variants-system notebook (issue #53)\n 4 files changed, 1056 insertions(+)\n create mode 100644 notebooks/08_bank_variant_modes.ipynb\n create mode 100644 results/bank_mode_comparison.csv\n create mode 100644 scripts/build_bank_variants_notebook.py\n create mode 100644 scripts/compare_bank_modes.py\nbranch 'feat/bank-mode-comparison' set up to track 'origin/feat/bank-mode-comparison'.\n",
+            "metadata": {
+              "output": "[feat/bank-mode-comparison 1b2633e] feat: comparative bank-mode similarity test + variants-system notebook (issue #53)\n 4 files changed, 1056 insertions(+)\n create mode 100644 notebooks/08_bank_variant_modes.ipynb\n create mode 100644 results/bank_mode_comparison.csv\n create mode 100644 scripts/build_bank_variants_notebook.py\n create mode 100644 scripts/compare_bank_modes.py\nbranch 'feat/bank-mode-comparison' set up to track 'origin/feat/bank-mode-comparison'.\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add scripts/compare_bank_modes.py scripts/build_bank_variants_notebook.py notebooks/08_bank_variant_modes.ipynb results/bank_mode_comparison.csv && git commit -m \"feat: comparative bank-mode similarity test + variants-system notebook (issue #53)\n\n- scripts/compare_bank_modes.py: generates banks through the library\n  interface in every bank_mode x variety setting and measures\n  within-bank diversity (pairwise L1, EnCodec-feature cosine) plus\n  anchoring (feature cosine to the canonical z-bar clip); writes\n  results/bank_mode_comparison.csv. Reproduces the #53 gate arms\n  exactly; new finding: all variant banks stay >=0.9937 cosine to the\n  canonical voice (measured 'one bank, many voices, one sound')\n- notebooks/08_bank_variant_modes.ipynb (+ builder script): hands-on\n  test of the v0.11.0 variations system — all modes, gate metrics,\n  bank_variety sweep, audition WAVs, cross-check vs the frozen CSV\n- 249 tests pass; ruff + ty clean\" && git push -u origin feat/bank-mode-comparison 2>&1 | tail -1",
             "time": {
-              "start": 1786814455176
+              "start": 1786814478046,
+              "end": 1786814478049
             }
           },
           "id": "prt_00670dd77001bNtMhq6dDBG4LG",
           "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
           "messageID": "msg_00670ac2b002Aa3CZSia4PXfJd"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "443a1f902a6a7ecf1cc668fdf123cfec02e0ae82",
+          "type": "step-finish",
+          "tokens": {
+            "total": 159520,
+            "input": 211,
+            "output": 269,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 159040
+            }
+          },
+          "cost": 0.0428294,
+          "id": "prt_006713752001wD1241mxF3D07u",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_00670ac2b002Aa3CZSia4PXfJd"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0066dde53001qOgdkzlsth9r4X",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.04435732,
+        "tokens": {
+          "total": 160187,
+          "input": 415,
+          "output": 540,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 159232
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786814478301,
+          "completed": 1786814499622
+        },
+        "finish": "tool-calls",
+        "id": "msg_0067137dd002oKKzFf8bddQvm7",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "443a1f902a6a7ecf1cc668fdf123cfec02e0ae82",
+          "type": "step-start",
+          "id": "prt_006717a10001kadiOU2X4j4IME",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_0067137dd002oKKzFf8bddQvm7"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_4e28b248e85d43ffa706647d",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head feat/bank-mode-comparison --title \"feat: comparative bank-mode similarity test + variants-system notebook\" --body \"Follow-up to v0.11.0 (issue #53). Two deliverables:\n\n## 1. \\`scripts/compare_bank_modes.py\\` — comparative similarity test\n\nGenerates banks through the shipped interface (\\`generate_sound_bank\\`) in **every** variant setting — \\`canonical\\`, \\`jitter\\`×{0.05,0.1,0.25,0.5}, \\`residual\\`×{0.1,0.3}, \\`stopvar\\` — and measures per bank:\n\n- **Within-bank diversity**: pairwise waveform L1 (mean/min/max) + pairwise EnCodec-feature cosine similarity\n- **Anchoring to the canonical voice**: feature cosine of each variant clip to the canonical clip (same seed/z̄)\n- Guards: centroid spread (Hz), RMS; #53 gate verdict per arm\n\nWrites \\`results/bank_mode_comparison.csv\\`. Results reproduce the frozen decision record exactly (\\`jitter_a0.5\\` L1 0.1820, \\`resid_r0.3\\` 0.1120, \\`stopvar\\` 0.0730).\n\n**New finding:** all variant banks remain ≥ **0.9937** feature-cosine to the canonical z̄ clip — the paper's \\\"one bank, many voices, one sound\\\" claim now has a measured number: diversity is real at waveform level (L1 up to 0.18) while every variant stays anchored to the frozen manifold.\n\n## 2. \\`notebooks/08_bank_variant_modes.ipynb\\` (+ \\`scripts/build_bank_variants_notebook.py\\`)\n\nHands-on test of the variations system, fully executed: loads the checkpoints, generates banks in all modes, gate-metric table, \\`bank_variety\\` dial sweep (monotone diversity, 0 → canonical), audition WAVs per mode, and a bit-for-bit cross-check against \\`results/bank_variants.csv\\`.\n\n## Verification\n\n- notebook executed end-to-end (nbconvert), all cells green, cross-check \\`match=True\\` on all arms\n- 249 tests pass; ruff check/format clean; ty clean\n\nRelated: #53 (decision record), #58 (noise follow-up).\" 2>&1 | tail -1",
+              "timeout": 120000
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/59\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/59\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head feat/bank-mode-comparison --title \"feat: comparative bank-mode similarity test + variants-system notebook\" --body \"Follow-up to v0.11.0 (issue #53). Two deliverables:\n\n## 1. \\`scripts/compare_bank_modes.py\\` — comparative similarity test\n\nGenerates banks through the shipped interface (\\`generate_sound_bank\\`) in **every** variant setting — \\`canonical\\`, \\`jitter\\`×{0.05,0.1,0.25,0.5}, \\`residual\\`×{0.1,0.3}, \\`stopvar\\` — and measures per bank:\n\n- **Within-bank diversity**: pairwise waveform L1 (mean/min/max) + pairwise EnCodec-feature cosine similarity\n- **Anchoring to the canonical voice**: feature cosine of each variant clip to the canonical clip (same seed/z̄)\n- Guards: centroid spread (Hz), RMS; #53 gate verdict per arm\n\nWrites \\`results/bank_mode_comparison.csv\\`. Results reproduce the frozen decision record exactly (\\`jitter_a0.5\\` L1 0.1820, \\`resid_r0.3\\` 0.1120, \\`stopvar\\` 0.0730).\n\n**New finding:** all variant banks remain ≥ **0.9937** feature-cosine to the canonical z̄ clip — the paper's \\\"one bank, many voices, one sound\\\" claim now has a measured number: diversity is real at waveform level (L1 up to 0.18) while every variant stays anchored to the frozen manifold.\n\n## 2. \\`notebooks/08_bank_variant_modes.ipynb\\` (+ \\`scripts/build_bank_variants_notebook.py\\`)\n\nHands-on test of the variations system, fully executed: loads the checkpoints, generates banks in all modes, gate-metric table, \\`bank_variety\\` dial sweep (monotone diversity, 0 → canonical), audition WAVs per mode, and a bit-for-bit cross-check against \\`results/bank_variants.csv\\`.\n\n## Verification\n\n- notebook executed end-to-end (nbconvert), all cells green, cross-check \\`match=True\\` on all arms\n- 249 tests pass; ruff check/format clean; ty clean\n\nRelated: #53 (decision record), #58 (noise follow-up).\" 2>&1 | tail -1",
+            "time": {
+              "start": 1786814499206,
+              "end": 1786814499224
+            }
+          },
+          "id": "prt_006717b2e001d0UNJ5kHCKXD1g",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_0067137dd002oKKzFf8bddQvm7"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "443a1f902a6a7ecf1cc668fdf123cfec02e0ae82",
+          "type": "step-finish",
+          "tokens": {
+            "total": 160187,
+            "input": 415,
+            "output": 540,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 159232
+            }
+          },
+          "cost": 0.04435732,
+          "id": "prt_006718a25001SYjR9RTj4p0le3",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_0067137dd002oKKzFf8bddQvm7"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0066dde53001qOgdkzlsth9r4X",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.04313536,
+        "tokens": {
+          "total": 160394,
+          "input": 596,
+          "output": 182,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 159616
+          }
+        },
+        "modelID": "glm-5.3",
+        "providerID": "opencode-go",
+        "time": {
+          "created": 1786814499777,
+          "completed": 1786814517887
+        },
+        "finish": "stop",
+        "id": "msg_006718bc1002PZT05U5Inv7mxM",
+        "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm"
+      },
+      "parts": [
+        {
+          "snapshot": "443a1f902a6a7ecf1cc668fdf123cfec02e0ae82",
+          "type": "step-start",
+          "id": "prt_00671c526001iLK1e4YeFrYeqZ",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_006718bc1002PZT05U5Inv7mxM"
+        },
+        {
+          "type": "text",
+          "text": "Done — PR #59: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/59\n\n- **`scripts/compare_bank_modes.py`** — all 8 variants through the library interface, similarity measured both ways: within-bank diversity (waveform L1 + feature cosine) and anchoring to the canonical voice. Gate arms reproduce the frozen CSV exactly; new measured result: every variant bank stays ≥0.9937 cosine to z̄ (\"many voices, one sound\" quantified). Writes `results/bank_mode_comparison.csv`.\n- **`notebooks/08_bank_variant_modes.ipynb`** — executed end-to-end: all modes, variety sweep, audition WAVs, CSV cross-check.\n\n249 tests pass, ruff + ty clean. Your own uncommitted edits to notebooks 01–05 were left untouched.",
+          "time": {
+            "start": 1786814514485,
+            "end": 1786814517438
+          },
+          "id": "prt_00671c535001QJjCt3GBU0OBP3",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_006718bc1002PZT05U5Inv7mxM"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "443a1f902a6a7ecf1cc668fdf123cfec02e0ae82",
+          "type": "step-finish",
+          "tokens": {
+            "total": 160394,
+            "input": 596,
+            "output": 182,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 159616
+            }
+          },
+          "cost": 0.04313536,
+          "id": "prt_00671d1cb001swWnkOVjAHegnQ",
+          "sessionID": "ses_ffa8a2621ffe2imSKo9Mlm2yjm",
+          "messageID": "msg_006718bc1002PZT05U5Inv7mxM"
         }
       ]
     }
