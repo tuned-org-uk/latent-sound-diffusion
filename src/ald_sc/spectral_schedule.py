@@ -112,7 +112,7 @@ class SpectralSchedule(nn.Module):
         return -self.nu
 
     def heat_death_metric(self, t: Tensor) -> Tensor:
-        """Heat-death metric: Σ ν_k · ᾱ_k(t).
+        """Heat-death metric (forward direction): Σ ν_k · ᾱ_k(t).
 
         This approximates the MMSE-weighted entropy rate from the paper.
         At t=0 the metric is high (modes are active); at t=T it approaches 0
@@ -126,13 +126,36 @@ class SpectralSchedule(nn.Module):
         Returns
         -------
         Tensor (scalar)
-            Heat-death metric. Below ``eps`` means heat death.
+            Heat-death metric of the forward process.
         """
         ab_k = self.alpha_bar_k(t)
         return (self.nu * ab_k).sum()
 
+    def remaining_dissipation(self, t: Tensor) -> Tensor:
+        """Remaining dissipation of the REVERSE process: Σ ν_k · (1 − ᾱ_k(t)).
+
+        During denoising (t: 1 → 0) each mode resolves on its own entropic
+        clock; this measures how much spectral structure is still unresolved.
+        It is maximal at t=1 (pure noise) and monotonically decreases to 0 as
+        sampling completes. Heat death of the reverse process = nothing
+        measurable left to resolve: ``remaining_dissipation(t) < eps``.
+
+        Parameters
+        ----------
+        t : Tensor (scalar)
+            External time in [0, 1].
+
+        Returns
+        -------
+        Tensor (scalar)
+            Remaining dissipation, in units of Σ ν_k.
+        """
+        ab_k = self.alpha_bar_k(t)
+        return (self.nu * (1.0 - ab_k)).sum()
+
     def is_heat_death(self, t: Tensor) -> bool:
-        """Intrinsic stopping criterion: heat death when metric < ε.
+        """Intrinsic stopping criterion (reverse process): heat death when
+        the remaining dissipation Σ ν_k (1 − ᾱ_k(t)) < ε.
 
         Parameters
         ----------
@@ -142,6 +165,6 @@ class SpectralSchedule(nn.Module):
         Returns
         -------
         bool
-            True if all modes are near equilibrium.
+            True if all modes are near equilibrium (nothing left to resolve).
         """
-        return self.heat_death_metric(t).item() < self.eps
+        return bool(self.remaining_dissipation(t).item() < self.eps)

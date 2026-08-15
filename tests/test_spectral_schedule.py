@@ -126,13 +126,31 @@ class TestSpectralSchedule:
         assert torch.allclose(sched.tau_k_max, sched.nu * 2.5, atol=1e-6)
 
     def test_heat_death_criterion(self) -> None:
-        """Heat death: Σ ν_k · mmse_k(t) < ε."""
+        """Reverse-process heat death: Σ ν_k · (1 − ᾱ_k(t)) < ε.
+
+        During denoising (t: 1 → 0) remaining dissipation decreases from
+        Σ ν_k (pure noise, nothing resolved) to 0 (sampling complete), so
+        heat death fires at t=0 and never at t=1. The previous forward-time
+        criterion Σ ν_k ᾱ_k(t) < ε fired at the START of sampling (t≈1),
+        which made the stopping criterion degenerate in the samplers.
+        """
         prior = _make_prior(f=32, q=8)
         sched = SpectralSchedule(prior, horizon=1.0, eps=1e-3)
-        # At t=0, mmse should be high (lots to resolve)
-        assert not sched.is_heat_death(torch.tensor(0.0))
-        # At t=T (horizon), all modes should be near equilibrium
-        assert sched.is_heat_death(torch.tensor(1.0))
+        # At t=0 sampling is complete: nothing left to resolve
+        assert sched.is_heat_death(torch.tensor(0.0))
+        # At t=1 (pure noise) all modes are unresolved: not heat death
+        assert not sched.is_heat_death(torch.tensor(1.0))
+
+    def test_remaining_dissipation_monotone(self) -> None:
+        """Remaining dissipation decreases as the reverse process proceeds."""
+        prior = _make_prior(f=32, q=8)
+        sched = SpectralSchedule(prior, horizon=1.0)
+        ts = torch.linspace(0.99, 0.01, 20)
+        vals = [sched.remaining_dissipation(t).item() for t in ts]
+        for i in range(1, len(vals)):
+            assert vals[i] <= vals[i - 1] + 1e-6, (
+                "Remaining dissipation should be non-increasing as t -> 0"
+            )
 
     def test_heat_death_threshold(self) -> None:
         """The heat death metric should decrease over time."""

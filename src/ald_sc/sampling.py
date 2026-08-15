@@ -91,7 +91,7 @@ def sample_euler(
     device : torch.device
     spectral_schedule : SpectralSchedule, optional
         If provided, sampling stops early when the heat-death criterion
-        ``Σ ν_k · ᾱ_k(t) < ε`` is met.
+        remaining dissipation ``Σ ν_k · (1 − ᾱ_k(t)) < ε`` is met.
     return_steps : bool
         If True, return (z, steps_used).
 

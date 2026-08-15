@@ -99,7 +99,8 @@ dimensions change: 2-D image latents become 1-D audio latents.
    predictions to recover $z_0$. The Barontini entropic clock
    (`spectral_schedule.py`) provides an optional intrinsic stopping
    criterion: sampling terminates when $\sum_k \nu_k
-   \bar\alpha_k(t) < \varepsilon$ (heat death).
+   \nu_k (1-\bar\alpha_k(t)) < \varepsilon$ (heat death of the reverse
+   process: nothing measurable left to resolve).
 
 6. **Decode** (graph decoder). This is the research contribution. The
    `GraphDecoder` (`graph_decoder.py`) takes $z_0$ and $c_{\mathrm{spec}}$

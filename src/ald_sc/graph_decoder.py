@@ -71,8 +71,10 @@ class WaveReconstructionBlock(nn.Module):
         self.gate = nn.Linear(3 * prior.q, prior.q)
         nn.init.zeros_(self.gate.bias)
 
-        self.feature_to_chart = nn.Linear(channels, feature_dim)
-        self.chart_to_feature = nn.Linear(feature_dim, channels)
+        self.feature_to_chart = nn.Conv1d(channels, feature_dim, 1)
+        self.chart_to_feature = nn.Conv1d(feature_dim, channels, 1)
+        self.chart_to_feature.weight.data.mul_(0.01)
+        self.chart_to_feature.bias.data.mul_(0.01)
 
         self.norm = nn.GroupNorm(8, channels)
         self.act = nn.SiLU()
@@ -92,29 +94,23 @@ class WaveReconstructionBlock(nn.Module):
         -------
         Tensor (B, C, T)
         """
-        # Pool over temporal axis: (B, C, T) -> (B, C)
-        pooled = h.mean(dim=2)
+        # Per-time-step projection to feature space: (B, C, T) -> (B, F, T)
+        a = self.feature_to_chart(h)
 
-        # Project to feature space: (B, C) -> (B, F)
-        a = self.feature_to_chart(pooled)
-
-        # Project to chart: (B, F) @ (F, q) -> (B, q)
-        h_hat = a @ self.U_q
+        # Project to chart: (B, F, T) @ (F, q) -> (B, q, T)
+        h_hat = torch.einsum("bft,fq->bqt", a, self.U_q)
 
         # Gate by dispersion: (B, 3q) -> (B, q)
         g = torch.sigmoid(self.gate(c_spec))
 
-        # Gated projection
-        gated = h_hat * g
+        # Gated projection (gate is clip-level, broadcast over time)
+        gated = h_hat * g.unsqueeze(-1)
 
-        # Lift back to feature space: (B, q) @ (q, F) -> (B, F)
-        a_recon = gated @ self.U_q.T
+        # Lift back to feature space: (B, q, T) @ (q, F) -> (B, F, T)
+        a_recon = torch.einsum("bqt,qf->bft", gated, self.U_q.T)
 
-        # Map back to channel space: (B, F) -> (B, C)
+        # Map back to channel space: (B, F, T) -> (B, C, T)
         delta = self.chart_to_feature(a_recon)
-
-        # Broadcast over temporal axis: (B, C) -> (B, C, 1)
-        delta = delta.unsqueeze(-1)
 
         h_modulated = h + delta
 
