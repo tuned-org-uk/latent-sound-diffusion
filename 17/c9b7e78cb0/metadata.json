@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "17c9b7e78cb0",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/spectral-composition/document.pdf",
+    "docs/spectral-composition/document.tex",
+    "docs/spectral-composition/figures/LSD-studio-screen.png"
+  ],
+  "sessions": [
+    {
+      "metadata": "/17/c9b7e78cb0/0/metadata.json",
+      "transcript": "/17/c9b7e78cb0/0/full.jsonl",
+      "compact_transcript": "/17/c9b7e78cb0/0/transcript.jsonl",
+      "content_hash": "/17/c9b7e78cb0/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
