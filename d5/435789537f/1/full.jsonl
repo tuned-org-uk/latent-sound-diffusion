@@ -20,17 +20,17 @@
     },
     "cost": 0,
     "tokens": {
-      "input": 840051,
-      "output": 42722,
-      "reasoning": 10198,
+      "input": 840727,
+      "output": 43210,
+      "reasoning": 10224,
       "cache": {
-        "read": 6754496,
+        "read": 7023104,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787354511987
+      "updated": 1787354607747
     }
   },
   "messages": [
@@ -10689,19 +10689,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
-          "reasoning": 0,
+          "total": 134773,
+          "input": 192,
+          "output": 347,
+          "reasoning": 26,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 134208
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787354511986
+          "created": 1787354511986,
+          "completed": 1787354607741
         },
+        "finish": "tool-calls",
         "id": "msg_026a17a72002ojpOeko4cXbL1t",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -10729,20 +10732,115 @@
           "tool": "bash",
           "callID": "call_c9e8f65a276c4e7491558b72",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add pyproject.toml src/ald_sc/dit.py src/ald_sc/sampling.py src/ald_sc/schedule.py scripts/sample_audio.py scripts/train_audio_diffusion.py tests/test_dit.py tests/test_sampling.py tests/test_schedule.py tests/test_spectral_stopping.py && git commit -m \"fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n\n- dit: fix unpatchify temporal order (permute (ps,N)->(N,ps)); token\n  features now land at t = n*patch + k, removing N-dependent checkpoint\n  semantics that blocked length extension\n- dit: interpolate learned pos_embed to runtime token count with pinned\n  endpoints; forward accepts any sequence length >= patch_size\n- sampling: sample_ddim/sample_ddim_steps use eps_hat = sqrt(ab)*v +\n  sqrt(1-ab)*x as DDIM direction (was raw v); euler/ddim now agree over\n  full trajectories\n- schedule: sample_sigmas returns steps+1 indices terminating at 0 so\n  the final update lands at alpha_bar == 1 (~4% residual noise floor removed)\n- scripts: require --prior (seeded random prior only under --toy)\n\nBREAKING: checkpoints trained pre-layout-fix render scrambled audio;\nretrain/finetune required (issue #60). Tests: 272 passing.\" && git log --oneline -2"
             },
+            "output": "[v0.12-tentative ddc7d6a] fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n 10 files changed, 281 insertions(+), 19 deletions(-)\nddc7d6a fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\nc7b4f7e feat: comparative bank-mode similarity test + variants-system notebook (#59)\n",
+            "metadata": {
+              "output": "[v0.12-tentative ddc7d6a] fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n 10 files changed, 281 insertions(+), 19 deletions(-)\nddc7d6a fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\nc7b4f7e feat: comparative bank-mode similarity test + variants-system notebook (#59)\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add pyproject.toml src/ald_sc/dit.py src/ald_sc/sampling.py src/ald_sc/schedule.py scripts/sample_audio.py scripts/train_audio_diffusion.py tests/test_dit.py tests/test_sampling.py tests/test_schedule.py tests/test_spectral_stopping.py && git commit -m \"fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n\n- dit: fix unpatchify temporal order (permute (ps,N)->(N,ps)); token\n  features now land at t = n*patch + k, removing N-dependent checkpoint\n  semantics that blocked length extension\n- dit: interpolate learned pos_embed to runtime token count with pinned\n  endpoints; forward accepts any sequence length >= patch_size\n- sampling: sample_ddim/sample_ddim_steps use eps_hat = sqrt(ab)*v +\n  sqrt(1-ab)*x as DDIM direction (was raw v); euler/ddim now agree over\n  full trajectories\n- schedule: sample_sigmas returns steps+1 indices terminating at 0 so\n  the final update lands at alpha_bar == 1 (~4% residual noise floor removed)\n- scripts: require --prior (seeded random prior only under --toy)\n\nBREAKING: checkpoints trained pre-layout-fix render scrambled audio;\nretrain/finetune required (issue #60). Tests: 272 passing.\" && git log --oneline -2",
             "time": {
-              "start": 1787354523028
+              "start": 1787354607648,
+              "end": 1787354607650
             }
           },
           "id": "prt_026a1a592001WR0WQ5P3K7ZN52",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_026a17a72002ojpOeko4cXbL1t"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "b30635859469f5c4ffbc23a6d067f5e39b67fada",
+          "type": "step-finish",
+          "tokens": {
+            "total": 134773,
+            "input": 192,
+            "output": 347,
+            "reasoning": 26,
+            "cache": {
+              "write": 0,
+              "read": 134208
+            }
+          },
+          "cost": 0,
+          "id": "prt_026a2f04b001KY1F0hgeIIDThB",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026a17a72002ojpOeko4cXbL1t"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026a0f3fa001mzMOB5sjqbAdH8",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 135025,
+          "input": 484,
+          "output": 141,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 134400
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787354607746,
+          "completed": 1787354615275
+        },
+        "finish": "stop",
+        "id": "msg_026a2f082002AoaGZmQLFSuDPD",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "b30635859469f5c4ffbc23a6d067f5e39b67fada",
+          "type": "step-start",
+          "id": "prt_026a302320015uzT9g05XIerXf",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026a2f082002AoaGZmQLFSuDPD"
+        },
+        {
+          "type": "text",
+          "text": "Committed on `v0.12-tentative`: `ddc7d6a` — version bumped to **0.12.0** in `pyproject.toml`, 10 files, 281 insertions.\n\nLeft out intentionally: `uv.lock` (pre-existing unrelated edit) and `autoresearch/predict-260821-2359/` (analysis records — say the word if you want them committed/pushed). Branch isn't pushed; remaining #60 items: baseline freeze (#5), PROTOCOL_10S.md (#7), config authority (#8), Track-B crossfade script (#10), 750-frame finetune (#9).",
+          "time": {
+            "start": 1787354612276,
+            "end": 1787354615154
+          },
+          "id": "prt_026a30234001H95FCW3iNJEGfD",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026a2f082002AoaGZmQLFSuDPD"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "b30635859469f5c4ffbc23a6d067f5e39b67fada",
+          "type": "step-finish",
+          "tokens": {
+            "total": 135025,
+            "input": 484,
+            "output": 141,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 134400
+            }
+          },
+          "cost": 0,
+          "id": "prt_026a30db2001Q3lM1B84W0sxgT",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026a2f082002AoaGZmQLFSuDPD"
         }
       ]
     }
