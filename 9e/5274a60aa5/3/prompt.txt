@@ -1,0 +1,25 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase: 1-D DiT diffusion over EnCodec audio latents (EnCodec 24kHz, stride 320 → 75 Hz latent frame rate; latents (B,128,T)). USER GOAL (weight findings by impact): extend generation from 2–4 s to coherent 10 s stems. Notebooks 02/04 reportedly do overlap-and-add long-form in latent space; notebook 07 chains segments.
+
+SCOPE (read fully):
+- src/ald_sc/dit.py (patchify Conv1d kernel=stride=8, pos_embed, unpatchify)
+- src/ald_sc/inference.py (_resample_1d, _normalize, synthesize_midi)
+- src/ald_sc/scattering1d.py (NumPy Mallat scattering transform)
+- src/ald_sc/audio_codec.py (EnCodecEncoder wrapper)
+May consult: notebooks/ directory listing, src/ald_sc/eval.py (spectral metrics), scripts/sample_audio.py.
+
+YOUR PERSONA: Signal Processing Scientist (background: audio codecs, time-frequency analysis, resampling, overlap-add methods).
+Evaluate:
+1. Patch geometry for 10 s: patch_size 8 at 75 Hz frames → ~9.4 patches/sec token rate; 10 s = 750 frames = 94 tokens. Is Conv1d(kernel=stride=8) patchification lossless w.r.t. transient information? Receptive-field implications of depth-4 attention over 47→94 tokens; where does dense attention actually become costly (is quadratic cost even real at 94 tokens)?
+2. Positional encoding: learned absolute pos_embed sized ceil(latent_length/patch_size) added at dit.py:208 — options for length generalization to 750 frames (interpolation/extrapolation of learned table, RoPE swap, ALiBi); which preserves checkpoint compatibility best?
+3. Latent-space overlap-and-add: crossfading EnCodec latents linearly vs waveform-space O&A — codec latents are not time-shift invariant; what artifacts would latent O&A cause (pre-echo, smearing at boundaries)? Better: crossfade in waveform domain after decode?
+4. _resample_1d (inference.py:73-80): torchaudio Resample with orig_freq=wave.shape[-1] (huge ratios, e.g., 120000→6000) — filter quality/kernel-size implications; per-call transform construction cost.
+5. DC offset handling (_normalize mean subtraction) vs EnCodec's expected input statistics; scattering1d transform consistency with eval features.
+Red flags: DSP operations whose parameters silently violate Nyquist/transient preservation, boundary discontinuities, codec-domain misuse.
+
+Independence rule: isolated reviewer.
+
+OUTPUT (final message): MAX 5 findings, ranked by severity (weighted toward the 10s goal). Each:
+TITLE / SEVERITY / CONFIDENCE: 0-100 / LOCATION: file:line / EVIDENCE: citing actual code / RECOMMENDATION: concrete technique.
+Verify claims by reading code; cite real line numbers.
