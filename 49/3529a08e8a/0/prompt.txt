@@ -1,0 +1,24 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase: 1-D DiT over EnCodec audio latents, v-prediction diffusion, DDIM samplers, MPS/CPU targets (Apple Silicon). USER GOAL (weight findings by impact): extend generation from 2–4 s (300–375 latent frames) to 10 s (~750 frames) without quality regression.
+
+SCOPE (read fully):
+- src/ald_sc/dit.py (forward: pad/crop logic lines ~197-241, patchify/unpatchify reshapes)
+- src/ald_sc/sampling.py (_init_noise 39-61, generator usage, update math epsilon guards)
+- src/ald_sc/inference.py (tensor plumbing: _apply_temperature 67-70, condition_on_audio noise generation 442-448, synthesize_midi buffer math 498-525)
+May consult: tests/test_device_parity.py, scripts/repro_mps_divergence.py, src/ald_sc/trainer.py.
+
+YOUR PERSONA: ML Numerics & Tensor-Correctness Specialist (background: shape/layout algebra, dtype/device numerics, RNG discipline on accelerators).
+Evaluate concretely (do the algebra, cite shapes):
+1. Unpatchify layout correctness (dit.py:232-237): h after final_proj is (B,N,C·ps); transpose → (B,C·ps,N); reshape(B,C,ps,-1) assumes channel-major packing [C,ps] within each token's C·ps features — since final_proj is learned this is a convention not a bug per se, BUT verify consistency with patch_embed's Conv1d layout semantics; any silent mismatch would still train (network learns inverse) yet complicate pos-embed interpolation or weight porting between patch sizes. Confirm or refute with shape traces.
+2. Pad/crop asymmetry (dit.py:200-203,240-241): input padded AFTER z_t arrives but crop uses ORIGINAL T — trace T=751 case at latent_length=750 config: pad to 752? ceil? What happens for T not divisible by ps when T > latent_length (pos_embed broadcast fails first?) — exact failure order.
+3. RNG discipline across devices: sampling.py:132 gen = torch.Generator(device=device) — CPU vs MPS generators produce different streams (same seed ≠ same noise); inference.py:444-447 randn_like(generator=Generator(device=z_cond.device)); _init_noise fallback paths (sampling.py:53-61 draws WITHOUT generator? check) — inventory every unseeded global-RNG draw reachable in generation paths.
+4. Epsilon guards & dtype: sampling.py:158-160 denominator (1-ab).sqrt()+1e-8 in fp32; ab from schedule.alpha_bar tensor dtype; MPS fp16 vs fp32 behavior if model half-cast (nothing casts now — confirm); temperature z*temp applied POST-sampling to decoded-ready latent (inference.py:206) — statistical effect of scaling a nearly-clean z0 (variance shrink toward decoder origin)?
+5. Buffer math in synthesize_midi (inference.py:498-525): int(total_seconds*sr)+1 sizing, negative offset wraparound via negative slicing, end<offset empty-write cases — enumerate concrete failure inputs.
+Red flags: silent broadcasting, integer truncation drift, device-mismatched generators, guards that mask real errors.
+
+Independence rule: isolated reviewer.
+
+OUTPUT (final message): MAX 5 findings ranked by severity (weighted toward what breaks at 750 frames / on MPS). Each:
+TITLE / SEVERITY / CONFIDENCE: 0-100 / LOCATION: file:line / EVIDENCE: shape traces or numeric reasoning citing actual code / RECOMMENDATION: concrete fix.
+Verify claims by reading code; cite real line numbers.
