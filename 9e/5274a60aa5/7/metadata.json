@@ -1,0 +1,88 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "9e5274a60aa5",
+  "session_id": "ses_fda918e0bfferlKKhnjm13lC2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-21T23:37:56.451869Z",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 2,
+  "save_step_count": 3,
+  "files_touched": [],
+  "agent": "OpenCode",
+  "model": "x-preview-f-free",
+  "turn_id": "f39956e68eb9",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 1158459,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 12605632,
+    "output_tokens": 59407,
+    "api_call_count": 137
+  },
+  "session_metrics": {
+    "turn_count": 13
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 228,
+      "agent_lines_removed": 1
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 907,
+      "user_lines_removed": 35,
+      "agent_lines_added": 228,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".gitignore": 3,
+        "PROTOCOL_10S.md": 79,
+        "baselines/v0.11-prefix/PROVENANCE.md": 41,
+        "baselines/v0.11-prefix/SHA256SUMS": 47,
+        "baselines/v0.11-prefix/bank_mode_comparison.csv": 9,
+        "baselines/v0.11-prefix/bank_variants.csv": 14,
+        "baselines/v0.11-prefix/esc50_recursive_variants.csv": 6,
+        "baselines/v0.11-prefix/esc50_table1_reconstruction.csv": 7,
+        "baselines/v0.11-prefix/esc50_table2_ablation.csv": 10,
+        "baselines/v0.11-prefix/esc50_table3_fad_clap.csv": 3,
+        "baselines/v0.11-prefix/esc50_table4_compression.csv": 9,
+        "baselines/v0.11-prefix/esc50_table5_coherence.csv": 2,
+        "baselines/v0.11-prefix/esc50_table6_band_retention.csv": 49,
+        "baselines/v0.11-prefix/latency.csv": 5,
+        "baselines/v0.11-prefix/recursive_variants.csv": 6,
+        "baselines/v0.11-prefix/sweep_clock.csv": 19,
+        "baselines/v0.11-prefix/sweep_eps.csv": 6,
+        "baselines/v0.11-prefix/sweep_noise.csv": 5,
+        "baselines/v0.11-prefix/sweep_q.csv": 5,
+        "baselines/v0.11-prefix/table1_reconstruction.csv": 7,
+        "baselines/v0.11-prefix/table2_ablation.csv": 10,
+        "baselines/v0.11-prefix/table3_fad_clap.csv": 3,
+        "baselines/v0.11-prefix/table4_compression.csv": 9,
+        "baselines/v0.11-prefix/table5_coherence.csv": 2,
+        "baselines/v0.11-prefix/table6_band_retention.csv": 49,
+        "scripts/sample_audio.py": 37,
+        "scripts/stitch_long_form.py": 77,
+        "scripts/train_audio_diffusion.py": 40,
+        "src/ald_sc/config.py": 107,
+        "src/ald_sc/stitching.py": 79,
+        "tests/test_config.py": 98,
+        "tests/test_stitching.py": 63,
+        "uv.lock": 1
+      },
+      "user_removed_per_file": {
+        "scripts/sample_audio.py": 15,
+        "scripts/train_audio_diffusion.py": 19,
+        "uv.lock": 1
+      }
+    }
+  ]
+}
