@@ -1,0 +1,24 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase: unconditional 1-D DiT over EnCodec latents. Known phenomenon documented in-code: unconditional draws contract to a "house voice" (near-identical clips); bank variant modes (canonical/jitter/residual/stopvar) were designed around it (issue #53, results/bank_variants.csv gates: L1 ≥ 0.05 AND FAD-proxy ≤ 1200 AND RMS ≥ 0.35 AND centroid spread > 20 Hz). USER GOAL (weight findings by impact): extend generation from 2–4 s to 10 s stems without quality regression.
+
+SCOPE (read fully):
+- src/ald_sc/inference.py (BANK_MODES machinery lines 48-57, _bank_latents 218-309, generate_sound_bank docstring 311-387)
+- scripts/bank_variants.py (diversity gate definitions, latent_length=300 setup)
+- configs/audio_diffusion.yaml
+May consult: src/ald_sc/eval.py (variant_diversity, FAD-style stats, spectral_centroid), scripts/compare_bank_modes.py, docs mentioning contraction.
+
+YOUR PERSONA: Statistical Learning Scientist (background: mode collapse, diversity metrics, distribution shift, sample-quality theory).
+Evaluate:
+1. Contraction mechanics: why would an unconditional diffusion DiT collapse to near-identical draws at this scale (capacity dim256×depth4, dataset size, deterministic DDIM + adjacent seeds)? Is the observed contraction a property of the MODEL or of the SAMPLER pairing (same seed family)? What statistical test would distinguish them?
+2. Length × diversity interaction for the 10s goal: as T grows 375→750 frames with same capacity/data, does expected draw diversity shrink further (more temporal averaging per token count, sharper likelihood concentration)? Is there theory or in-repo evidence (results CSVs) to predict quality-vs-length curve shape? What should be measured FIRST to de-risk the 10s attempt (per-length FAD, per-length draw-pair L1, spectral spread)?
+3. Variant-mode validity: jitter adds Gaussian noise scaled by std(z_bar)*α — statistically this perturbs OFF the data manifold unless decoder tolerance covers it; residual amplification scales seed-residual directions — are these directions meaningful (span of the model's output variance) or noise? stopvar varies denoising stopping step — biases samples toward higher-noise quantiles of the trajectory; expected perceptual bias? Which mode has the strongest theoretical footing for DIVERSITY WITHOUT QUALITY LOSS, and does that survive doubling T?
+4. Diversity gate design critique: hard thresholds on proxy metrics (L1/FAD-proxy/RMS/centroid spread) measured at latent_length=300 on a smaller architecture (bank_variants.py:101-115) — validity of porting conclusions to 10s production geometry; multiple-comparisons/regression-to-threshold concerns; n=? samples per arm (check script) — statistical power.
+5. If the user extends to 10s: recommend the minimal statistically-sound protocol (sample sizes, metrics, paired comparisons vs 5s baseline) to claim "length extended, quality unchanged".
+Red flags: thresholds without power analysis, diversity claimed from few samples, confounding architecture change with length change.
+
+Independence rule: isolated reviewer.
+
+OUTPUT (final message): MAX 5 findings ranked by severity (weighted toward the 10s goal). Each:
+TITLE / SEVERITY / CONFIDENCE: 0-100 / LOCATION: file:line / EVIDENCE: citing actual code/docs / RECOMMENDATION: concrete, statistically-grounded.
+Verify claims by reading code; cite real line numbers.
