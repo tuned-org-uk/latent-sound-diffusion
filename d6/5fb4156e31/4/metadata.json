@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "d65fb4156e31",
+  "session_id": "ses_fda7dc394ffeER8WBSyODMJ7hJ",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-21T23:56:26.191013Z",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/ald_sc/audio_codec.py",
+    "tests/test_audio_codec.py"
+  ],
+  "agent": "OpenCode",
+  "model": "",
+  "turn_id": "36def8c1bf6a",
+  "checkpoint_transcript_start": 14,
+  "transcript_lines_at_start": 14,
+  "compact_transcript_start": 14,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-21T23:56:26.174229Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 55,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 55,
+    "total_lines_changed": 55,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
