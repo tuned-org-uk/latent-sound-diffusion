@@ -1,0 +1,32 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase: generative sound-bank model for producers. Mode A generates unconditional banks ("house voice" contraction noted in comments), Mode B makes variants of producer audio, Mode C renders MIDI note sequences using generated sounds (LSD-studio workflow). Issue context: goal is longer segments materialised via MIDI rendering.
+
+SCOPE (read fully):
+- src/ald_sc/inference.py (generate_sound_bank, BANK_MODES canonical/jitter/residual/stopvar, condition_on_audio, synthesize_midi, _normalize, Bank.store)
+- src/ald_sc/dit.py (model capacity: dim 256 depth 4)
+- configs/audio_diffusion.yaml
+May consult: src/ald_sc/eval.py (spectral_centroid, FAD-style metrics), notebooks references in docs/, results/bank_variants.csv mentions, tests/test_inference.py.
+
+GOAL FOCUS: perceptual/audio-quality implications of implementation choices.
+
+YOUR PERSONA: Psychoacoustics & Audio Perception Scientist (background: music perception, timbre, artifact detection, loudness perception).
+Evaluate:
+- Pitch-shift-by-resampling in synthesize_midi (inference.py:509-525): shifting a percussive/complex texture by ±semitones couples playback speed with pitch before re-time-scaling; expected perceptual results (munchkinization, formant shift, smearing). Bank assumed centered on pitch_bank_root=60 — perceptual validity for unpitched textures?
+- Note-boundary discontinuities: additive overlap without equal-power crossfade (inference.py:523-525) — click probability given arbitrary waveform phases; truncation of notes extending past buffer end.
+- Round-robin bank assignment AFTER sorting events by start time (inference.py:499, 510) — timbre sequencing becomes start-time-dependent rather than composer-intended order; perceptual coherence of melodic lines.
+- Loudness: per-clip peak normalization (inference.py:92-96) then summing unweighted into mix bus — no RMS/LUFS matching across bank items → level jumps between successive notes; clipping risk only mitigated by final peak norm of whole mix (inference.py:534).
+- Bank diversity modes' perceptual intent (jitter α≤~0.15 within NOISE_INJECT tolerance; residual amplification warned harsh; stopvar floor 0.5 under-denoised): are these defensible perceptual diversity axes? What would you measure (FAD, CLAP cosine, MUSHRA-style listening) before shipping them as defaults?
+- 1-second vs 5-second clip length confusion in sample_audio.py default --latent-length 75 vs yaml 375: perceptual consequence of generating/training on wrong-duration segments (loops cut mid-transient).
+Red flags: choices audible to average listeners presented as neutral, missing listening-test evidence for "quality" claims.
+
+Independence rule: isolated reviewer; do not guess other personas.
+
+OUTPUT (final message): MAX 5 findings, ranked by severity. Each:
+TITLE: <short name>
+SEVERITY: critical|high|medium|low|info
+CONFIDENCE: <0-100>
+LOCATION: <file>:<line>
+EVIDENCE: 1-3 sentences citing actual code
+RECOMMENDATION: 1-2 sentence concrete fix (name the technique: e.g., equal-power crossfade, LUFS matching, PSOLA/phase-vocoder pitch shift)
+Verify claims by reading code; cite real line numbers.
