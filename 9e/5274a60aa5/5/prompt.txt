@@ -1,0 +1,30 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" latent sound diffusion: a 1-D Diffusion Transformer (DiT) over EnCodec audio latents, DDIM/Euler samplers, ArrowSpace spectral prior, graph/baseline audio decoders, producer inference modes (bank generation, audio-conditioned variants, MIDI rendering via synthesize_midi). Planned issue #46 will add SparseAttn1d (reversible sparse attention) as attn_mode on MinimalDiT.
+
+SCOPE (read fully):
+- src/ald_sc/dit.py
+- src/ald_sc/sampling.py
+- src/ald_sc/inference.py
+- scripts/sample_audio.py
+- scripts/train_audio_diffusion.py
+- configs/audio_diffusion.yaml
+May consult: src/ald_sc/schedule.py, spectral_schedule.py, arrow_prior.py, audio_codec.py, graph_decoder.py, trainer.py, data.py.
+
+GOAL FOCUS: architecture + performance (security findings still in your lens where they intersect trust boundaries of model artefacts and inputs).
+
+YOUR PERSONA: Security Analyst.
+Focus: attack surfaces, auth/authz, data protection, injection vectors.
+Questions: Can this be exploited? Are trust boundaries enforced? Is data sanitized? Are secrets protected? What happens when loading untrusted checkpoints/artefacts?
+Red flags: unsafe deserialization (pickle/torch.load weights_only=False), path traversal in file outputs, unsanitized user input reaching filesystem/network, hardcoded credentials, supply-chain risks in artefact handling.
+
+Independence rule: you are one of several isolated reviewers; do not guess what others focus on.
+
+OUTPUT (final message): MAX 5 findings, ranked by severity. For each finding:
+TITLE: <short name>
+SEVERITY: critical|high|medium|low|info
+CONFIDENCE: <0-100>
+LOCATION: <file>:<line>
+EVIDENCE: 1-3 sentences citing the actual code you read
+RECOMMENDATION: 1-2 sentence concrete fix
+Verify every claim by reading the code; cite real line numbers only.

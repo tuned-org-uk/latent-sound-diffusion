@@ -1,0 +1,78 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "9e5274a60aa5",
+  "session_id": "ses_fda855ee9ffeUEj6hGR7QfWweu",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-21T23:37:54.12705Z",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "PROTOCOL_10S.md",
+    "baselines/v0.11-prefix/PROVENANCE.md",
+    "baselines/v0.11-prefix/SHA256SUMS",
+    "baselines/v0.11-prefix/bank_mode_comparison.csv",
+    "baselines/v0.11-prefix/bank_variants.csv",
+    "baselines/v0.11-prefix/esc50_recursive_variants.csv",
+    "baselines/v0.11-prefix/esc50_table1_reconstruction.csv",
+    "baselines/v0.11-prefix/esc50_table2_ablation.csv",
+    "baselines/v0.11-prefix/esc50_table3_fad_clap.csv",
+    "baselines/v0.11-prefix/esc50_table4_compression.csv",
+    "baselines/v0.11-prefix/esc50_table5_coherence.csv",
+    "baselines/v0.11-prefix/esc50_table6_band_retention.csv",
+    "baselines/v0.11-prefix/latency.csv",
+    "baselines/v0.11-prefix/recursive_variants.csv",
+    "baselines/v0.11-prefix/sweep_clock.csv",
+    "baselines/v0.11-prefix/sweep_eps.csv",
+    "baselines/v0.11-prefix/sweep_noise.csv",
+    "baselines/v0.11-prefix/sweep_q.csv",
+    "baselines/v0.11-prefix/table1_reconstruction.csv",
+    "baselines/v0.11-prefix/table2_ablation.csv",
+    "baselines/v0.11-prefix/table3_fad_clap.csv",
+    "baselines/v0.11-prefix/table4_compression.csv",
+    "baselines/v0.11-prefix/table5_coherence.csv",
+    "baselines/v0.11-prefix/table6_band_retention.csv",
+    "scripts/sample_audio.py",
+    "scripts/stitch_long_form.py",
+    "scripts/train_audio_diffusion.py",
+    "src/ald_sc/config.py",
+    "src/ald_sc/stitching.py",
+    "tests/test_config.py",
+    "tests/test_stitching.py"
+  ],
+  "agent": "OpenCode",
+  "model": "x-preview-f-free",
+  "turn_id": "b6d14c9cfba4",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 59025,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 466880,
+    "output_tokens": 4785,
+    "api_call_count": 19
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-21T23:37:54.107159Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 872,
+    "human_modified": 34,
+    "human_removed": 0,
+    "total_committed": 872,
+    "total_lines_changed": 906,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
