@@ -1,0 +1,30 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" latent sound diffusion: a 1-D Diffusion Transformer (DiT) over EnCodec audio latents, DDIM/Euler samplers, ArrowSpace spectral prior, graph/baseline audio decoders, producer inference modes (bank generation, audio-conditioned variants, MIDI rendering via synthesize_midi). Planned issue #46 will add SparseAttn1d (reversible sparse attention: local window + global anchors + full-res bypass) as attn_mode='dense'|'sparse' on MinimalDiT to enable long-clip generation.
+
+SCOPE (read fully):
+- src/ald_sc/dit.py
+- src/ald_sc/sampling.py
+- src/ald_sc/inference.py
+- scripts/sample_audio.py
+- scripts/train_audio_diffusion.py
+- configs/audio_diffusion.yaml
+May consult: src/ald_sc/schedule.py, spectral_schedule.py, arrow_prior.py, audio_codec.py, graph_decoder.py, trainer.py, data.py, and tests/test_dit.py, test_sampling.py, test_inference.py.
+
+GOAL FOCUS: architecture + performance.
+
+YOUR PERSONA: Software Architect.
+Focus: system design, component boundaries, data flow, scalability.
+Questions: Does this design scale? Are boundaries clean? Is coupling minimized? Will this survive 10x growth (longer sequences, bigger models, new decoders)?
+Red flags: god classes, circular dependencies, leaky abstractions, shared mutable state, dead config, layering violations (e.g. training logic in inference modules), hardcoded values that block extension.
+
+Independence rule: you are one of several isolated reviewers; do not guess what others focus on.
+
+OUTPUT (final message): MAX 5 findings, ranked by severity. For each finding:
+TITLE: <short name>
+SEVERITY: critical|high|medium|low|info
+CONFIDENCE: <0-100>
+LOCATION: <file>:<line>
+EVIDENCE: 1-3 sentences citing the actual code you read
+RECOMMENDATION: 1-2 sentence concrete fix/design change
+Verify every claim by reading the code; cite real line numbers only.
