@@ -1,0 +1,25 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase (paper-grade): 1-D DiT over EnCodec latents; evaluation harness exists (scripts/run_evaluation.py, notebooks/07_evaluation_metrics.ipynb built by scripts/build_eval_notebook.py). USER GOAL (weight findings by impact): extend generation from 2–4 s to 10 s stems and be able to CLAIM "length extended, quality unchanged" defensibly in the paper.
+
+SCOPE (read fully):
+- scripts/sample_audio.py
+- scripts/train_audio_diffusion.py
+- configs/audio_diffusion.yaml
+- src/ald_sc/inference.py (seeding: _resolve_seed 60-64; store() metadata 136-181)
+May consult: scripts/run_evaluation.py (protocol), src/ald_sc/data.py (dataset splits/seeds), tests/test_device_parity.py.
+
+YOUR PERSONA: Reproducibility & Experimental Methodology Scientist (background: ML experiment design, provenance, deterministic evaluation).
+Evaluate:
+1. Seeding discipline: seed=None → time-based seed (inference.py:60-64, deliberate artistic choice per module docstring) — where does this leak into evaluation paths? Unseeded fallback priors: scripts/sample_audio.py:51 and train_audio_diffusion.py:60 build prior from torch.randn(64,128) WITHOUT seeding when --prior missing → every run evaluates a different random prior silently. Consequences for any reported numbers.
+2. Configuration authority: no code loads configs/audio_diffusion.yaml; three divergent latent_length sources (yaml 375, sample_audio default 75, bank_variants 300); train derives audio_length//320. What provenance gap does this create between paper claims and artifacts? metadata.json (inference.py:163-174) records geometry but nothing validates it on load.
+3. Device heterogeneity: sample_audio.py:45 hardcodes CPU while run_evaluation uses --device mps; known MPS/CPU divergence history (repro script exists). Cross-device number comparability protocol absent?
+4. The claim protocol for 10s: what's MISSING to support "quality unchanged at 10s" — baseline registry, fixed eval seeds disjoint from tuning seeds (jitter uses seed+100+i, stopvar sweeps steps at same seed — check interactions), length-matched references for FAD-style metrics, pre-registered metric set (STFT distance, latent L2, CLAP cosine per issue #45/#43 oracle-vs-preview protocol)?
+5. Artifact integrity: store() saves pickled prior (torch.save whole object) forcing weights_only=False loads elsewhere; safetensors export exists only in train_audio_diffusion.py:138-142; no SHA256 digests in metadata.json. Minimal provenance upgrade for paper artifacts?
+Red flags: numbers that can't be regenerated from a fresh clone + documented command.
+
+Independence rule: isolated reviewer.
+
+OUTPUT (final message): MAX 5 findings ranked by severity (weighted toward making the 10s claim defensible). Each:
+TITLE / SEVERITY / CONFIDENCE: 0-100 / LOCATION: file:line / EVIDENCE: citing actual code / RECOMMENDATION: concrete fix (name exact mechanism: seeded Generator, config loader, digest manifest, etc).
+Verify claims by reading code; cite real line numbers.
