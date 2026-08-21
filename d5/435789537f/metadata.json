@@ -3,8 +3,18 @@
   "checkpoint_id": "d5435789537f",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 1,
-  "files_touched": null,
+  "checkpoints_count": 12,
+  "files_touched": [
+    "scripts/sample_audio.py",
+    "scripts/train_audio_diffusion.py",
+    "src/ald_sc/dit.py",
+    "src/ald_sc/sampling.py",
+    "src/ald_sc/schedule.py",
+    "tests/test_dit.py",
+    "tests/test_sampling.py",
+    "tests/test_schedule.py",
+    "tests/test_spectral_stopping.py"
+  ],
   "sessions": [
     {
       "metadata": "/d5/435789537f/0/metadata.json",
@@ -12,13 +22,20 @@
       "compact_transcript": "/d5/435789537f/0/transcript.jsonl",
       "content_hash": "/d5/435789537f/0/content_hash.txt",
       "prompt": "/d5/435789537f/0/prompt.txt"
+    },
+    {
+      "metadata": "/d5/435789537f/1/metadata.json",
+      "transcript": "/d5/435789537f/1/full.jsonl",
+      "compact_transcript": "/d5/435789537f/1/transcript.jsonl",
+      "content_hash": "/d5/435789537f/1/content_hash.txt",
+      "prompt": "/d5/435789537f/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 54193,
+    "input_tokens": 894244,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 456000,
-    "output_tokens": 12089,
-    "api_call_count": 18
+    "cache_read_tokens": 7210496,
+    "output_tokens": 54811,
+    "api_call_count": 113
   }
 }
