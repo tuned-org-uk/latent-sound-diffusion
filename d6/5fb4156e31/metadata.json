@@ -3,7 +3,7 @@
   "checkpoint_id": "d65fb4156e31",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "src/ald_sc/audio_codec.py",
     "tests/test_audio_codec.py"
@@ -28,6 +28,13 @@
       "transcript": "/d6/5fb4156e31/2/full.jsonl",
       "compact_transcript": "/d6/5fb4156e31/2/transcript.jsonl",
       "content_hash": "/d6/5fb4156e31/2/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/d6/5fb4156e31/3/metadata.json",
+      "transcript": "/d6/5fb4156e31/3/full.jsonl",
+      "compact_transcript": "/d6/5fb4156e31/3/transcript.jsonl",
+      "content_hash": "/d6/5fb4156e31/3/content_hash.txt",
       "prompt": ""
     }
   ],
