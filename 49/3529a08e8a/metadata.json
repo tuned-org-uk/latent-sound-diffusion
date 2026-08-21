@@ -3,7 +3,7 @@
   "checkpoint_id": "493529a08e8a",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "scripts/train_audio_longform.py",
     "src/ald_sc/data.py",
@@ -31,6 +31,13 @@
       "transcript": "/49/3529a08e8a/2/full.jsonl",
       "compact_transcript": "/49/3529a08e8a/2/transcript.jsonl",
       "content_hash": "/49/3529a08e8a/2/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/49/3529a08e8a/3/metadata.json",
+      "transcript": "/49/3529a08e8a/3/full.jsonl",
+      "compact_transcript": "/49/3529a08e8a/3/transcript.jsonl",
+      "content_hash": "/49/3529a08e8a/3/content_hash.txt",
       "prompt": ""
     }
   ],
