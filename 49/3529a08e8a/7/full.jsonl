@@ -20,17 +20,17 @@
     },
     "cost": 0,
     "tokens": {
-      "input": 1297458,
-      "output": 74775,
+      "input": 1299160,
+      "output": 75783,
       "reasoning": 16860,
       "cache": {
-        "read": 18962624,
+        "read": 19557824,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787356184269
+      "updated": 1787356220520
     }
   },
   "messages": [
@@ -19415,19 +19415,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 198694,
+          "input": 446,
+          "output": 232,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 198016
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787356184269
+          "created": 1787356184269,
+          "completed": 1787356208154
         },
+        "finish": "tool-calls",
         "id": "msg_026bafecd002Wm3NUXDzqvzEK1",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -19444,20 +19447,301 @@
           "tool": "bash",
           "callID": "call_d58ee1126aad46bbb2c0c08e",
           "state": {
-            "metadata": {
-              "output": "296 passed, 1 warning in 3.82s\n"
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "uv run python -m py_compile scripts/train_audio_longform.py && uv run pytest tests/ -q 2>&1 | tail -1 && git add src/ald_sc/trainer.py src/ald_sc/data.py scripts/train_audio_longform.py tests/test_trainer.py tests/test_audio_data.py && git commit -q -m \"feat(v0.12): Track-A long-form training path (variable-length latent crops)\n\n- trainer: train_audio_diffusion gains latent_crop_range; per-batch\n  uniform crop before encoding, 'latent_len' in every record\n- data: PairedSegmentDataset joins consecutive short clips with\n  equal-power crossfade (waveform domain, reuses ald_sc.stitching)\n- scripts/train_audio_longform.py: Track-A entrypoint per PROTOCOL_10S —\n  geometry via config authority, pos table sized at max crop length,\n  full provenance metadata (git/torch/device/seed/crop range)\n\nTests: 296 passing. Real-run command documented in issue #60.\" && git log --oneline -3"
             },
+            "output": "296 passed, 1 warning in 3.82s\n5e11c6c feat(v0.12): Track-A long-form training path (variable-length latent crops)\n17af2d5 feat(v0.12): baseline freeze, eval protocol, config authority, Track-B stitcher\nddc7d6a fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n",
+            "metadata": {
+              "output": "296 passed, 1 warning in 3.82s\n5e11c6c feat(v0.12): Track-A long-form training path (variable-length latent crops)\n17af2d5 feat(v0.12): baseline freeze, eval protocol, config authority, Track-B stitcher\nddc7d6a fix(v0.12): sampler math, sigma-ladder endpoint, unpatchify layout, pos-embed interpolation\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python -m py_compile scripts/train_audio_longform.py && uv run pytest tests/ -q 2>&1 | tail -1 && git add src/ald_sc/trainer.py src/ald_sc/data.py scripts/train_audio_longform.py tests/test_trainer.py tests/test_audio_data.py && git commit -q -m \"feat(v0.12): Track-A long-form training path (variable-length latent crops)\n\n- trainer: train_audio_diffusion gains latent_crop_range; per-batch\n  uniform crop before encoding, 'latent_len' in every record\n- data: PairedSegmentDataset joins consecutive short clips with\n  equal-power crossfade (waveform domain, reuses ald_sc.stitching)\n- scripts/train_audio_longform.py: Track-A entrypoint per PROTOCOL_10S —\n  geometry via config authority, pos table sized at max crop length,\n  full provenance metadata (git/torch/device/seed/crop range)\n\nTests: 296 passing. Real-run command documented in issue #60.\" && git log --oneline -3",
             "time": {
-              "start": 1787356197412
+              "start": 1787356208078,
+              "end": 1787356208080
             }
           },
           "id": "prt_026bb212a0015GJX0Bg2iAqPA0",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_026bafecd002Wm3NUXDzqvzEK1"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "1a8b0440a1f7913742917c0c278064cee85fbc7b",
+          "type": "step-finish",
+          "tokens": {
+            "total": 198694,
+            "input": 446,
+            "output": 232,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 198016
+            }
+          },
+          "cost": 0,
+          "id": "prt_026bb5bf5001tvrN9QOIRa7x3G",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bafecd002Wm3NUXDzqvzEK1"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026b53572001eUYt1Qu0GhMAjw",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 199189,
+          "input": 391,
+          "output": 398,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 198400
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787356208161,
+          "completed": 1787356220513
+        },
+        "finish": "tool-calls",
+        "id": "msg_026bb5c210025Q9exR3mPLB9MS",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "1a8b0440a1f7913742917c0c278064cee85fbc7b",
+          "type": "step-start",
+          "id": "prt_026bb8c120016XT9cfAJch7MZy",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb5c210025Q9exR3mPLB9MS"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "call_a1c6096e0dcf4cbfac1705a0",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "Sampler/layout/sigma/pos-embed/prior fixes — ddc7d6a",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Baseline freeze v0.11-prefix + SHA256 manifests + provenance — 17af2d5",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "PROTOCOL_10S.md pre-registered protocol — 17af2d5",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Config authority (ald_sc.config) wired into scripts — 17af2d5",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Track-B stitcher (equal-power overlap-add + CLI) — 17af2d5",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Track-A long-form training path (crop trainer, PairedSegmentDataset, train_audio_longform.py) — 5e11c6c",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "LSD-studio compatibility audit + integration issue filed (LSD-studio#65, cross-linked #60)",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Launch real 750-frame training run on MPS against ESC-50 (--pair) — user-launched, hours-long",
+                  "priority": "high",
+                  "status": "pending"
+                },
+                {
+                  "content": "Run PROTOCOL_10S equivalence evaluation: Track A vs frozen baseline vs Track B control arm",
+                  "priority": "medium",
+                  "status": "pending"
+                },
+                {
+                  "content": "Deferred bundle: synthesize_midi pitch/crossfade fixes, heat-death normalization, security hardening (weights_only/state_dict prior/digests)",
+                  "priority": "low",
+                  "status": "pending"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"Sampler/layout/sigma/pos-embed/prior fixes — ddc7d6a\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Baseline freeze v0.11-prefix + SHA256 manifests + provenance — 17af2d5\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"PROTOCOL_10S.md pre-registered protocol — 17af2d5\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Config authority (ald_sc.config) wired into scripts — 17af2d5\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Track-B stitcher (equal-power overlap-add + CLI) — 17af2d5\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Track-A long-form training path (crop trainer, PairedSegmentDataset, train_audio_longform.py) — 5e11c6c\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"LSD-studio compatibility audit + integration issue filed (LSD-studio#65, cross-linked #60)\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Launch real 750-frame training run on MPS against ESC-50 (--pair) — user-launched, hours-long\",\n    \"status\": \"pending\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Run PROTOCOL_10S equivalence evaluation: Track A vs frozen baseline vs Track B control arm\",\n    \"status\": \"pending\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Deferred bundle: synthesize_midi pitch/crossfade fixes, heat-death normalization, security hardening (weights_only/state_dict prior/digests)\",\n    \"status\": \"pending\",\n    \"priority\": \"low\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "Sampler/layout/sigma/pos-embed/prior fixes — ddc7d6a",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Baseline freeze v0.11-prefix + SHA256 manifests + provenance — 17af2d5",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "PROTOCOL_10S.md pre-registered protocol — 17af2d5",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Config authority (ald_sc.config) wired into scripts — 17af2d5",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Track-B stitcher (equal-power overlap-add + CLI) — 17af2d5",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Track-A long-form training path (crop trainer, PairedSegmentDataset, train_audio_longform.py) — 5e11c6c",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "LSD-studio compatibility audit + integration issue filed (LSD-studio#65, cross-linked #60)",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Launch real 750-frame training run on MPS against ESC-50 (--pair) — user-launched, hours-long",
+                  "status": "pending",
+                  "priority": "high"
+                },
+                {
+                  "content": "Run PROTOCOL_10S equivalence evaluation: Track A vs frozen baseline vs Track B control arm",
+                  "status": "pending",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Deferred bundle: synthesize_midi pitch/crossfade fixes, heat-death normalization, security hardening (weights_only/state_dict prior/digests)",
+                  "status": "pending",
+                  "priority": "low"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "3 todos",
+            "time": {
+              "start": 1787356220438,
+              "end": 1787356220439
+            }
+          },
+          "id": "prt_026bb8c140013Ju5yqxQLFXxg4",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb5c210025Q9exR3mPLB9MS"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "1a8b0440a1f7913742917c0c278064cee85fbc7b",
+          "type": "step-finish",
+          "tokens": {
+            "total": 199189,
+            "input": 391,
+            "output": 398,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 198400
+            }
+          },
+          "cost": 0,
+          "id": "prt_026bb8c3d001W1IrchSVoYt94E",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb5c210025Q9exR3mPLB9MS"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026b53572001eUYt1Qu0GhMAjw",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 200027,
+          "input": 865,
+          "output": 378,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 198784
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787356220519,
+          "completed": 1787356234225
+        },
+        "finish": "stop",
+        "id": "msg_026bb8c67002iigSNNRiciGROw",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "1a8b0440a1f7913742917c0c278064cee85fbc7b",
+          "type": "step-start",
+          "id": "prt_026bba076001ILakXV3jGwMzxr",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb8c67002iigSNNRiciGROw"
+        },
+        {
+          "type": "text",
+          "text": "**Track-A infrastructure complete — `5e11c6c`, 296 tests green.** Everything codeable is now built; what remains needs compute and your launch decision.\n\n## v0.12 branch state (3 commits)\n\n| Commit | Contents |\n|---|---|\n| `ddc7d6a` | The five correctness fixes + tests |\n| `17af2d5` | Baseline freeze, PROTOCOL_10S, config authority, Track-B stitcher |\n| `5e11c6c` | **Long-form training**: per-batch latent crops in the trainer, `PairedSegmentDataset` (equal-power joins for short archives), `scripts/train_audio_longform.py` with full protocol provenance |\n\nSmoke-validated: toy run exercised 11 crop lengths (8–100 frames), wrote checkpoint + safetensors + metadata with git/torch/device/seed/crop-range.\n\n## The launch command (hours-long, your call)\n\n```bash\nuv run python scripts/train_audio_longform.py \\\n  --esc50 data/esc50/ESC-50-master --pair --clip-sec 5.0 \\\n  --prior results/artifacts/esc50_prior.pt \\\n  --min-latent 300 --max-latent 750 \\\n  --dim 64 --depth 2 --latent-channels 128 --q 8 \\\n  --batch-size 2 --epochs 30 --device auto \\\n  --out dit_v0.12_10s.pt\n```\n\n(ESC-50's uniform 5 s clips pair into ~10 s segments; pos table sized at 94 patches.)\n\nRemaining after training: equivalence evaluation per `PROTOCOL_10S.md`, then the deferred bundle. Want me to kick off the real run now, or commit/push the branch first?",
+          "time": {
+            "start": 1787356225656,
+            "end": 1787356234147
+          },
+          "id": "prt_026bba0780016WtzzwFup3Z4Ew",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb8c67002iigSNNRiciGROw"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "1a8b0440a1f7913742917c0c278064cee85fbc7b",
+          "type": "step-finish",
+          "tokens": {
+            "total": 200027,
+            "input": 865,
+            "output": 378,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 198784
+            }
+          },
+          "cost": 0,
+          "id": "prt_026bbc1cb001NFv7pPs2uUmiXP",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026bb8c67002iigSNNRiciGROw"
         }
       ]
     }
