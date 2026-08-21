@@ -47,9 +47,20 @@ def main() -> None:
     # Build or load prior
     if args.prior and Path(args.prior).exists():
         prior = torch.load(args.prior, weights_only=False)
-    else:
-        embeddings = torch.randn(64, 128)
+    elif args.toy:
+        gen = torch.Generator().manual_seed(args.seed)
+        embeddings = torch.randn(64, 128, generator=gen)
+        print(
+            "WARNING: seeded random fallback prior (--toy only); pass --prior "
+            "for reproducible conditioning geometry"
+        )
         prior = build_arrow_prior(embeddings, q=args.q, k=4)
+    else:
+        raise SystemExit(
+            "--prior is required: point it at a prior.pt produced by "
+            "scripts/build_audio_prior.py or scripts/run_evaluation.py "
+            "(a seeded random prior is only available with --toy)"
+        )
     prior = prior.to(device)
 
     # Build DiT

@@ -70,9 +70,14 @@ class CosineSchedule:
         return torch.randint(0, self.num_steps, (x0.shape[0],))
 
     def sample_sigmas(self, steps: int) -> Tensor:
-        """Subsample timesteps for deterministic samplers (DDIM-style)."""
+        """Subsample timesteps for deterministic samplers (DDIM-style).
+
+        Returns ``steps + 1`` indices descending from ``num_steps - 1``
+        to ``0``, so the final pairwise update terminates at
+        ``alpha_bar == 1`` with no residual noise floor.
+        """
         indices = (
-            self.num_steps * (1 - torch.arange(steps) / steps)
+            self.num_steps * (1 - torch.arange(steps + 1) / steps)
         ).round().long() - 1
         return indices.clamp(0, self.num_steps - 1)
 
@@ -125,8 +130,13 @@ class LinearSchedule:
         return torch.randint(0, self.num_steps, (x0.shape[0],))
 
     def sample_sigmas(self, steps: int) -> Tensor:
-        """Subsample timesteps for deterministic samplers (DDIM-style)."""
+        """Subsample timesteps for deterministic samplers (DDIM-style).
+
+        Returns ``steps + 1`` indices descending from ``num_steps - 1``
+        to ``0``, so the final pairwise update terminates at
+        ``alpha_bar == 1`` with no residual noise floor.
+        """
         indices = (
-            self.num_steps * (1 - torch.arange(steps) / steps)
+            self.num_steps * (1 - torch.arange(steps + 1) / steps)
         ).round().long() - 1
         return indices.clamp(0, self.num_steps - 1)

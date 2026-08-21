@@ -70,7 +70,7 @@ class TestSampleDDIM:
 
 class TestEulerDDIMParity:
     def test_single_step_parity(self) -> None:
-        """At a single step, Euler and DDIM should produce similar results."""
+        """At one step both samplers reduce to the same z0 prediction."""
         torch.manual_seed(3407)
         dit = _make_dit()
         sched = CosineSchedule(num_steps=100)
@@ -83,3 +83,28 @@ class TestEulerDDIMParity:
             dit, sched, c_spec=c_spec, batch_size=1, steps=1, seed=3407
         )
         assert torch.allclose(z_euler, z_ddim, atol=1e-4)
+
+    def test_multi_step_parity(self) -> None:
+        """Over a full trajectory both samplers must implement the same
+        v-prediction DDIM update and agree.
+
+        Regression test for the v0.11 bug where sample_ddim fed the raw
+        velocity into the noise-direction slot while sample_euler derived
+        the correct direction eps_hat = sqrt(ab)*v + sqrt(1-ab)*x; the two
+        trajectories then diverged at every intermediate step.
+        """
+        torch.manual_seed(3407)
+        dit = _make_dit()
+        sched = CosineSchedule(num_steps=100)
+        c_spec = torch.randn(1, 12)
+
+        z_euler = sample_euler(
+            dit, sched, c_spec=c_spec, batch_size=1, steps=5, seed=3407
+        )
+        z_ddim = sample_ddim(
+            dit, sched, c_spec=c_spec, batch_size=1, steps=5, seed=3407
+        )
+        max_diff = (z_euler - z_ddim).abs().max().item()
+        assert torch.allclose(z_euler, z_ddim, atol=1e-5), (
+            f"euler and ddim trajectories diverged (max diff {max_diff:.2e})"
+        )

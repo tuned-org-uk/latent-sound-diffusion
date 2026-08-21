@@ -251,10 +251,11 @@ def sample_ddim(
         sqrt_1mab = (1 - ab).sqrt()
 
         z0_pred = sqrt_ab * x - sqrt_1mab * v
+        eps_hat = sqrt_ab * v + sqrt_1mab * x
 
         sqrt_ab_prev = ab_prev.sqrt()
         sqrt_1mab_prev = (1 - ab_prev).sqrt()
-        x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * v
+        x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * eps_hat
 
     if return_steps:
         return x, steps_used
@@ -299,8 +300,9 @@ def sample_ddim_steps(
         sqrt_1mab = (1 - ab).sqrt()
 
         z0_pred = sqrt_ab * x - sqrt_1mab * v
+        eps_hat = sqrt_ab * v + sqrt_1mab * x
 
         sqrt_ab_prev = ab_prev.sqrt()
         sqrt_1mab_prev = (1 - ab_prev).sqrt()
-        x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * v
+        x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * eps_hat
         yield x
