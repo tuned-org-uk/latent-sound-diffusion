@@ -161,6 +161,7 @@ def train_audio_diffusion(
     lr: float = 1e-4,
     device: torch.device = torch.device("cpu"),
     cfg_dropout: float = 0.1,
+    latent_crop_range: tuple[int, int] | None = None,
 ) -> Iterator[dict[str, float]]:
     """Phase 1 audio diffusion training loop.
 
@@ -186,11 +187,17 @@ def train_audio_diffusion(
     cfg_dropout : float
         Probability of dropping c_spec (unused in unconditional Phase 1,
         kept for future text/CLAP conditioning).
+    latent_crop_range : tuple[int, int], optional
+        Inclusive range of latent lengths (EnCodec frames). When given,
+        each batch is cropped to a fresh uniform length in this range
+        before encoding (clamped to the available audio), so one model
+        trains across durations via pos-embed interpolation instead of a
+        single fixed length. None keeps every batch at full length.
 
     Yields
     ------
     dict[str, float]
-        Loss dict with 'epoch', 'loss'.
+        Loss dict with 'epoch', 'loss', 'latent_len'.
     """
     audio_vae = audio_vae.to(device).eval()
     prior = prior.to(device)
@@ -206,6 +213,16 @@ def train_audio_diffusion(
     for epoch in range(epochs):
         for batch in loader:
             x = batch.to(device) if isinstance(batch, Tensor) else batch[0].to(device)
+            if latent_crop_range is not None:
+                lo = max(1, int(latent_crop_range[0]))
+                hi = max(lo, int(latent_crop_range[1]))
+                available = x.shape[-1] // 320
+                hi = min(hi, available)
+                lo = min(lo, hi)
+                frames = int(torch.randint(lo, hi + 1, (1,)).item())
+                x = x[..., : frames * 320]
+            else:
+                frames = x.shape[-1] // 320
             optimizer.zero_grad()
 
             with torch.no_grad():
@@ -226,6 +243,7 @@ def train_audio_diffusion(
             yield {
                 "epoch": epoch,
                 "loss": float(loss.item()),
+                "latent_len": frames,
             }
 
 

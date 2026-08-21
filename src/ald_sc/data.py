@@ -17,11 +17,14 @@ import torchaudio
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 
+from ald_sc.stitching import equal_power_overlap_add
+
 __all__ = [
     "ToyAudioDataset",
     "AudioFolderDataset",
     "Esc50Dataset",
     "MusicSynthDataset",
+    "PairedSegmentDataset",
     "build_audio_dataloader",
     "load_audio_clip",
 ]
@@ -342,6 +345,45 @@ class Esc50Dataset(Dataset):
             target_sr=self.sample_rate,
             target_length=self.audio_length,
         )
+
+
+class PairedSegmentDataset(Dataset):
+    """Virtual double-length segments from a base dataset of short clips.
+
+    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power
+    crossfade in the waveform domain (see ``ald_sc.stitching``), so an
+    archive of short clips can feed long-form training without zero
+    padding. The last clip is dropped when the base length is odd.
+
+    Parameters
+    ----------
+    base : Dataset
+        Dataset yielding (1, T) waveforms.
+    crossfade_samples : int
+        Overlap between the two joined clips, clamped to fit.
+    """
+
+    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:
+        if crossfade_samples < 0:
+            raise ValueError(
+                f"crossfade_samples must be >= 0; got {crossfade_samples}"
+            )
+        self.base = base
+        self.crossfade_samples = int(crossfade_samples)
+
+    def __len__(self) -> int:
+        return len(self.base) // 2
+
+    def __getitem__(self, index: int) -> Tensor:
+        first = self.base[2 * index]
+        second = self.base[2 * index + 1]
+        overlap = min(
+            self.crossfade_samples,
+            int(first.shape[-1]) - 1,
+            int(second.shape[-1]) - 1,
+        )
+        overlap = max(overlap, 0)
+        return equal_power_overlap_add([first, second], overlap=overlap)
 
 
 def build_audio_dataloader(

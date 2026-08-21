@@ -183,3 +183,40 @@ class TestBuildAudioDataloader:
         batches = list(loader)
         assert len(batches) == 1  # only 1 full batch of 4
         assert batches[0].shape == (4, 1, 24000)
+
+
+class TestPairedSegmentDataset:
+    def test_pairs_consecutive_clips(self) -> None:
+        """len == base//2; item i joins base items 2i and 2i+1."""
+        from ald_sc.data import PairedSegmentDataset
+
+        torch.manual_seed(3407)
+        base = ToyAudioDataset(num_samples=4, audio_length=8000)
+        ds = PairedSegmentDataset(base, crossfade_samples=480)
+
+        assert len(ds) == 2
+        item = ds[0]
+        assert item.shape == (1, 2 * 8000 - 480)
+
+        a = base[0]
+        b = base[1]
+        head_match = (item[:, :1000] - a[:, :1000]).abs().max().item()
+        tail_match = (item[:, -1000:] - b[:, -1000:]).abs().max().item()
+        assert head_match < 1e-5, "segment head must be clip A's start"
+        assert tail_match < 1e-5, "segment tail must be clip B's end"
+
+    def test_odd_count_drops_last_unpaired(self) -> None:
+        from ald_sc.data import PairedSegmentDataset
+
+        base = ToyAudioDataset(num_samples=5, audio_length=4000)
+        ds = PairedSegmentDataset(base, crossfade_samples=0)
+        assert len(ds) == 2
+
+    def test_zero_crossfade_is_pure_concat(self) -> None:
+        from ald_sc.data import PairedSegmentDataset
+
+        base = ToyAudioDataset(num_samples=2, audio_length=1000)
+        ds = PairedSegmentDataset(base, crossfade_samples=0)
+        item = ds[0]
+        assert torch.allclose(item[:, :1000], base[0])
+        assert torch.allclose(item[:, 1000:], base[1])
