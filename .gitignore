@@ -236,3 +236,6 @@ notebooks/results/
 results/artifacts/
 document.fdb_latexmk
 document.fls
+
+# baseline freeze: local checkpoint copies only (manifests are tracked)
+baselines/**/*.pt

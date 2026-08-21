@@ -1,0 +1,5 @@
+device,config,audio_seconds,runs,median_latency_s,min_latency_s,max_latency_s,mean_steps_used,realtime_factor
+mps,full50,4.0,3,0.036,0.036,0.124,49,110.58
+mps,heatdeath_eps0.5,4.0,3,0.067,0.055,0.069,41,60.06
+cpu,full50,4.0,3,0.045,0.045,0.05,49,87.99
+cpu,heatdeath_eps0.5,4.0,3,0.039,0.039,0.039,41,102.21

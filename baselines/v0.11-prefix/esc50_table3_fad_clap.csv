@@ -1,0 +1,3 @@
+decoder,FAD,FAD_method,CLAP,CLAP_method,text_prompt,n_gen
+graph,1787.4777474487857,encod_proxy,-0.04170769080519676,encod_proxy,warm electronic bass synth,16
+baseline,306.87264879998605,encod_proxy,-0.06535515189170837,encod_proxy,warm electronic bass synth,16
