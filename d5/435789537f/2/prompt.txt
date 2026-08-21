@@ -1,0 +1,1 @@
+committing has become too long to do, let's remove outputs from the notebooks.

@@ -3,8 +3,9 @@
   "checkpoint_id": "d5435789537f",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 12,
+  "checkpoints_count": 13,
   "files_touched": [
+    "pyproject.toml",
     "scripts/sample_audio.py",
     "scripts/train_audio_diffusion.py",
     "src/ald_sc/dit.py",
@@ -29,6 +30,13 @@
       "compact_transcript": "/d5/435789537f/1/transcript.jsonl",
       "content_hash": "/d5/435789537f/1/content_hash.txt",
       "prompt": "/d5/435789537f/1/prompt.txt"
+    },
+    {
+      "metadata": "/d5/435789537f/2/metadata.json",
+      "transcript": "/d5/435789537f/2/full.jsonl",
+      "compact_transcript": "/d5/435789537f/2/transcript.jsonl",
+      "content_hash": "/d5/435789537f/2/content_hash.txt",
+      "prompt": "/d5/435789537f/2/prompt.txt"
     }
   ],
   "token_usage": {
