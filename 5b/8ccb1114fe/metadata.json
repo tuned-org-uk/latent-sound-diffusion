@@ -3,7 +3,7 @@
   "checkpoint_id": "5b8ccb1114fe",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 7,
+  "checkpoints_count": 8,
   "files_touched": [
     "scripts/bank_variants.py",
     "scripts/build_bank_variants_notebook.py",
@@ -68,13 +68,20 @@
       "compact_transcript": "/5b/8ccb1114fe/6/transcript.jsonl",
       "content_hash": "/5b/8ccb1114fe/6/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/5b/8ccb1114fe/7/metadata.json",
+      "transcript": "/5b/8ccb1114fe/7/full.jsonl",
+      "compact_transcript": "/5b/8ccb1114fe/7/transcript.jsonl",
+      "content_hash": "/5b/8ccb1114fe/7/content_hash.txt",
+      "prompt": "/5b/8ccb1114fe/7/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
+    "input_tokens": 41462,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "cache_read_tokens": 10135744,
+    "output_tokens": 13931,
+    "api_call_count": 42
   }
 }
