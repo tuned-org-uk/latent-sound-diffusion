@@ -18,19 +18,19 @@
       "deletions": 0,
       "files": 0
     },
-    "cost": 0.21969457999999997,
+    "cost": 0.31615941999999997,
     "tokens": {
-      "input": 263313,
-      "output": 23449,
+      "input": 267260,
+      "output": 24157,
       "reasoning": 4640,
       "cache": {
-        "read": 4222267,
+        "read": 4560051,
         "write": 0
       }
     },
     "time": {
       "created": 1787401565950,
-      "updated": 1787403744974
+      "updated": 1787403844716
     }
   },
   "messages": [
@@ -7350,21 +7350,24 @@
           "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
           "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
         },
-        "cost": 0,
+        "cost": 0.03000026,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 112210,
+          "input": 96,
+          "output": 173,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 111941
           }
         },
         "modelID": "glm-5.2",
         "providerID": "opencode",
         "time": {
-          "created": 1787403744973
+          "created": 1787403744973,
+          "completed": 1787403773004
         },
+        "finish": "tool-calls",
         "id": "msg_02990b6cd0010Nb8nku7hkApKi",
         "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
       },
@@ -7381,22 +7384,385 @@
           "tool": "bash",
           "callID": "chatcmpl-tool-99eb2c35d77cdcb6",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add tests/test_eval.py && git commit -m \"$(cat <<'EOF'\ntest: tolerate float32 round-off in round-0 CLAP-proxy self-distance\n\nThe recursive-variant-drift test asserted exact equality on round 0's\nclap_distance_to_round0, but the value is 1 - cos_sim of features\nrecomputed from the same audio — a float32 subtraction that yields ~6e-8\non Linux x86_64 CI (ULP-level divergence across two encodec_pooled_features\ncalls). Loosen to < 1e-6; a real regression would be orders of magnitude\nlarger. Pre-existing fragility surfaced by the #62 CI run, not caused by it.\nEOF\n)\" && git push 2>&1 | tail -2"
             },
+            "output": "[fix/stopvar-degenerate-issue-62 9580389] test: tolerate float32 round-off in round-0 CLAP-proxy self-distance\n 1 file changed, 4 insertions(+), 1 deletion(-)\nTo github.com:tuned-org-uk/latent-sound-diffusion.git\n   daab881..9580389  fix/stopvar-degenerate-issue-62 -> fix/stopvar-degenerate-issue-62\n",
+            "metadata": {
+              "output": "[fix/stopvar-degenerate-issue-62 9580389] test: tolerate float32 round-off in round-0 CLAP-proxy self-distance\n 1 file changed, 4 insertions(+), 1 deletion(-)\nTo github.com:tuned-org-uk/latent-sound-diffusion.git\n   daab881..9580389  fix/stopvar-degenerate-issue-62 -> fix/stopvar-degenerate-issue-62\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add tests/test_eval.py && git commit -m \"$(cat <<'EOF'\ntest: tolerate float32 round-off in round-0 CLAP-proxy self-distance\n\nThe recursive-variant-drift test asserted exact equality on round 0's\nclap_distance_to_round0, but the value is 1 - cos_sim of features\nrecomputed from the same audio — a float32 subtraction that yields ~6e-8\non Linux x86_64 CI (ULP-level divergence across two encodec_pooled_features\ncalls). Loosen to < 1e-6; a real regression would be orders of magnitude\nlarger. Pre-existing fragility surfaced by the #62 CI run, not caused by it.\nEOF\n)\" && git push 2>&1 | tail -2",
             "time": {
-              "start": 1787403749287
+              "start": 1787403772874,
+              "end": 1787403772878
             }
           },
           "id": "prt_02990bea1001EbUvUZWF79JeOx",
           "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
           "messageID": "msg_02990b6cd0010Nb8nku7hkApKi"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-finish",
+          "tokens": {
+            "total": 112210,
+            "input": 96,
+            "output": 173,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 111941
+            }
+          },
+          "cost": 0.03000026,
+          "id": "prt_029912411001NC5gkL18SQQS0F",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_02990b6cd0010Nb8nku7hkApKi"
         }
       ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298ef4360010scz9jS7BY4GWb",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03004516,
+        "tokens": {
+          "total": 112433,
+          "input": 277,
+          "output": 120,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 112036
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403773008,
+          "completed": 1787403777534
+        },
+        "finish": "tool-calls",
+        "id": "msg_029912450001DBB5wdL5wvFcS0",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-start",
+          "id": "prt_029912f62001j4Bs9LrdRa36ss",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029912450001DBB5wdL5wvFcS0"
+        },
+        {
+          "type": "text",
+          "text": "Now let me do the actual review the user asked for. Let me re-read the full branch diff critically, looking for bugs, edge cases, and design issues.",
+          "time": {
+            "start": 1787403775844,
+            "end": 1787403777415
+          },
+          "id": "prt_029912f64001sFe5vBQvqTwL7g",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029912450001DBB5wdL5wvFcS0"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "chatcmpl-tool-9802d6c83b0bcde5",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/sampling.py",
+              "limit": 50,
+              "offset": 240
+            },
+            "output": "<path>/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/sampling.py</path>\n<type>file</type>\n<content>\n240:     gen = torch.Generator(device=device).manual_seed(seed)\n241:     model = model.to(device).eval()\n242:     if c_spec is not None:\n243:         c_spec = c_spec.to(device)\n244: \n245:     sigmas = schedule.sample_sigmas(steps).to(device)\n246: \n247:     if stop_sigma is not None:\n248:         stop = int(stop_sigma)\n249:         if not 0 <= stop < schedule.num_steps:\n250:             raise ValueError(\n251:                 f\"stop_sigma must be in [0, {schedule.num_steps}); got {stop_sigma}\"\n252:             )\n253:         # True early-stop semantics (issue #62): keep only the ladder\n254:         # entries at or above the stop index, so the final update lands\n255:         # on ``stop`` instead of running through to ab == 1.\n256:         sigmas = sigmas[sigmas >= stop]\n257: \n258:     x = _init_noise(model, batch_size, device, gen)\n259: \n260:     steps_used = 0\n261:     for sig, sig_prev in _pairwise(sigmas.tolist()):\n262:         if spectral_schedule is not None:\n263:             t_frac = sig / schedule.num_steps\n264:             if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):\n265:                 break\n266:         steps_used += 1\n267:         t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)\n268:         v = model(x, t, c_spec=c_spec)\n269: \n270:         ab = schedule.alpha_bar[int(sig)]\n271:         ab_prev = schedule.alpha_bar[int(sig_prev)]\n272:         sqrt_ab = ab.sqrt()\n273:         sqrt_1mab = (1 - ab).sqrt()\n274: \n275:         z0_pred = sqrt_ab * x - sqrt_1mab * v\n276:         eps_hat = sqrt_ab * v + sqrt_1mab * x\n277: \n278:         sqrt_ab_prev = ab_prev.sqrt()\n279:         sqrt_1mab_prev = (1 - ab_prev).sqrt()\n280:         x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * eps_hat\n281: \n282:     if return_steps:\n283:         return x, steps_used\n284:     return x\n285: \n286: \n287: def sample_ddim_steps(\n288:     model: nn.Module,\n289:     schedule: CosineSchedule,\n\n(Showing lines 240-289 of 330. Use offset=290 to continue.)\n</content>",
+            "metadata": {
+              "preview": "    gen = torch.Generator(device=device).manual_seed(seed)\n    model = model.to(device).eval()\n    if c_spec is not None:\n        c_spec = c_spec.to(device)\n\n    sigmas = schedule.sample_sigmas(steps).to(device)\n\n    if stop_sigma is not None:\n        stop = int(stop_sigma)\n        if not 0 <= stop < schedule.num_steps:\n            raise ValueError(\n                f\"stop_sigma must be in [0, {schedule.num_steps}); got {stop_sigma}\"\n            )\n        # True early-stop semantics (issue #62): keep only the ladder\n        # entries at or above the stop index, so the final update lands\n        # on ``stop`` instead of running through to ab == 1.\n        sigmas = sigmas[sigmas >= stop]\n\n    x = _init_noise(model, batch_size, device, gen)\n",
+              "truncated": true,
+              "loaded": [],
+              "display": {
+                "type": "file",
+                "path": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/sampling.py",
+                "text": "    gen = torch.Generator(device=device).manual_seed(seed)\n    model = model.to(device).eval()\n    if c_spec is not None:\n        c_spec = c_spec.to(device)\n\n    sigmas = schedule.sample_sigmas(steps).to(device)\n\n    if stop_sigma is not None:\n        stop = int(stop_sigma)\n        if not 0 <= stop < schedule.num_steps:\n            raise ValueError(\n                f\"stop_sigma must be in [0, {schedule.num_steps}); got {stop_sigma}\"\n            )\n        # True early-stop semantics (issue #62): keep only the ladder\n        # entries at or above the stop index, so the final update lands\n        # on ``stop`` instead of running through to ab == 1.\n        sigmas = sigmas[sigmas >= stop]\n\n    x = _init_noise(model, batch_size, device, gen)\n\n    steps_used = 0\n    for sig, sig_prev in _pairwise(sigmas.tolist()):\n        if spectral_schedule is not None:\n            t_frac = sig / schedule.num_steps\n            if spectral_schedule.is_heat_death(torch.tensor(t_frac, device=device)):\n                break\n        steps_used += 1\n        t = torch.full((batch_size,), int(sig), device=device, dtype=torch.long)\n        v = model(x, t, c_spec=c_spec)\n\n        ab = schedule.alpha_bar[int(sig)]\n        ab_prev = schedule.alpha_bar[int(sig_prev)]\n        sqrt_ab = ab.sqrt()\n        sqrt_1mab = (1 - ab).sqrt()\n\n        z0_pred = sqrt_ab * x - sqrt_1mab * v\n        eps_hat = sqrt_ab * v + sqrt_1mab * x\n\n        sqrt_ab_prev = ab_prev.sqrt()\n        sqrt_1mab_prev = (1 - ab_prev).sqrt()\n        x = sqrt_ab_prev * z0_pred + sqrt_1mab_prev * eps_hat\n\n    if return_steps:\n        return x, steps_used\n    return x\n\n\ndef sample_ddim_steps(\n    model: nn.Module,\n    schedule: CosineSchedule,",
+                "lineStart": 240,
+                "lineEnd": 289,
+                "totalLines": 330,
+                "truncated": true
+              }
+            },
+            "title": "src/ald_sc/sampling.py",
+            "time": {
+              "start": 1787403776890,
+              "end": 1787403776898
+            }
+          },
+          "id": "prt_0299131ee001PnrUUzaBJR0BZ6",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029912450001DBB5wdL5wvFcS0"
+        },
+        {
+          "type": "tool",
+          "tool": "read",
+          "callID": "chatcmpl-tool-a65bca973e92002d",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/inference.py",
+              "limit": 50,
+              "offset": 421
+            },
+            "output": "<path>/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/inference.py</path>\n<type>file</type>\n<content>\n421:             k = bank_variety * float(z_bar.std()) / max(resid_std, 1e-12)\n422:             return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]\n423: \n424:         # bank_mode == \"stopvar\": true early-stop semantics (issue #62).\n425:         # Every clip walks the SAME seeded DDIM ladder over the full\n426:         # `steps` budget; each halts integration at its own sigma index\n427:         # and keeps the alpha_bar < 1 residual noise. (Varying only the\n428:         # integrated step count re-discretized one deterministic\n429:         # trajectory whose endpoint is identical for every entry under\n430:         # the corrected v0.12 sampler — same-seed banks came out\n431:         # bit-identical.) bank_variety stays the stop-time floor as a\n432:         # fraction of `steps` (default 0.5): lower floors retain more\n433:         # noise (more spread, less playability on v0.11-era feedback,\n434:         # PR #59).\n435:         lo = max(1, int(round(steps * bank_variety)))\n436:         hi = min(steps, max(lo + 1, int(round(steps * 0.98))))\n437:         if hi - lo + 1 < n:\n438:             # Secondary degeneracy (#62): near variety ~1 the integer\n439:             # stop window holds fewer than n rungs; expand downward so\n440:             # every clip gets its own stop point.\n441:             lo = max(1, hi - (n - 1))\n442:             log.warning(\n443:                 \"stopvar_grid_collapsed\",\n444:                 bank_variety=bank_variety,\n445:                 steps=steps,\n446:                 n=n,\n447:                 hint=\"requested stop window holds fewer than n distinct \"\n448:                 \"stops; floor expanded downward\",\n449:             )\n450:         grid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]\n451:         ladder = self.schedule.sample_sigmas(steps)\n452:         return [\n453:             sample_ddim(\n454:                 self.dit,\n455:                 self.schedule,\n456:                 batch_size=1,\n457:                 steps=steps,\n458:                 seed=seed,\n459:                 device=device,\n460:                 spectral_schedule=self.spectral_schedule,\n461:                 stop_sigma=int(ladder[s]),\n462:             )\n463:             for s in grid\n464:         ]\n465: \n466:     @torch.no_grad()\n467:     def generate_sound_bank(\n468:         self,\n469:         n: int = 8,\n470:         steps: int = 50,\n\n(Showing lines 421-470 of 807. Use offset=471 to continue.)\n</content>",
+            "metadata": {
+              "preview": "            k = bank_variety * float(z_bar.std()) / max(resid_std, 1e-12)\n            return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]\n\n        # bank_mode == \"stopvar\": true early-stop semantics (issue #62).\n        # Every clip walks the SAME seeded DDIM ladder over the full\n        # `steps` budget; each halts integration at its own sigma index\n        # and keeps the alpha_bar < 1 residual noise. (Varying only the\n        # integrated step count re-discretized one deterministic\n        # trajectory whose endpoint is identical for every entry under\n        # the corrected v0.12 sampler — same-seed banks came out\n        # bit-identical.) bank_variety stays the stop-time floor as a\n        # fraction of `steps` (default 0.5): lower floors retain more\n        # noise (more spread, less playability on v0.11-era feedback,\n        # PR #59).\n        lo = max(1, int(round(steps * bank_variety)))\n        hi = min(steps, max(lo + 1, int(round(steps * 0.98))))\n        if hi - lo + 1 < n:\n            # Secondary degeneracy (#62): near variety ~1 the integer\n            # stop window holds fewer than n rungs; expand downward so\n            # every clip gets its own stop point.",
+              "truncated": true,
+              "loaded": [],
+              "display": {
+                "type": "file",
+                "path": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/inference.py",
+                "text": "            k = bank_variety * float(z_bar.std()) / max(resid_std, 1e-12)\n            return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]\n\n        # bank_mode == \"stopvar\": true early-stop semantics (issue #62).\n        # Every clip walks the SAME seeded DDIM ladder over the full\n        # `steps` budget; each halts integration at its own sigma index\n        # and keeps the alpha_bar < 1 residual noise. (Varying only the\n        # integrated step count re-discretized one deterministic\n        # trajectory whose endpoint is identical for every entry under\n        # the corrected v0.12 sampler — same-seed banks came out\n        # bit-identical.) bank_variety stays the stop-time floor as a\n        # fraction of `steps` (default 0.5): lower floors retain more\n        # noise (more spread, less playability on v0.11-era feedback,\n        # PR #59).\n        lo = max(1, int(round(steps * bank_variety)))\n        hi = min(steps, max(lo + 1, int(round(steps * 0.98))))\n        if hi - lo + 1 < n:\n            # Secondary degeneracy (#62): near variety ~1 the integer\n            # stop window holds fewer than n rungs; expand downward so\n            # every clip gets its own stop point.\n            lo = max(1, hi - (n - 1))\n            log.warning(\n                \"stopvar_grid_collapsed\",\n                bank_variety=bank_variety,\n                steps=steps,\n                n=n,\n                hint=\"requested stop window holds fewer than n distinct \"\n                \"stops; floor expanded downward\",\n            )\n        grid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]\n        ladder = self.schedule.sample_sigmas(steps)\n        return [\n            sample_ddim(\n                self.dit,\n                self.schedule,\n                batch_size=1,\n                steps=steps,\n                seed=seed,\n                device=device,\n                spectral_schedule=self.spectral_schedule,\n                stop_sigma=int(ladder[s]),\n            )\n            for s in grid\n        ]\n\n    @torch.no_grad()\n    def generate_sound_bank(\n        self,\n        n: int = 8,\n        steps: int = 50,",
+                "lineStart": 421,
+                "lineEnd": 470,
+                "totalLines": 807,
+                "truncated": true
+              }
+            },
+            "title": "src/ald_sc/inference.py",
+            "time": {
+              "start": 1787403777316,
+              "end": 1787403777320
+            }
+          },
+          "id": "prt_02991339f001dulZGiRAobDF1J",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029912450001DBB5wdL5wvFcS0"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-finish",
+          "tokens": {
+            "total": 112433,
+            "input": 277,
+            "output": 120,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 112036
+            }
+          },
+          "cost": 0.03004516,
+          "id": "prt_0299135c2001qxi85yLmvqgJUA",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029912450001DBB5wdL5wvFcS0"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298ef4360010scz9jS7BY4GWb",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 0
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403777538,
+          "completed": 1787403835636
+        },
+        "finish": "unknown",
+        "id": "msg_029913602001YfZvO03yJFWJB4",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-start",
+          "id": "prt_029913dcf001RWXMhMggO7k2y9",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029913602001YfZvO03yJFWJB4"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me now do a careful critical review of the branch. I'll look for:\n\n1. **Correctness bugs** in the implementation\n2. **Edge cases** not handled\n3. **Test quality** issues\n4. **Design/API** concerns\n5. **Documentation** accuracy\n\nLet me go through each piece:\n\n### 1. `sample_ddim` `stop_sigma` truncation (sampling.py:247-256)\n\n```python\nif stop_sigma is not None:\n    stop = int(stop_sigma)\n    if not 0 <= stop < schedule.num_steps:\n        raise ValueError(...)\n    sigmas = sigmas[sigmas >= stop]\n```\n\n**Potential issue: what if `stop` is not on the ladder?** The ladder `sample_sigmas(steps)` produces `steps+1` rounded indices. If `stop_sigma` is a value not in the ladder (e.g., user passes `stop_sigma=50` but the ladder has entries `[99, 91, 83, ...]` that skip 50), then `sigmas >= stop` keeps entries `[99, 91, 83, 75, 67, 59]` (those >= 50), and the final entry is 59, not 50. The latent would be denoised to ᾱ(59), not ᾱ(50). \n\nIs this a problem? In the `_bank_latents` usage, `stop_sigma=int(ladder[s])` — the stop value IS a ladder entry, so truncation lands exactly on it. For direct sampler API use, a user passing an arbitrary stop_sigma gets \"stop at or above\" semantics (the nearest ladder entry >= stop). That's a reasonable behavior but the docstring says \"truncated at that index\" which implies exact. The docstring could be clearer, but it's not a bug — it's a design choice. The validation ensures it's in range. Fine.\n\n**Edge case: `stop_sigma=0`** — `sigmas >= 0` keeps ALL entries (since all sigma indices >= 0) → full ladder → same as default. This is correct: stopping at ᾱ=1 (index 0) IS the full run. Test `test_stop_at_final_ladder_entry_equals_full_run` confirms this. ✓\n\n**Edge case: `stop_sigma = sigmas[0]` (top of ladder, e.g. 99)** — `sigmas >= 99` keeps only `[99]` → no pairs → zero updates → returns init noise. Test confirms. ✓\n\n**Interaction with `spectral_schedule` heat-death**: if both `stop_sigma` and `spectral_schedule` are set, the heat-death check runs first in the loop and could break before reaching `stop_sigma`. That's fine — heat-death is an earlier termination; stop_sigma is a cap. No conflict. But there's no test for this combination. Minor — not a bug, just untested interaction. Acceptable for this scope since the bank code doesn't use spectral_schedule + stop_sigma together (well, actually it DOES pass `spectral_schedule=self.spectral_schedule` along with `stop_sigma` in the stopvar branch! Let me check...).\n\nLooking at inference.py:453-462:\n```python\nsample_ddim(\n    self.dit, self.schedule, batch_size=1, steps=steps, seed=seed,\n    device=device, spectral_schedule=self.spectral_schedule,\n    stop_sigma=int(ladder[s]),\n)\n```\n\nYes! If the model has a `spectral_schedule` set, BOTH `spectral_schedule` and `stop_sigma` are passed. The heat-death check could break the loop before reaching `stop_sigma`. Is this a problem? \n\nIf heat-death triggers before the stop point, the latent is even noisier than requested — more variety, not less. If heat-death triggers after the stop point... it can't, because stop_sigma truncates the ladder first, so the loop ends at stop_sigma. Actually wait — the ladder is truncated to `sigmas >= stop`, so the loop only iterates over entries from the top down to `stop`. The heat-death check happens at each entry's `t_frac`. If heat-death fires at some entry above `stop`, the loop breaks early → fewer updates → noisier than intended. That's a reasonable interaction: heat-death overrides the stop point if it fires earlier. Not a bug, but the stopvar clip would be noisier than its grid position suggests. \n\nIs this a concern? In practice, `spectral_schedule` is optional (default None) and the stopvar test models don't set it. The existing `TestBarontiniClockThreading` tests show spectral_schedule threading but don't combine with stopvar. The interaction is benign (early heat-death = more noise = more variety, which is the point of stopvar). I'll note this as a minor observation but not a blocker.\n\n### 2. `_bank_latents` stopvar branch (inference.py:424-464)\n\n```python\nlo = max(1, int(round(steps * bank_variety)))\nhi = min(steps, max(lo + 1, int(round(steps * 0.98))))\nif hi - lo + 1 < n:\n    lo = max(1, hi - (n - 1))\n    log.warning(\"stopvar_grid_collapsed\", ...)\ngrid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]\nladder = self.schedule.sample_sigmas(steps)\nreturn [sample_ddim(..., stop_sigma=int(ladder[s])) for s in grid]\n```\n\n**Edge case: `bank_variety=0`** — `lo = max(1, 0) = 1`. `hi = min(steps, max(2, round(steps*0.98)))`. Grid spans [1, hi]. The first clip stops at ladder position 1 (one update from pure noise — very noisy). Is this the intended semantics for variety=0? The docstring says \"0 disables variation (canonical output)\". But with the new stopvar semantics, variety=0 gives lo=1, NOT a canonical draw! The clips would be very noisy (stopping after 1 update), not canonical.\n\nWait, let me check: is there a guard for variety=0? The `test_jitter_first_clip_is_canonical` test checks that variety=0 reduces to canonical for jitter and residual modes — but NOT for stopvar (it only tests `(\"jitter\", \"residual\")`). So stopvar with variety=0 is untested for the \"canonical\" property.\n\nUnder the OLD code, variety=0 → lo=max(1,0)=1, hi=max(2, round(steps*0.98)), grid from 1 to hi. Old code ran `sample_ddim(steps=s)` for s in grid — s=1 means a 1-step DDIM which still terminates at ᾱ=1 (one giant step to full denoise). So old variety=0 gave nearly-canonical clips (all fully denoised). New variety=0 gives clips that stop after 1 update (retaining massive noise) — NOT canonical at all!\n\nThis is a **semantic regression** for variety=0. The docstring says \"0 disables variation (canonical output)\" — but stopvar with variety=0 now produces heavily noisy clips, not canonical. \n\nHmm, but is variety=0 for stopvar a meaningful use case? The docstring's \"0 disables variation\" is a general statement for all modes. For stopvar specifically, variety=0 means \"floor at 0% of steps\" = stop at the very beginning = pure noise. That's... technically consistent with \"floor fraction = 0\" but violates the \"0 disables variation\" promise.\n\nShould I fix this? Options:\n- Add a guard: if `bank_variety == 0`, return all-canonical (like jitter/residual do via the variety=0 path). But stopvar doesn't have a \"z_bar + 0 * ...\" form; it would need to return `[z_bar] * n`.\n- Or document that stopvar's variety=0 means \"stop at step 1\" not \"canonical\", and update the docstring.\n\nLooking at the existing test `test_jitter_first_clip_is_canonical`: it only tests jitter and residual with variety=0, NOT stopvar. So the \"0 disables variation\" contract isn't tested for stopvar. But the docstring says it generally.\n\nActually, let me re-read the docstring more carefully:\n```\nbank_variety : float\n    Diversity dial, interpreted per mode: ... 0 disables variation (canonical output).\n```\n\nThis is a general statement. For stopvar under the new semantics, variety=0 → lo=1 → stops after 1 update → NOT canonical. This is a real inconsistency.\n\nThe cleanest fix: if `bank_variety == 0` in stopvar, return `[z_bar] * n` (all canonical draws). This matches the documented contract and the other modes' behavior. But wait — z_bar is already computed above (line 362-370, before the mode branches). So I can add:\n\n```python\nif bank_variety == 0:\n    return [z_bar] * n\n```\n\nat the top of the stopvar branch. But hmm, this returns the SAME tensor object n times — is that OK? The downstream `_sample_and_decode` uses `z_init=z` and doesn't modify z in place (it does `z = z_init.to(device)` then `z = _apply_temperature(z, temperature)` which creates a new tensor if temperature != 1.0, or returns z if 1.0). If temperature=1.0, all n clips would decode the same z_bar → identical audio → which IS \"canonical\" (no variation). That's correct. But sharing the same tensor object is slightly fragile if any downstream code mutates in place. Let me check: `_sample_and_decode` does `z = z_init.to(device)` — if already on device, `.to()` returns the same tensor. Then `z = _apply_temperature(z, temperature)` — if temp=1.0, returns z (same object). Then `a = z.mean(dim=2)` — non-mutating. `audio = self.decoder(z, c_spec)` — shouldn't mutate input. So sharing is safe in practice. But for robustness, return `[z_bar.clone() for _ in range(n)]`? Or `[z_bar] * n` is fine since the downstream is `@torch.no_grad()` and doesn't mutate.\n\nActually, looking at the jitter branch: `variety=0` → `z_bar + 0 * sig * eps = z_bar` — returns the same z_bar object for each clip too (via the loop). So the pattern is consistent. `[z_bar] * n` is fine.\n\nBut wait — should I add this fix? It's a real semantic gap. Let me check if any test covers variety=0 for stopvar... `test_jitter_first_clip_is_canonical` explicitly skips stopvar. No test covers stopvar variety=0. So this is an untested edge case that violates the documented contract.\n\nI think this IS worth fixing in this PR since it's a direct consequence of my rewrite. The fix is minimal: one line + a test. Let me add it.\n\nActually wait — let me reconsider. Does `lo = max(1, ...)` already handle variety=0? `lo = max(1, int(round(steps * 0))) = max(1, 0) = 1`. So with variety=0, the earliest stop is at ladder position 1 (one update). The clip retains noise at ᾱ(ladder[1]). That's not canonical. The `max(1, ...)` was in the original code too — but in the original, `steps=1` still ran a full (1-step) DDIM to ᾱ=1. Now `stop_sigma=ladder[1]` stops after 1 update retaining noise. So the `max(1, ...)` floor has different semantics now.\n\nThe fix: add `if bank_variety == 0: return [z_bar] * n` before the grid computation. This is the correct semantic: variety=0 = no variation = all canonical.\n\nBut there's a subtlety: `z_bar` is the DDIM endpoint for `seed` (computed at line 362-370 with `steps=steps`). If `spectral_schedule` is set, z_bar might stop early due to heat-death. That's fine — z_bar is still the \"canonical draw\" for this model.\n\nLet me also think: should variety=0 for stopvar return `[z_bar] * n` or should it fall through to the grid with lo=steps (so all clips do the full run)? The latter would be: if variety=0, set lo=hi=steps → grid=[steps, steps, ...] → all clips stop at ladder[steps]=0 → full run → all equal z_bar. But that requires special-casing lo. Simpler: just `return [z_bar] * n`.\n\nOK, I'll add this fix + a test. This is a legitimate finding from the review.\n\n### 3. Grid distinctness after collapse expansion\n\n```python\nif hi - lo + 1 < n:\n    lo = max(1, hi - (n - 1))\n```\n\nAfter expansion, is `hi - lo + 1 >= n` guaranteed? `lo = max(1, hi - (n-1))`. If `hi - (n-1) >= 1`, then `lo = hi - (n-1)` → `hi - lo + 1 = n` ✓. If `hi - (n-1) < 1` (i.e., `hi < n`), then `lo = 1` → `hi - lo + 1 = hi` which could still be < n. Example: steps=3, n=8, variety=0.974 → lo=3, hi=min(3, max(4, 2))=3 → window 1 < 8 → lo=max(1, 3-7)=1 → window=3-1+1=3 < 8. Grid = [1 + 2*i//7 for i in range(8)] = [1,1,1,1,2,2,2,3] → duplicates! \n\nThe test `test_stopvar_grid_collapse_warns_and_expands_downward` uses n=4, steps=12 → hi=12, lo=max(1,12-3)=9 → window=4 ≥ 4 ✓. But for pathological tiny steps + large n, duplicates remain. The warning fires (good) but the test only checks `min(dists) > 0` which would FAIL if duplicates exist. However, the test uses n=4, steps=12 which is safe. The pathological case (steps < n) is untested.\n\nIs this a real concern? In practice, steps is typically 20-50 and n is 4-8, so steps >> n. The `generate_sound_bank` doesn't validate steps >= n. But with the default steps=50 and n=8, it's fine. I could add a guard: if after expansion `hi - lo + 1 < n`, the grid will have duplicates — warn differently or raise? Or just accept it (the warning already fires, and duplicates are the best achievable with too few steps). The issue's direction 3 says \"Runtime guard/warning\" — the warning IS the guard. Duplicates with a warning is acceptable behavior when the user asks for more clips than available stop points.\n\nI think this is acceptable — the warning is the guard, and the behavior is \"best effort\". Not a blocker. But I could note it.\n\n### 4. The `_ContractingDIT` stub in tests\n\nThe stub has `latent_shape = (4, 16)` but `_make_model` uses `MinimalDiT(latent_channels=128, latent_length=16)`. When we do `m.dit = _ContractingDIT(m.schedule)`, the dit's latent_shape changes from (128, 16) to (4, 16). The _init_noise will then generate randn(1, 4, 16) instead of randn(1, 128, 16). But the decoder expects 128-channel latents! \n\nWait — in the test `test_stopvar_degeneracy_under_contractive_dit`, we call `m._bank_latents(...)` which calls `sample_ddim(m.dit, ...)` → `_init_noise` uses `m.dit.latent_shape = (4, 16)` → noise is (1, 4, 16). The sample",
+          "time": {
+            "start": 1787403779539,
+            "end": 1787403835511
+          },
+          "id": "prt_029913dd3001L09t0axSewfFCK",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029913602001YfZvO03yJFWJB4"
+        },
+        {
+          "reason": "unknown",
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-finish",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "cost": 0,
+          "id": "prt_0299218ba0013lfLP5utEXoO0u",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_029913602001YfZvO03yJFWJB4"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298ef4360010scz9jS7BY4GWb",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0.03641942,
+        "tokens": {
+          "total": 117796,
+          "input": 3574,
+          "output": 415,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 113807
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403835640,
+          "completed": 1787403844712
+        },
+        "finish": "tool-calls",
+        "id": "msg_0299218f8001mYc7CMcVRYMSGq",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-start",
+          "id": "prt_029922100001pwkGluYGF4VtyR",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0299218f8001mYc7CMcVRYMSGq"
+        },
+        {
+          "type": "text",
+          "text": "Now let me critically review the branch for bugs and edge cases. Let me check a few specific concerns I've identified while reading the diff.",
+          "time": {
+            "start": 1787403837699,
+            "end": 1787403844092
+          },
+          "id": "prt_029922103001Qs0GYfKXIbSmkf",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0299218f8001mYc7CMcVRYMSGq"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "chatcmpl-tool-aa13ac2a9cdca461",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python -c \"\nimport torch\nfrom ald_sc.schedule import CosineSchedule\n# Edge: does stop_sigma=0 (full run) match no stop_sigma?\nfrom ald_sc.dit import MinimalDiT\nfrom ald_sc.sampling import sample_ddim\ntorch.manual_seed(3407)\ndit = MinimalDiT(latent_channels=4, latent_length=16, patch_size=2, dim=32, depth=2, num_heads=4, spec_dim=12)\nsched = CosineSchedule(num_steps=100)\nz_full = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5)\nz_stop0 = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=0)\nprint('stop_sigma=0 matches full:', torch.allclose(z_full, z_stop0, atol=1e-6))\n# Edge: stop_sigma NOT on the ladder (ladder skips it)\nladder = sched.sample_sigmas(steps=10)\nprint('ladder:', ladder.tolist())\n# 50 not on ladder? check\nprint('50 on ladder:', 50 in ladder.tolist())\n# stop at 50 -> truncates to entries >= 50, last entry is the actual stop\nz_stop50 = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=50)\nz_stop_at_actual = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=int(ladder[ladder>=50][-1]))\nprint('stop_sigma=50 matches stop at nearest ladder entry >= 50:', torch.allclose(z_stop50, z_stop_at_actual, atol=1e-6))\n\"",
+              "timeout": 60000
+            },
+            "output": "stop_sigma=0 matches full: True\nladder: [99, 89, 79, 69, 59, 49, 39, 29, 19, 9, 0]\n50 on ladder: False\nstop_sigma=50 matches stop at nearest ladder entry >= 50: True\n",
+            "metadata": {
+              "output": "stop_sigma=0 matches full: True\nladder: [99, 89, 79, 69, 59, 49, 39, 29, 19, 9, 0]\n50 on ladder: False\nstop_sigma=50 matches stop at nearest ladder entry >= 50: True\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python -c \"\nimport torch\nfrom ald_sc.schedule import CosineSchedule\n# Edge: does stop_sigma=0 (full run) match no stop_sigma?\nfrom ald_sc.dit import MinimalDiT\nfrom ald_sc.sampling import sample_ddim\ntorch.manual_seed(3407)\ndit = MinimalDiT(latent_channels=4, latent_length=16, patch_size=2, dim=32, depth=2, num_heads=4, spec_dim=12)\nsched = CosineSchedule(num_steps=100)\nz_full = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5)\nz_stop0 = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=0)\nprint('stop_sigma=0 matches full:', torch.allclose(z_full, z_stop0, atol=1e-6))\n# Edge: stop_sigma NOT on the ladder (ladder skips it)\nladder = sched.sample_sigmas(steps=10)\nprint('ladder:', ladder.tolist())\n# 50 not on ladder? check\nprint('50 on ladder:', 50 in ladder.tolist())\n# stop at 50 -> truncates to entries >= 50, last entry is the actual stop\nz_stop50 = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=50)\nz_stop_at_actual = sample_ddim(dit, sched, batch_size=1, steps=10, seed=5, stop_sigma=int(ladder[ladder>=50][-1]))\nprint('stop_sigma=50 matches stop at nearest ladder entry >= 50:', torch.allclose(z_stop50, z_stop_at_actual, atol=1e-6))\n\"",
+            "time": {
+              "start": 1787403844497,
+              "end": 1787403844604
+            }
+          },
+          "id": "prt_029922331001Eyp4jWeeIbYIl5",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0299218f8001mYc7CMcVRYMSGq"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "df78781b6653d8cd6db839f5eab1897149ca377c",
+          "type": "step-finish",
+          "tokens": {
+            "total": 117796,
+            "input": 3574,
+            "output": 415,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 113807
+            }
+          },
+          "cost": 0.03641942,
+          "id": "prt_029923c32001hxKqzqRwxJaTIn",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0299218f8001mYc7CMcVRYMSGq"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298ef4360010scz9jS7BY4GWb",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "reasoning": 0,
+          "cache": {
+            "read": 0,
+            "write": 0
+          }
+        },
+        "modelID": "glm-5.2",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403844716
+        },
+        "id": "msg_029923c6c001swA7c51X5abY5p",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": []
     }
   ]
 }
