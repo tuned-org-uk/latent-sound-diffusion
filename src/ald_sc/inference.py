@@ -115,14 +115,37 @@ def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
     return z * float(temperature)
 
 
+_RESAMPLE_MAX_TERM = 4096
+
+
 def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
-    """Resample a 1-D (T,) waveform to a target length (mono, no batch)."""
+    """Speed-change resample of a 1-D (T,) waveform to a target length.
+
+    v0.11 passed the signal *length* as ``orig_freq``; near-coprime
+    lengths (one semitone down on a 10 s clip is 239040:225631) made
+    torchaudio build quarter-million-tap sinc kernels — an OOM kill. The
+    speed ratio is therefore approximated as a small rational (terms
+    bounded by ``_RESAMPLE_MAX_TERM``; musical pitch error ≪ 1 cent) and
+    the output is trimmed/zero-padded to exactly ``new_length``.
+    """
+    from fractions import Fraction
+
     dev = wave.device
+    old_len = max(int(wave.shape[-1]), 1)
+    ratio = float(new_length) / old_len
+    frac = Fraction(ratio).limit_denominator(_RESAMPLE_MAX_TERM)
     wave = wave.unsqueeze(0).cpu()  # Resample on CPU (torchaudio MPS-safe)
-    resampler = torchaudio.transforms.Resample(
-        orig_freq=wave.shape[-1], new_freq=new_length
-    )
-    return resampler(wave).squeeze(0).to(dev)
+    if frac.numerator == frac.denominator:
+        out = wave
+    else:
+        resampler = torchaudio.transforms.Resample(
+            orig_freq=frac.denominator, new_freq=frac.numerator
+        )
+        out = resampler(wave)
+    out = out.squeeze(0)
+    if int(out.shape[-1]) >= new_length:
+        return out[..., :new_length].to(dev)
+    return torch.nn.functional.pad(out, (0, new_length - int(out.shape[-1]))).to(dev)
 
 
 _NOTE_FADE_SECONDS = 0.003

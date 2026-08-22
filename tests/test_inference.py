@@ -516,3 +516,53 @@ class TestArtefactHardening:
             digest, name = line.split(maxsplit=1)
             actual = hashlib.sha256((out / name).read_bytes()).hexdigest()
             assert digest == actual, name
+
+
+class TestResample1dAnchored:
+    """_resample_1d must not use signal length as orig_freq.
+
+    v0.11 built Resample(signal_len -> target_len); for a 10 s clip one
+    semitone down that is a 239040:225631 coprime pair and torchaudio
+    constructs a ~quarter-million-tap kernel (OOM kill). The ratio must
+    be approximated by small integers instead.
+    """
+
+    def test_kernel_terms_are_bounded(self, monkeypatch) -> None:
+        captured = {}
+
+        class FakeResample(torch.nn.Module):
+            def __init__(self, orig_freq, new_freq, **kw):
+                captured["ratio"] = new_freq / orig_freq
+                captured["max_term"] = max(orig_freq, new_freq)
+                super().__init__()
+
+            def forward(self, x):
+                n = int(round(x.shape[-1] * captured["ratio"]))
+                return x[..., :n] if n <= x.shape[-1] else torch.nn.functional.pad(x, (0, n - x.shape[-1]))
+
+        import torchaudio.transforms
+
+        monkeypatch.setattr(
+            torchaudio.transforms, "Resample", FakeResample
+        )
+        from ald_sc.inference import _resample_1d
+
+        src = torch.zeros(239040)
+        out = _resample_1d(src, 225631)  # one semitone down, 10 s clip
+        assert out.shape[-1] == 225631
+        assert captured["max_term"] <= 4096, (
+            f"kernel terms {captured['max_term']} unbounded -> giant sinc"
+        )
+        assert abs(captured["ratio"] - 225631 / 239040) < 1e-4
+
+    def test_long_clip_transposition_is_fast(self) -> None:
+        import time
+
+        from ald_sc.inference import _resample_1d
+
+        src = torch.sin(2 * torch.pi * 220 * torch.arange(239040) / 24000)
+        t0 = time.monotonic()
+        out = _resample_1d(src, int(239040 * 2 ** (-1 / 12)))
+        dt = time.monotonic() - t0
+        assert out.shape[-1] == int(239040 * 2 ** (-1 / 12))
+        assert dt < 5.0, f"transposing a 10 s clip took {dt:.1f}s"

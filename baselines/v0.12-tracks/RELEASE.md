@@ -60,6 +60,19 @@ sampler artifact; it predates v0.12 and is unchanged by it.
 
 SHA256SUMS covers pilot + confirmation artifacts + stats.
 
+## MIDI materialisation (`midi_renders/`, Mode C audition)
+
+The 10 s textures are hard to judge in isolation; `scripts/materialise_midi.py`
+renders the first 8 confirm_a clips through four note patterns
+(root=60, 4 bars @100 BPM): arpeggio, chords (I–vi–IV–V), ascending
+major scale, fixed motif. Rendered with the v0.12-fixed
+`synthesize_midi` (transposition survives duration fit; edge fades;
+composer-order timbre). Audition these for the quality call.
+
+Note: spectral peak checks cannot validate pitch on textured banks
+(formants dominate); pitch correctness is pinned by unit tests with
+tonal sources. Perceptual judgement = listening pass.
+
 ## Integrity
 
     shasum -a 256 -c SHA256SUMS
