@@ -3,7 +3,7 @@
   "checkpoint_id": "9043f3e230a0",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "scripts/materialise_midi.py",
     "src/ald_sc/inference.py",
@@ -29,6 +29,13 @@
       "transcript": "/90/43f3e230a0/2/full.jsonl",
       "compact_transcript": "/90/43f3e230a0/2/transcript.jsonl",
       "content_hash": "/90/43f3e230a0/2/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/90/43f3e230a0/3/metadata.json",
+      "transcript": "/90/43f3e230a0/3/full.jsonl",
+      "compact_transcript": "/90/43f3e230a0/3/transcript.jsonl",
+      "content_hash": "/90/43f3e230a0/3/content_hash.txt",
       "prompt": ""
     }
   ],
