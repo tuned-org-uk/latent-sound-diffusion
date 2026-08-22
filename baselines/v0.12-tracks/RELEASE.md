@@ -39,7 +39,22 @@ floor (~1e-4) in all arms — diversity discrimination requires per-frame
 metrics (open item on #60). TOST equivalence bands still pending; the
 direction is now established at both scales.
 
-SHA256SUMS covers pilot + confirmation artifacts.
+## Statistical verification (`confirm_stats.csv`, n_boot=300, α=0.05)
+
+Null band (same-generator ref_bank vs references): **[225.5, 241.6]** →
+equivalence margin 241.6.
+
+| Arm | FAD CI | Verdict |
+|---|---|---|
+| confirm_a | [148.0, 158.8] | equivalent (and entirely **below** the null band) |
+| confirm_b | [213.4, 228.1] | equivalent |
+
+confirm_a's whole CI sits under the null's whole CI: native v0.12
+matches the corpus distribution significantly better than the frozen
+v0.11 generator, not just "not worse". Per-frame excess ≈ 0.010 in both
+arms — frame-level contraction persists (open item).
+
+SHA256SUMS covers pilot + confirmation artifacts + stats.
 
 ## Integrity
 

@@ -1,0 +1,8 @@
+# PROTOCOL_10S arm metrics
+# created_at: 2026-08-22T01:53:52
+# git_commit: daf4457
+# torch: 2.13.0 device: mps
+# reference_n: 64 (fad_vs_ref ref_stats: {'centroid_mean_hz': 2979.88720703125, 'centroid_std_hz': 1789.5211181640625, 'rms_mean': 0.13368746638298035, 'rms_std': 0.04871179163455963})
+arm,n,fad_vs_ref,fad_ci_low,fad_ci_high,fad_margin,verdict,frame_excess,pairwise_cos_dist,centroid_mean_hz,centroid_std_hz,rms_mean,rms_std,duration_s
+confirm_a,64,152.77,148.02,158.83,241.55789160728455,equivalent,0.0101,0.0002,1436.1134,237.453,0.181,0.0189,9.97
+confirm_b,32,220.57,213.37,228.07,241.55789160728455,equivalent,0.0099,0.0001,1347.1399,179.0521,0.2342,0.0153,7.98

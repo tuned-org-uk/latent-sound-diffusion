@@ -24,6 +24,36 @@ import torch
 
 from ald_sc.data import Esc50Dataset, PairedSegmentDataset
 from ald_sc.eval import encodec_pooled_features, fad_score, spectral_centroid, split_files
+from ald_sc.eval_stats import (
+    bootstrap_fad_ci,
+    cross_clip_frame_excess,
+    equivalence_verdict,
+)
+
+
+def _frame_clouds(
+    waves: list[torch.Tensor],
+    encoder,
+    device: torch.device,
+    k: int = 32,
+) -> list[torch.Tensor]:
+    """Per-clip (K,F) L2-normalized EnCodec frame clouds (no pooling)."""
+    clouds = []
+    total = max(w.shape[-1] for w in waves)
+    for w in waves:
+        x = w.unsqueeze(0).to(device) if w.dim() == 2 else w.to(device)
+        with torch.no_grad():
+            z = encoder.extract_features(x).squeeze(0)  # (F, T')
+        frames = z.T  # (T', F)
+        idx = torch.linspace(0, frames.shape[0] - 1, min(k, frames.shape[0])).long()
+        sel = frames[idx]
+        sel = torch.nn.functional.normalize(sel.float(), dim=-1)
+        pad = k - sel.shape[0]
+        if pad > 0:
+            sel = torch.nn.functional.pad(sel, (0, 0, 0, pad))
+        clouds.append(sel)
+    del total
+    return clouds
 
 
 def _git_commit() -> str:
@@ -84,6 +114,14 @@ def main() -> None:
     parser.add_argument("--max-clips", type=int, default=None)
     parser.add_argument("--sample-rate", type=int, default=24000)
     parser.add_argument("--device", type=str, default="auto")
+    parser.add_argument("--n-boot", type=int, default=300)
+    parser.add_argument("--alpha", type=float, default=0.05)
+    parser.add_argument("--fad-margin", type=float, default=None,
+                        help="Equivalence margin; default derives from the "
+                        "--null-dir bootstrap CI (empirical same-generator band)")
+    parser.add_argument("--null-dir", type=str, default=None,
+                        help="Same-generator arm used to derive the null CI "
+                        "(e.g. baselines/v0.12-tracks/ref_bank)")
     parser.add_argument("--out", type=str, default="results/track_metrics.csv")
     args = parser.parse_args()
 
@@ -129,9 +167,24 @@ def main() -> None:
     ref_feats = encodec_pooled_features(iter(ref_waves), encoder, device)
     ref_stats = arm_stats(ref_waves, args.sample_rate)
 
+    # Null CI: same-generator variability defines the equivalence margin
+    # when none is supplied (protocol: margins from empirical pilot spread).
+    margin = args.fad_margin
+    null_ci = None
+    if args.null_dir:
+        null_waves = load_arm(Path(args.null_dir), args.max_clips)
+        null_feats = encodec_pooled_features(iter(null_waves), encoder, device)
+        null_ci = bootstrap_fad_ci(
+            null_feats, ref_feats, n_boot=args.n_boot, alpha=args.alpha
+        )
+        if margin is None:
+            margin = null_ci[1]
+        print(f"null CI (same-generator): {null_ci}  -> margin {margin}")
+
     rows: list[str] = []
     header = (
-        "arm,n,fad_vs_ref,pairwise_cos_dist,centroid_mean_hz,centroid_std_hz,"
+        "arm,n,fad_vs_ref,fad_ci_low,fad_ci_high,fad_margin,verdict,"
+        "frame_excess,pairwise_cos_dist,centroid_mean_hz,centroid_std_hz,"
         "rms_mean,rms_std,duration_s"
     )
     rows.append(header)
@@ -141,10 +194,24 @@ def main() -> None:
         feats = encodec_pooled_features(iter(waves), encoder, device)
         duration = float(waves[0].shape[-1]) / args.sample_rate
         stats = arm_stats(waves, args.sample_rate)
+        ci_low, ci_high = bootstrap_fad_ci(
+            feats, ref_feats, n_boot=args.n_boot, alpha=args.alpha
+        )
+        verdict = (
+            equivalence_verdict(ci_low, ci_high, margin)
+            if margin is not None
+            else "no-margin"
+        )
+        clouds = _frame_clouds(waves, encoder, device)
         row = {
             "arm": path.name,
             "n": len(waves),
             "fad_vs_ref": round(fad_score(feats, ref_feats), 2),
+            "fad_ci_low": round(ci_low, 2),
+            "fad_ci_high": round(ci_high, 2),
+            "fad_margin": margin,
+            "verdict": verdict,
+            "frame_excess": round(cross_clip_frame_excess(clouds), 4),
             "pairwise_cos_dist": round(pairwise_cosine_distance(feats), 4),
             **{k: round(v, 4) for k, v in stats.items()},
             "duration_s": round(duration, 2),
