@@ -3,8 +3,11 @@
   "checkpoint_id": "a22913b68f94",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 1,
-  "files_touched": null,
+  "checkpoints_count": 2,
+  "files_touched": [
+    "scripts/generate_longform.py",
+    "src/ald_sc/inference.py"
+  ],
   "sessions": [
     {
       "metadata": "/a2/2913b68f94/0/metadata.json",
@@ -12,6 +15,13 @@
       "compact_transcript": "/a2/2913b68f94/0/transcript.jsonl",
       "content_hash": "/a2/2913b68f94/0/content_hash.txt",
       "prompt": "/a2/2913b68f94/0/prompt.txt"
+    },
+    {
+      "metadata": "/a2/2913b68f94/1/metadata.json",
+      "transcript": "/a2/2913b68f94/1/full.jsonl",
+      "compact_transcript": "/a2/2913b68f94/1/transcript.jsonl",
+      "content_hash": "/a2/2913b68f94/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
