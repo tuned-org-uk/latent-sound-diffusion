@@ -1,0 +1,1 @@
+please fix the errors in the CI https://github.com/tuned-org-uk/latent-sound-diffusion/pull/61

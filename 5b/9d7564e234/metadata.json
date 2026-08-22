@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "5b9d7564e234",
+  "strategy": "manual-commit",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/ald_sc/audio_codec.py",
+    "src/ald_sc/data.py",
+    "src/ald_sc/dit.py",
+    "src/ald_sc/inference.py",
+    "src/ald_sc/stitching.py",
+    "tests/test_audio_data.py",
+    "tests/test_inference.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/5b/9d7564e234/0/metadata.json",
+      "transcript": "/5b/9d7564e234/0/full.jsonl",
+      "compact_transcript": "/5b/9d7564e234/0/transcript.jsonl",
+      "content_hash": "/5b/9d7564e234/0/content_hash.txt",
+      "prompt": "/5b/9d7564e234/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 55975,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1083456,
+    "output_tokens": 7794,
+    "api_call_count": 31
+  }
+}
