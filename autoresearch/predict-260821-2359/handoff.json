@@ -1,0 +1,40 @@
+{
+  "version": "2.1.0",
+  "source": "predict",
+  "timestamp": "2026-08-21T23:59:00",
+  "status": "COMPLETE",
+  "config": {
+    "scope": [
+      "src/ald_sc/dit.py",
+      "src/ald_sc/sampling.py",
+      "src/ald_sc/inference.py",
+      "scripts/sample_audio.py",
+      "scripts/train_audio_diffusion.py",
+      "configs/audio_diffusion.yaml"
+    ],
+    "goal": "architecture+performance, weighted to: extend stems from 2-4s to 10s, no quality regression, dense attention default",
+    "depth": "deep",
+    "personas": 8,
+    "rounds": 3,
+    "budget": 40,
+    "chain_override": "user replaced subcommand chain with: create a todos list to be accepted or amended"
+  },
+  "findings": [
+    {"rank": 1, "title": "Unpatchify temporal scramble locks sequence length", "severity": "critical", "confidence": 95, "location": "src/ald_sc/dit.py:236-237", "personas": ["numerics"], "verified_by_synthesizer": true},
+    {"rank": 2, "title": "sample_ddim uses raw v where DDIM direction eps-hat required; production sampler for all audio", "severity": "high", "confidence": 85, "location": "src/ald_sc/sampling.py:257", "personas": ["diffusion-theory"]},
+    {"rank": 3, "title": "Sigma ladder terminates at t=19 (~4% residual noise floor in every latent)", "severity": "high", "confidence": 93, "location": "src/ald_sc/schedule.py:72-77", "personas": ["diffusion-theory", "numerics"]},
+    {"rank": 4, "title": "pos_embed length gate: hard crash outside band, silent pass inside, no interpolation or named error", "severity": "high", "confidence": 94, "location": "src/ald_sc/dit.py:147-208", "personas": ["architect", "dsp", "numerics"]},
+    {"rank": 5, "title": "No defensible eval protocol for length-extension claim (seed reuse, padded references, device-bound RNG)", "severity": "high", "confidence": 92, "location": "scripts/run_evaluation.py:556-713", "personas": ["reproducibility", "statistics", "numerics"]},
+    {"rank": 6, "title": "Unseeded fallback prior torch.randn(64,128) in both scripts", "severity": "high", "confidence": 98, "location": "scripts/sample_audio.py:51", "personas": ["reproducibility"]},
+    {"rank": 7, "title": "Dead YAML config; four divergent latent_length sources; metadata never validated on load", "severity": "medium-high", "confidence": 95, "location": "configs/audio_diffusion.yaml:7", "personas": ["architect", "reproducibility", "psychoacoustics"]},
+    {"rank": 8, "title": "synthesize_midi pitch-shift cancellation via chained resamples (deferred per user scope)", "severity": "high", "confidence": 92, "location": "src/ald_sc/inference.py:512-521", "personas": ["psychoacoustics", "dsp"]},
+    {"rank": 9, "title": "Notebook overlap_add fade off-by-one; latent-space crossfade off-manifold (Track B must use waveform-domain equal-power crossfade)", "severity": "medium-high", "confidence": 87, "location": "notebooks/02_long_form_generation.ipynb cell 6", "personas": ["dsp"]},
+    {"rank": 10, "title": "Heat-death stopping criterion unreachable with defaults, unit-dependent, docstring wrong", "severity": "medium", "confidence": 90, "location": "src/ald_sc/spectral_schedule.py:62-173", "personas": ["diffusion-theory"]}
+  ],
+  "strategic": {
+    "track_a_primary": "fix dit unpatchify layout -> sigma ladder endpoint -> pos_embed interpolation/guard -> baseline freeze -> finetune at 750 frames with variable-length crops -> equivalence protocol",
+    "track_b_control": "zero-retrain waveform-domain equal-power crossfade stitching as non-inferiority fallback arm",
+    "demoted": "issue #46 SparseAttn1d: attention cost non-issue at ~94 tokens; keep attn_mode seam opportunistically, revisit >=30s horizons",
+    "deferred": ["synthesize_midi render fixes", "notebook fade fixes", "bank-mode recalibration", "security hardening bundle"]
+  }
+}

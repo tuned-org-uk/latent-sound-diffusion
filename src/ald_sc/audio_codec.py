@@ -160,6 +160,24 @@ class EnCodecEncoder(nn.Module):
             logger.warning("Failed to load EnCodec model: %s", e)
             raise
 
+    def _ensure_codec_device(self, device: torch.device) -> None:
+        """Move the lazy-loaded codec onto ``device`` if it drifted.
+
+        Parent-container moves (``holder.to(device)``) reach children via
+        ``nn.Module._apply`` and bypass this class's ``.to()`` override,
+        so the tracked ``self._device`` can go stale before the codec is
+        lazily loaded. The input tensor's own device is authoritative.
+        """
+        assert self._encodec is not None
+        try:
+            codec_device = next(self._encodec.parameters()).device
+        except StopIteration:
+            return
+        if codec_device != device:
+            logger.info("moving lazily-loaded EnCodec %s -> %s", codec_device, device)
+            self._encodec = self._encodec.to(device)
+            self._device = device
+
     def encode(
         self, x: Tensor, prior: ArrowSpacePrior
     ) -> tuple[Tensor, Tensor, Tensor]:
@@ -183,6 +201,7 @@ class EnCodecEncoder(nn.Module):
         """
         self._load_model()
         assert self._encodec is not None
+        self._ensure_codec_device(x.device)
 
         with torch.no_grad():
             # EnCodec encoder: (B, 1, T_audio) -> (B, 128, T_frames)
@@ -213,6 +232,7 @@ class EnCodecEncoder(nn.Module):
         """
         self._load_model()
         assert self._encodec is not None
+        self._ensure_codec_device(x.device)
         with torch.no_grad():
             z = self._encodec.encoder(x)
             return z.float()

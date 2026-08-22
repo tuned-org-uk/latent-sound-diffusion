@@ -214,3 +214,36 @@ class TestEnCodecEncoder:
         assert not offenders, (
             f"modules still carry deprecated weight_norm hook: {offenders}"
         )
+
+
+class TestLazyCodecDeviceSync:
+    """The lazy-loaded codec must follow the caller's device, however the
+    encoder was moved (parent-container moves bypass .to() overrides via
+    nn.Module._apply). Regression test for the MPS training crash where
+    _encodec loaded onto CPU while inputs were on MPS.
+    """
+
+    def test_encode_follows_input_device_after_parent_move(self) -> None:
+        if not torch.backends.mps.is_available():
+            pytest.skip("requires MPS")
+        holder = torch.nn.Module()
+        enc = EnCodecEncoder()
+        holder.child = enc
+        holder.to(torch.device("mps"))
+
+        prior = _make_prior(f=128, q=8).to(torch.device("mps"))
+        x = torch.randn(1, 1, 24000, device=torch.device("mps"))
+        z, _, _ = enc.encode(x, prior)
+        assert z.device.type == "mps"
+
+    def test_extract_features_follows_input_device_after_parent_move(self) -> None:
+        if not torch.backends.mps.is_available():
+            pytest.skip("requires MPS")
+        holder = torch.nn.Module()
+        enc = EnCodecEncoder()
+        holder.child = enc
+        holder.to(torch.device("mps"))
+
+        x = torch.randn(1, 1, 24000, device=torch.device("mps"))
+        z = enc.extract_features(x)
+        assert z.device.type == "mps"

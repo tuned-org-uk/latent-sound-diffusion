@@ -18,6 +18,38 @@ from torch import Tensor, nn
 __all__ = ["SinusoidalTimeEmb", "AdaLN", "DiTBlock", "MinimalDiT"]
 
 
+def _unpatchify(h: Tensor, batch: int, channels: int, patch_size: int) -> Tensor:
+    """Rearrange per-token features (B, N, C*patch) into a signal (B, C, T).
+
+    Feature j = c*patch + k of token n carries the latent sample at
+    time t = n*patch + k.
+    """
+    _, num_patches, _ = h.shape
+    h = h.transpose(1, 2)
+    h = h.reshape(batch, channels, patch_size, -1)
+    h = h.permute(0, 1, 3, 2)
+    h = h.reshape(batch, channels, num_patches * patch_size)
+    return h
+
+
+def _interpolate_pos_embed(pos_embed: Tensor, num_tokens: int) -> Tensor:
+    """Resize a learned absolute position table to ``num_tokens`` tokens.
+
+    Linear interpolation with aligned corners pins the first and last
+    trained positions exactly, so temporal boundaries keep their trained
+    embeddings when generating at lengths other than the trained one.
+    Returns the input tensor unchanged when the length already matches.
+    """
+    if pos_embed.shape[1] == num_tokens:
+        return pos_embed
+    return nn.functional.interpolate(
+        pos_embed.transpose(1, 2),
+        size=num_tokens,
+        mode="linear",
+        align_corners=True,
+    ).transpose(1, 2)
+
+
 class SinusoidalTimeEmb(nn.Module):
     """Sinusoidal timestep embedding followed by a small MLP."""
 
@@ -205,7 +237,8 @@ class MinimalDiT(nn.Module):
         # 1-D Patchify: (B, C, T_pad) -> (B, dim, N) -> (B, N, dim)
         h = self.patch_embed(z_t)  # (B, dim, N)
         h = h.transpose(1, 2)  # (B, N, dim)
-        h = h + self.pos_embed
+        pos_embed = _interpolate_pos_embed(self.pos_embed, h.shape[1])
+        h = h + pos_embed
 
         # Classifier-free guidance dropout
         if self.training and c_spec is not None and self.cfg_dropout > 0:
@@ -232,9 +265,7 @@ class MinimalDiT(nn.Module):
         h = self.final_proj(h)  # (B, N, C*patch)
 
         # 1-D Unpatchify: (B, N, C*patch) -> (B, C, T_pad)
-        h = h.transpose(1, 2)  # (B, C*patch, N)
-        h = h.reshape(B, self.latent_channels, ps, -1)  # (B, C, patch, N)
-        h = h.reshape(B, self.latent_channels, -1)  # (B, C, T_pad)
+        h = _unpatchify(h, B, self.latent_channels, ps)
 
         # Crop to original length
         if pad_len > 0:

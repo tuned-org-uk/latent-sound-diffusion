@@ -1,0 +1,105 @@
+# v0.12.0 Track bundle — first native 10 s generation
+
+**Checkpoint:** `dit_v0.12_10s.pt` (+ `.safetensors`, `_metadata.json`)
+Trained by `scripts/train_audio_longform.py` on ESC-50 paired segments
+(748-frame max crop), 30 epochs × 500 steps on MPS, loss 17.17 → 1.47.
+Geometry: latent_channels=128, latent_length=748, patch_size=8, dim=64,
+depth=2, num_heads=4, spec_dim=24. Training commit `5e11c6c`+`1f359bb`
+(sampler/layout fixes active).
+
+## Arms (PROTOCOL_10S.md)
+
+| Directory | Arm | Contents |
+|---|---|---|
+| `track_a/` | A — native 10 s, v0.12 sampler | 16 clips @ 9.97 s, seeds 901000–901015 + manifest.json |
+| `ref_bank/` | REF — frozen v0.11 checkpoint (`baselines/v0.11-prefix/esc50_dit.pt`) | 16 clips @ 4.00 s, seeds 900000–900015 + manifest.json |
+| `track_b/` | B — zero-retrain control: consecutive REF pairs joined via `equal_power_overlap_add` | 8 renders @ ~7.96 s |
+
+## Metrics (`results/track_metrics.csv`, FAD-proxy vs length-matched held-out references; lower = closer to corpus)
+
+| Arm | Duration | FAD-proxy | Centroid mean |
+|---|---|---|---|
+| track_a | 9.97 s | **167.6** | 1428 Hz |
+| track_b | 7.98 s | 242.8 | 1349 Hz |
+| ref_bank | 4.00 s | 238.9 | 1352 Hz |
+
+Native 10 s beats both the stitched control and the frozen baseline.
+Pilot scale (n=16/8).
+
+## Confirmation scale (M=64, fresh blocks 901100+/900100+, `confirm_metrics.csv`)
+
+| Arm | n | Duration | FAD-proxy | Centroid mean |
+|---|---|---|---|---|
+| confirm_a (native) | 64 | 9.97 s | **152.8** | 1436 Hz |
+| confirm_b (stitched control) | 32 | 7.98 s | 220.6 | 1347 Hz |
+
+The pilot ordering replicates at confirmation scale with a wider gap
+(ΔFAD ≈ 68). Pairwise pooled-feature distance stays at the contraction
+floor (~1e-4) in all arms — diversity discrimination requires per-frame
+metrics (open item on #60). TOST equivalence bands still pending; the
+direction is now established at both scales.
+
+## Statistical verification (`confirm_stats.csv`, n_boot=300, α=0.05)
+
+Null band (same-generator ref_bank vs references): **[225.5, 241.6]** →
+equivalence margin 241.6.
+
+| Arm | FAD CI | Verdict |
+|---|---|---|
+| confirm_a | [148.0, 158.8] | equivalent (and entirely **below** the null band) |
+| confirm_b | [213.4, 228.1] | equivalent |
+
+confirm_a's whole CI sits under the null's whole CI: native v0.12
+matches the corpus distribution significantly better than the frozen
+v0.11 generator, not just "not worse".
+
+Per-frame excess: ref_bank 0.0107 · confirm_a 0.0099 · confirm_b 0.0097
+— statistically indistinguishable across pre/post-fix generators, so
+frame-level contraction is architectural (capacity/corpus scale), not a
+sampler artifact; it predates v0.12 and is unchanged by it.
+
+SHA256SUMS covers pilot + confirmation artifacts + stats.
+
+## MIDI materialisation (`midi_renders/`, Mode C audition)
+
+The 10 s textures are hard to judge in isolation; `scripts/materialise_midi.py`
+renders the first 8 confirm_a clips through four note patterns
+(root=60, 4 bars @100 BPM): arpeggio, chords (I–vi–IV–V), ascending
+major scale, fixed motif. Rendered with the v0.12-fixed
+`synthesize_midi` (transposition survives duration fit; edge fades;
+composer-order timbre). Audition these for the quality call.
+
+Note: spectral peak checks cannot validate pitch on textured banks
+(formants dominate); pitch correctness is pinned by unit tests with
+tonal sources. Perceptual judgement = listening pass.
+
+## Integrity
+
+    shasum -a 256 -c SHA256SUMS
+
+## Studio-archive model + Barontini A/B (post-review additions)
+
+- `dit_v0.12_nsynth10s.pt` — v0.12 trained on the **producer archive**
+  (LSD-studio NSynth bundle at ~/code/LSD-studio/sound-archive, 38
+  chained 9.9 s segments via clips_per_segment=5, crops 300–744, 200
+  epochs on MPS, loss 26.0 → 2.7). Same timbre family as the studio's
+  in-app training; v0.12 length and precision.
+- `midi_renders_barontini/` — ESC-50 checkpoint bank regenerated under
+  the Barontini heat-death clock (eps=1e-2 normalized), then
+  materialised: compare directly against `midi_renders/` (same
+  patterns/seeds, fixed-step bank).
+- `midi_renders_nsynth10s/` and `midi_renders_nsynth10s_barontini/` —
+  the same four patterns from the studio-archive checkpoint,
+  fixed-step vs clock-on banks.
+
+Parity caveat: decoder + prior remain ESC-50-trained; full studio-parity
+timbre additionally wants an archive-matched decoder retrain (#60).
+
+### Clock A/B perceptual result
+
+Listening verdict: no perceivable difference between fixed-step and
+clock-on renders. Consistent with the math — at eps=1e-2 normalized the
+criterion fires only when remaining dissipation < 1%, i.e. in the last
+~2% of the sigma ladder. The clock is architecturally engaged (spy
+tests) but perceptually inert at this threshold. Audible regimes to try
+next: eps in [0.05, 0.3] (early artistic stop) or short max-step budgets.

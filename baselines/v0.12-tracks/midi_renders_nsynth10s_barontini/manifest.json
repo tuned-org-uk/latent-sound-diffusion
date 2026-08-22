@@ -1,0 +1,45 @@
+{
+  "arm": "midi_materialised",
+  "created_at": "2026-08-22T03:05:24",
+  "git_commit": "e419589",
+  "torch_version": "2.13.0",
+  "device": "mps",
+  "source_bank": "/tmp/_nsynth_bank",
+  "checkpoint": "dit_v0.12_nsynth10s.pt",
+  "patterns": [
+    "arpeggio",
+    "chords",
+    "melody",
+    "scale"
+  ],
+  "root_midi": 60,
+  "bars": 4,
+  "bpm": 100.0,
+  "renders": [
+    {
+      "file": "materialised_arpeggio.wav",
+      "pattern": "arpeggio",
+      "duration_s": 9.59,
+      "events": 32
+    },
+    {
+      "file": "materialised_chords.wav",
+      "pattern": "chords",
+      "duration_s": 9.55,
+      "events": 12
+    },
+    {
+      "file": "materialised_melody.wav",
+      "pattern": "melody",
+      "duration_s": 9.59,
+      "events": 24
+    },
+    {
+      "file": "materialised_scale.wav",
+      "pattern": "scale",
+      "duration_s": 8.34,
+      "events": 14
+    }
+  ],
+  "protocol": "PROTOCOL_10S.md"
+}

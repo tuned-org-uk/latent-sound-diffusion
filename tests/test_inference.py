@@ -332,3 +332,297 @@ class TestBankStore:
         m = _make_model()
         with pytest.raises(ValueError, match="clips"):
             Bank(model=m, clips=[], name="empty")
+
+
+class TestBankNameSanitization:
+    """Bank.store must not let `name` escape out_dir/banks (issue #60)."""
+
+    def test_traversal_name_is_sanitized(self, tmp_path) -> None:
+        m = _make_model()
+        bank = Bank(model=m, clips=[torch.zeros(1, 100)], name="../../evil")
+        out = bank.store(tmp_path)
+        assert tmp_path in out.parents or out.parent == tmp_path / "banks"
+        assert "evil" in str(out)
+        assert ".." not in str(out.relative_to(tmp_path))
+        assert (out / "00.wav").exists()
+
+    def test_safe_name_unchanged(self, tmp_path) -> None:
+        m = _make_model()
+        bank = Bank(model=m, clips=[torch.zeros(1, 100)], name="my-bank_1")
+        out = bank.store(tmp_path)
+        assert out == tmp_path / "banks" / "my-bank_1"
+
+
+class TestSynthesizeMidiCorrectness:
+    """Regression tests for the Mode-C render bugs (issue #60 deferred bundle).
+
+    v0.11 re-timed the transposed clip by resampling a second time to the
+    requested duration, which cancelled the pitch shift entirely: rendered
+    pitch depended only on src_len/duration, not on the MIDI note.
+    """
+
+    def _tone_model(self, freq_hz: float = 220.0) -> tuple[LSDModel, torch.Tensor]:
+        m = _make_model()
+        sr = m.sample_rate
+        t = torch.arange(int(1.0 * sr)) / sr
+        tone = torch.sin(2 * torch.pi * freq_hz * t).unsqueeze(0)
+        return m, tone.unsqueeze(0)
+
+    def _dominant_freq(self, wave: torch.Tensor, sr: int) -> float:
+        spec = torch.abs(torch.fft.rfft(wave.float()))
+        return float(spec.argmax().item()) * sr / wave.shape[-1]
+
+    def test_transposition_survives_duration_fit(self) -> None:
+        m, tone = self._tone_model(220.0)
+        out = m.synthesize_midi(
+            [(72, 0.0, 0.25)], bank=[tone], pitch_bank_root=60, seed=3407
+        )
+        seg = out[0, : int(0.2 * m.sample_rate)]
+        f = self._dominant_freq(seg, m.sample_rate)
+        assert 380.0 < f < 500.0, (
+            f"+12 semitones from 220 Hz must render near 440 Hz; got {f:.1f}"
+        )
+
+    def test_untransposed_note_keeps_source_pitch(self) -> None:
+        m, tone = self._tone_model(220.0)
+        out = m.synthesize_midi(
+            [(60, 0.0, 0.5)], bank=[tone], pitch_bank_root=60, seed=3407
+        )
+        seg = out[0, : int(0.3 * m.sample_rate)]
+        f = self._dominant_freq(seg, m.sample_rate)
+        assert 200.0 < f < 245.0, f"root note must stay ~220 Hz; got {f:.1f}"
+
+    def test_invalid_events_are_skipped_with_warning(self) -> None:
+        import structlog
+
+        m, tone = self._tone_model()
+        with structlog.testing.capture_logs() as caps:
+            out = m.synthesize_midi(
+                [
+                    (60, -0.5, 0.5),  # negative start: wraparound risk
+                    (60, float("nan"), 0.5),  # non-finite start
+                    (60, 0.0, -1.0),  # negative duration
+                    (60, 0.0, 0.1),  # the one valid event
+                ],
+                bank=[tone],
+                seed=3407,
+            )
+        warnings = [e for e in caps if e.get("event") == "midi_event_invalid"]
+        assert len(warnings) == 3, warnings
+        assert out.shape[-1] >= int(0.1 * m.sample_rate)
+
+    def test_all_events_invalid_raises(self) -> None:
+        m, tone = self._tone_model()
+        import pytest
+
+        with pytest.raises(ValueError, match="no valid"):
+            m.synthesize_midi([(60, -1.0, 0.5)], bank=[tone], seed=3407)
+
+    def test_note_edges_are_faded_against_clicks(self) -> None:
+        """Constant-level clip would hard-step at onset without a fade."""
+        m = _make_model()
+        flat = torch.ones(1, m.sample_rate // 2)
+        out = m.synthesize_midi([(60, 0.0, 0.4)], bank=[flat], seed=3407)
+        # A click is a sample-to-sample step; the raised-cosine fade bounds
+        # the onset slope far below the full-scale step (~1.0).
+        onset_slope = out[0, :72].diff().abs().max().item()
+        assert onset_slope < 0.1, (
+            f"onset must ramp smoothly; max step {onset_slope:.3f}"
+        )
+
+    def test_bank_selection_follows_composer_order_not_start_time(self) -> None:
+        m = _make_model()
+        sr = m.sample_rate
+        t = torch.arange(sr // 2) / sr
+        low = torch.sin(2 * torch.pi * 220.0 * t).unsqueeze(0)
+        high = torch.sin(2 * torch.pi * 880.0 * t).unsqueeze(0)
+        # Composer lists the LOW sound first even though it starts LATER;
+        # timbre must follow list position, not chronological sorting.
+        out = m.synthesize_midi(
+            [(60, 1.0, 0.4), (60, 0.0, 0.4)],
+            bank=[low, high],
+            pitch_bank_root=60,
+            seed=3407,
+        )
+        early = self._dominant_freq(out[0, : int(0.3 * sr)], sr)
+        late = self._dominant_freq(out[0, int(1.05 * sr) : int(1.3 * sr)], sr)
+        assert early > 600, (
+            f"second-listed sound plays first chronologically; f={early:.0f}"
+        )
+        assert late < 400, f"first-listed sound must take the later slot; f={late:.0f}"
+
+
+class TestArtefactHardening:
+    """Safe loads + digest manifests (issue #60 deferred bundle)."""
+
+    def test_load_arrow_prior_accepts_state_dict_format(self, tmp_path) -> None:
+        from ald_sc.build_prior import load_arrow_prior
+
+        m = _make_model()
+        path = tmp_path / "prior.pt"
+        torch.save(m.prior.state_dict(), path)
+
+        prior = load_arrow_prior(path)
+
+        for key in ("L_F", "U_q", "eigvals_q", "lambdas_ed"):
+            assert torch.allclose(getattr(prior, key), getattr(m.prior, key)), key
+
+    def test_load_arrow_prior_legacy_pickle_falls_back_with_warning(
+        self, tmp_path
+    ) -> None:
+        import structlog
+
+        from ald_sc.build_prior import load_arrow_prior
+
+        m = _make_model()
+        path = tmp_path / "legacy_prior.pt"
+        torch.save(m.prior, path)  # whole-object pickle: v0.11 format
+
+        with structlog.testing.capture_logs() as caps:
+            prior = load_arrow_prior(path)
+        assert any(e.get("event") == "legacy_pickle_artifact" for e in caps)
+        assert torch.allclose(prior.L_F, m.prior.L_F)
+
+    def test_store_writes_state_dict_prior_and_digest_manifest(self, tmp_path) -> None:
+        import hashlib
+
+        out = _make_model().store(root_dir=tmp_path, slug="hardened")
+        # Prior must now be a safe state-dict artefact.
+        sd = torch.load(out / "prior.pt", weights_only=True)
+        assert {"L_F", "U_q", "eigvals_q", "lambdas_ed"} <= set(sd)
+
+        manifest = out / "MANIFEST.sha256"
+        assert manifest.exists()
+        for line in manifest.read_text().splitlines():
+            digest, name = line.split(maxsplit=1)
+            actual = hashlib.sha256((out / name).read_bytes()).hexdigest()
+            assert digest == actual, name
+        assert {line.split()[1] for line in manifest.read_text().splitlines()} == {
+            "prior.pt",
+            "decoder.pt",
+            "dit.pt",
+            "metadata.json",
+        }
+
+    def test_bank_store_writes_digest_manifest(self, tmp_path) -> None:
+        import hashlib
+
+        m = _make_model()
+        bank = Bank(model=m, clips=[torch.zeros(1, 100)], name="digested")
+        out = bank.store(tmp_path)
+        manifest = out / "MANIFEST.sha256"
+        assert manifest.exists()
+        for line in manifest.read_text().splitlines():
+            digest, name = line.split(maxsplit=1)
+            actual = hashlib.sha256((out / name).read_bytes()).hexdigest()
+            assert digest == actual, name
+
+
+class TestResample1dAnchored:
+    """_resample_1d must not use signal length as orig_freq.
+
+    v0.11 built Resample(signal_len -> target_len); for a 10 s clip one
+    semitone down that is a 239040:225631 coprime pair and torchaudio
+    constructs a ~quarter-million-tap kernel (OOM kill). The ratio must
+    be approximated by small integers instead.
+    """
+
+    def test_kernel_terms_are_bounded(self, monkeypatch) -> None:
+        captured = {}
+
+        class FakeResample(torch.nn.Module):
+            def __init__(self, orig_freq, new_freq, **kw):
+                captured["ratio"] = new_freq / orig_freq
+                captured["max_term"] = max(orig_freq, new_freq)
+                super().__init__()
+
+            def forward(self, x):
+                n = int(round(x.shape[-1] * captured["ratio"]))
+                return (
+                    x[..., :n]
+                    if n <= x.shape[-1]
+                    else torch.nn.functional.pad(x, (0, n - x.shape[-1]))
+                )
+
+        import torchaudio.transforms
+
+        monkeypatch.setattr(torchaudio.transforms, "Resample", FakeResample)
+        from ald_sc.inference import _resample_1d
+
+        src = torch.zeros(239040)
+        out = _resample_1d(src, 225631)  # one semitone down, 10 s clip
+        assert out.shape[-1] == 225631
+        assert captured["max_term"] <= 4096, (
+            f"kernel terms {captured['max_term']} unbounded -> giant sinc"
+        )
+        assert abs(captured["ratio"] - 225631 / 239040) < 1e-4
+
+    def test_long_clip_transposition_is_fast(self) -> None:
+        import time
+
+        from ald_sc.inference import _resample_1d
+
+        src = torch.sin(2 * torch.pi * 220 * torch.arange(239040) / 24000)
+        t0 = time.monotonic()
+        out = _resample_1d(src, int(239040 * 2 ** (-1 / 12)))
+        dt = time.monotonic() - t0
+        assert out.shape[-1] == int(239040 * 2 ** (-1 / 12))
+        assert dt < 5.0, f"transposing a 10 s clip took {dt:.1f}s"
+
+
+class TestBarontiniClockThreading:
+    """The spectral (heat-death) clock must engage during inference.
+
+    v0.11/v0.12-pre accepted spectral_schedule in the samplers but the
+    LSDModel contract never passed one, so every generated latent used
+    fixed-step stopping. Issue #60 deferred bundle: thread it through.
+    """
+
+    def test_bank_generation_consults_heat_death_criterion(self) -> None:
+        from ald_sc.spectral_schedule import SpectralSchedule
+
+        m = _make_model()
+        calls = {"n": 0}
+
+        class SpySchedule(SpectralSchedule):
+            def is_heat_death(self, t):
+                calls["n"] += 1
+                return False
+
+        spy = SpySchedule(m.prior, horizon=1.0, eps=1e-3)
+        m.spectral_schedule = spy
+
+        bank = m.generate_sound_bank(n=1, steps=6, seed=3407)
+        assert bank[0].shape[-1] > 0
+        assert calls["n"] >= 6, (
+            f"heat-death criterion consulted {calls['n']} times over a "
+            "6-step trajectory; clock is not threaded into sampling"
+        )
+
+    def test_heat_death_stop_produces_shorter_trajectory(self) -> None:
+        from ald_sc.spectral_schedule import SpectralSchedule
+
+        torch.manual_seed(3407)
+        m = _make_model()
+
+        class EarlyDeath(SpectralSchedule):
+            def __init__(self, *a, **kw):
+                super().__init__(*a, **kw)
+                self.calls = 0
+
+            def is_heat_death(self, t):
+                self.calls += 1
+                return self.calls > 2  # die right after the second step
+
+        clock = EarlyDeath(m.prior, horizon=1.0, eps=1e-3)
+        m.spectral_schedule = clock
+
+        bank = m.generate_sound_bank(n=1, steps=20, seed=3407)
+        assert clock.calls <= 4, "clock must terminate the trajectory early"
+        # Stopping is temporal, not spatial: decode still yields the full
+        # audio length (under-denoised content is a quality matter).
+        assert bank[0].shape[-1] == m.dit.latent_shape[-1] * 320
+
+    def test_default_model_has_no_clock(self) -> None:
+        m = _make_model()
+        assert m.spectral_schedule is None

@@ -91,7 +91,7 @@ class TestSpectralStopping:
             seed=3407,
             return_steps=True,
         )
-        assert steps_used == 19
+        assert steps_used == 20
 
     def test_spectral_stopping_deterministic(self) -> None:
         """Same seed + same spectral schedule -> same result and same step count."""

@@ -11,6 +11,7 @@ spectrum):
 from __future__ import annotations
 
 
+import pytest
 import torch
 
 from ald_sc.arrow_prior import ArrowSpacePrior
@@ -190,3 +191,28 @@ class TestSpectralSchedule:
         # prior buffers should not have gradients
         for buf in prior.buffers():
             assert buf.grad is None or buf.grad == 0
+
+
+class TestHeatDeathNormalization:
+    """remaining_dissipation is a fraction of Σν_k: scale-free verdicts."""
+
+    def test_dissipation_bounds_and_endpoints(self) -> None:
+        sched = SpectralSchedule(_make_prior(), horizon=1.0, eps=1e-3)
+        at_start = float(sched.remaining_dissipation(torch.tensor(0.0)))
+        at_end = float(sched.remaining_dissipation(torch.tensor(1.0)))
+        assert at_start == pytest.approx(0.0, abs=1e-6)
+        assert at_end == pytest.approx(1.0, abs=1e-6)
+        mid = float(sched.remaining_dissipation(torch.tensor(0.5)))
+        assert 0.0 < mid < 1.0
+
+    def test_verdict_is_scale_invariant(self) -> None:
+        """Scaling every ν_k by c must not change heat-death decisions."""
+        small = SpectralSchedule(_make_prior(), horizon=1.0, eps=0.5)
+        large = SpectralSchedule(_make_prior(), horizon=1.0, eps=0.5)
+        with torch.no_grad():
+            large.nu.copy_(large.nu * 1000.0)
+            large.tau_k_max.copy_(large.tau_k_max * 1000.0)
+        for t in (0.05, 0.2, 0.5, 0.9):
+            assert small.is_heat_death(torch.tensor(t)) == large.is_heat_death(
+                torch.tensor(t)
+            ), f"t={t}"

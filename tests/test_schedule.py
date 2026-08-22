@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 import torch
 
 from ald_sc.schedule import CosineSchedule, LinearSchedule
@@ -75,7 +76,7 @@ class TestCosineSchedule:
     def test_sample_sigmas_shape(self) -> None:
         sched = CosineSchedule(num_steps=100)
         sigmas = sched.sample_sigmas(steps=20)
-        assert sigmas.shape == (20,)
+        assert sigmas.shape == (21,)
 
 
 class TestLinearSchedule:
@@ -123,3 +124,66 @@ class TestScheduleInterface:
         cos = CosineSchedule(num_steps=100)
         lin = LinearSchedule(num_steps=100)
         assert not torch.allclose(cos.alpha_bar, lin.alpha_bar)
+
+
+class TestSampleSigmasEndpoint:
+    """The sampling ladder must terminate at sigma index 0 (alpha_bar == 1).
+
+    Regression tests for the v0.11 bug where the ladder ended at
+    round(T/steps)-1, leaving ~4% residual noise in every generated latent
+    because the final pairwise update never reached t=0.
+    """
+
+    @pytest.mark.parametrize("steps", [1, 2, 10, 50, 1000])
+    def test_cosine_ladder_terminates_at_zero(self, steps: int) -> None:
+        sched = CosineSchedule(num_steps=1000)
+        sigmas = sched.sample_sigmas(steps)
+        assert sigmas.shape == (steps + 1,)
+        assert sigmas[0] == 999
+        assert sigmas[-1] == 0
+        assert (sigmas[1:] <= sigmas[:-1]).all(), "ladder must be non-increasing"
+
+    @pytest.mark.parametrize("steps", [1, 10, 50])
+    def test_linear_ladder_terminates_at_zero(self, steps: int) -> None:
+        sched = LinearSchedule(num_steps=1000)
+        sigmas = sched.sample_sigmas(steps)
+        assert sigmas[-1] == 0
+
+    def test_ladder_endpoint_has_full_signal_energy(self) -> None:
+        cos = CosineSchedule(num_steps=1000)
+        lin = LinearSchedule(num_steps=1000)
+        last = cos.sample_sigmas(50)[-1]
+        assert last == 0
+        assert cos.alpha_bar[last] == pytest.approx(1.0, abs=1e-6)
+        last_lin = lin.sample_sigmas(50)[-1]
+        assert last_lin == 0
+        assert lin.alpha_bar[last_lin] == lin.alpha_bar.max()
+
+    def test_no_residual_noise_floor_after_full_trajectory(self) -> None:
+        """A latent denoised through the whole ladder must sit at alpha_bar≈1.
+
+        With the v0.11 ladder the final update stopped at index 19 where
+        sqrt(1-alpha_bar) ≈ 0.04; the corrected ladder ends at index 0.
+        """
+        torch.manual_seed(3407)
+        from ald_sc.dit import MinimalDiT
+        from ald_sc.sampling import sample_ddim
+
+        dit = MinimalDiT(
+            latent_channels=4,
+            latent_length=16,
+            patch_size=2,
+            dim=32,
+            depth=2,
+            num_heads=4,
+            spec_dim=12,
+        )
+        sched = CosineSchedule(num_steps=100)
+        z, steps_used = sample_ddim(
+            dit, sched, batch_size=2, steps=10, return_steps=True
+        )
+        # Every step of the ladder executes and terminates at alpha_bar==1.
+        assert steps_used == 10
+        final_sigma = sched.sample_sigmas(10)[-1]
+        assert final_sigma == 0
+        assert sched.alpha_bar[final_sigma] == pytest.approx(1.0, abs=1e-6)

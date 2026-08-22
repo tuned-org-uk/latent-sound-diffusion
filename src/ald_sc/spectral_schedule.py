@@ -151,10 +151,15 @@ class SpectralSchedule(nn.Module):
         Returns
         -------
         Tensor (scalar)
-            Remaining dissipation, in units of Σ ν_k.
+            Remaining dissipation, normalized by Σ ν_k: a fraction in
+            [0, 1] (1 = pure noise, 0 = fully resolved), so ``eps`` is
+            scale-free with respect to the prior's spectrum.
         """
         ab_k = self.alpha_bar_k(t)
-        return (self.nu * (1.0 - ab_k)).sum()
+        total = self.nu.sum()
+        if float(total.item()) <= 0.0:
+            return torch.zeros((), device=self.nu.device, dtype=self.nu.dtype)
+        return (self.nu * (1.0 - ab_k)).sum() / total
 
     def is_heat_death(self, t: Tensor) -> bool:
         """Intrinsic stopping criterion (reverse process): heat death when

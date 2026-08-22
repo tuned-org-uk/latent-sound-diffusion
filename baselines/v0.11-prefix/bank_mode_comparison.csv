@@ -1,0 +1,9 @@
+arm,bank_mode,variety,l1_mean,l1_min,l1_max,feat_cos_within_mean,feat_cos_within_min,feat_cos_to_canonical,centroid_spread_hz,centroid_mean_hz,RMS,gate
+canonical,canonical,,0.0,0.0,0.0,1.0,1.0,1.0,0.0,361.4,0.546,-
+jitter_a0.05,jitter,0.05,0.052,0.029,0.0916,0.9998,0.9992,0.9998,4.8,447.0,0.539,-
+jitter_a0.1,jitter,0.1,0.0836,0.0521,0.1306,0.9995,0.9985,0.999,9.3,582.4,0.514,-
+jitter_a0.25,jitter,0.25,0.1292,0.0955,0.1599,0.9997,0.9988,0.9965,18.6,880.5,0.474,-
+jitter_a0.5,jitter,0.5,0.182,0.1624,0.2058,0.9999,0.9998,0.9937,41.2,1050.0,0.452,USEFUL
+resid_r0.1,residual,0.1,0.0523,0.037,0.0948,0.9997,0.9985,0.9995,78.0,516.2,0.53,USEFUL
+resid_r0.3,residual,0.3,0.112,0.0794,0.1697,0.9989,0.9944,0.9968,191.8,805.8,0.467,USEFUL
+stopvar,stopvar,,0.073,0.0105,0.1577,0.9998,0.9988,0.9999,51.1,342.8,0.541,USEFUL

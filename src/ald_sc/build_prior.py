@@ -9,12 +9,55 @@ This module must not import ``torch.nn`` modules (per AGENTS.md §11).
 
 from __future__ import annotations
 
+import structlog
+
 import torch
 from torch import Tensor
 
 from ald_sc.arrow_prior import ArrowSpacePrior
 
-__all__ = ["build_arrow_prior", "build_feature_laplacian", "build_projector"]
+__all__ = [
+    "build_arrow_prior",
+    "build_feature_laplacian",
+    "build_projector",
+    "load_arrow_prior",
+]
+
+log = structlog.get_logger("ald_sc.build_prior")
+
+_PRIOR_KEYS = ("L_F", "U_q", "eigvals_q", "lambdas_ed")
+
+
+def load_arrow_prior(path) -> ArrowSpacePrior:
+    """Load an ArrowSpacePrior artefact, preferring safe formats.
+
+    State-dict files (v0.12+) load with ``weights_only=True`` — no code
+    execution during deserialization. Legacy whole-object pickles (v0.11)
+    fall back to ``weights_only=False`` with a loud warning: regenerate
+    them via ``LSDModel.store`` or ``scripts/build_audio_prior.py``.
+    """
+    from pathlib import Path
+
+    path = Path(path)
+    try:
+        sd = torch.load(path, weights_only=True, map_location="cpu")
+    except Exception as exc:
+        log.warning(
+            "legacy_pickle_artifact",
+            path=str(path),
+            hint="regenerate the prior as a state_dict artefact "
+            "(weights_only=True cannot unpickle whole objects)",
+        )
+        obj = torch.load(path, weights_only=False, map_location="cpu")
+        if not isinstance(obj, ArrowSpacePrior):
+            raise TypeError(
+                f"{path} is neither an ArrowSpacePrior state dict nor a "
+                "legacy pickled prior"
+            ) from exc
+        return obj
+    if not (isinstance(sd, dict) and set(_PRIOR_KEYS) <= set(sd)):
+        raise TypeError(f"{path} is not an ArrowSpacePrior state dict")
+    return ArrowSpacePrior(sd["L_F"], sd["U_q"], sd["eigvals_q"], sd["lambdas_ed"])
 
 
 def build_feature_laplacian(embeddings: Tensor, k: int = 8) -> tuple[Tensor, Tensor]:

@@ -298,6 +298,116 @@ class TestTrainAudioDiffusion:
         assert all(g is None for g in vae_grads_after), "VAE must stay frozen"
 
 
+class TestTrainAudioDiffusionVariableCrop:
+    """Track-A long-form training: per-batch random latent-length crops."""
+
+    def _setup(self):
+        torch.manual_seed(3407)
+        embeddings = torch.randn(32, 128)
+        prior = build_arrow_prior(embeddings, q=8, k=4)
+        vae = _make_vae(latent_dim=128, base_channels=16)
+        loader = _make_dataloader(n=8, audio_length=320 * 24)
+        sched = CosineSchedule(num_steps=100)
+        dit = MinimalDiT(
+            latent_channels=128,
+            latent_length=24,
+            patch_size=4,
+            dim=64,
+            depth=1,
+            num_heads=4,
+            spec_dim=24,
+        )
+        return loader, vae, dit, prior, sched
+
+    def test_crop_range_yields_lengths_within_bounds(self) -> None:
+        loader, vae, dit, prior, sched = self._setup()
+        losses = list(
+            train_audio_diffusion(
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=2,
+                lr=1e-3,
+                latent_crop_range=(6, 24),
+            )
+        )
+        assert len(losses) > 0
+        for d in losses:
+            assert "latent_len" in d
+            assert 6 <= d["latent_len"] <= 24
+            assert d["loss"] == d["loss"]  # finite
+
+    def test_crop_exercises_multiple_lengths(self) -> None:
+        """A multi-epoch run must see more than one distinct crop length."""
+        loader, vae, dit, prior, sched = self._setup()
+        losses = list(
+            train_audio_diffusion(
+                loader,
+                vae,
+                dit,
+                prior,
+                sched,
+                epochs=3,
+                lr=1e-3,
+                latent_crop_range=(6, 20),
+            )
+        )
+        assert len({d["latent_len"] for d in losses}) >= 2
+
+    def test_no_crop_reports_full_length(self) -> None:
+        loader, vae, dit, prior, sched = self._setup()
+        losses = list(
+            train_audio_diffusion(loader, vae, dit, prior, sched, epochs=1, lr=1e-3)
+        )
+        for d in losses:
+            assert d["latent_len"] == 24
+
+    def test_gradients_flow_at_longest_and_shortest(self) -> None:
+        """pos_embed interpolation must be differentiable across lengths."""
+        loader, vae, dit, prior, sched = self._setup()
+        for lo in (6, 24):
+            dit.zero_grad(set_to_none=True)
+            records = list(
+                train_audio_diffusion(
+                    loader,
+                    vae,
+                    dit,
+                    prior,
+                    sched,
+                    epochs=1,
+                    lr=0.0,
+                    latent_crop_range=(lo, lo),
+                )
+            )
+            assert records
+            assert all(r["latent_len"] == lo for r in records)
+            assert dit.pos_embed.grad is not None
+            assert float(dit.pos_embed.grad.abs().sum()) > 0
+
+    def test_crop_range_with_undersized_batch_raises_clearly(self) -> None:
+        loader, vae, dit, prior, sched = self._setup()
+        # 319 samples < 320 -> zero available frames
+        torch.manual_seed(3407)
+        tiny = torch.randn(4, 1, 319)
+        loader = DataLoader(TensorDataset(tiny), batch_size=4)
+        import pytest
+
+        with pytest.raises(RuntimeError, match="cannot crop to even one latent frame"):
+            list(
+                train_audio_diffusion(
+                    loader,
+                    vae,
+                    dit,
+                    prior,
+                    sched,
+                    epochs=1,
+                    latent_crop_range=(1, 4),
+                )
+            )
+
+
 class TestLogTraining:
     def test_returns_all_records(self) -> None:
         records = [

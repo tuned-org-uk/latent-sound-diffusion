@@ -1,0 +1,29 @@
+{
+  "created_at": "2026-08-22T01:13:55",
+  "script": "scripts/train_audio_longform.py",
+  "git_commit": "df98103",
+  "torch_version": "2.13.0",
+  "device": "mps",
+  "resolved_seed": 3407,
+  "geometry": {
+    "latent_channels": 128,
+    "latent_length": 748,
+    "patch_size": 8,
+    "dim": 64,
+    "depth": 2,
+    "num_heads": 4,
+    "num_patches": 94,
+    "spec_dim": 24
+  },
+  "latent_crop_range": [
+    300,
+    748
+  ],
+  "paired_segments": true,
+  "clip_seconds": 5.0,
+  "crossfade_ms": 20.0,
+  "num_steps_schedule": 1000,
+  "loss_initial": 17.16953468322754,
+  "loss_final": 1.4691555500030518,
+  "protocol": "PROTOCOL_10S.md"
+}

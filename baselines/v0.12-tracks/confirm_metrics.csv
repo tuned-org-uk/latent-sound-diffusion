@@ -1,0 +1,8 @@
+# PROTOCOL_10S arm metrics
+# created_at: 2026-08-22T01:29:00
+# git_commit: 1c16309
+# torch: 2.13.0 device: mps
+# reference_n: 64 (fad_vs_ref ref_stats: {'centroid_mean_hz': 2979.88720703125, 'centroid_std_hz': 1789.5211181640625, 'rms_mean': 0.13368746638298035, 'rms_std': 0.04871179163455963})
+arm,n,fad_vs_ref,pairwise_cos_dist,centroid_mean_hz,centroid_std_hz,rms_mean,rms_std,duration_s
+confirm_a,64,152.77,0.0002,1436.1134,237.453,0.181,0.0189,9.97
+confirm_b,32,220.57,0.0001,1347.1399,179.0521,0.2342,0.0153,7.98

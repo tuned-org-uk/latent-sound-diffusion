@@ -19,7 +19,7 @@ from pathlib import Path
 import torch
 
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
 from ald_sc.data import ToyAudioDataset, build_audio_dataloader
 from ald_sc.graph_decoder import GraphDecoder
 from ald_sc.losses import ALDSCLoss
@@ -80,7 +80,7 @@ def main() -> None:
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
+        prior = load_arrow_prior(args.prior)
     else:
         embeddings = torch.randn(64, 128)
         prior = build_arrow_prior(embeddings, q=args.q, k=4)
@@ -123,7 +123,7 @@ def main() -> None:
         decoder = BaselineAudioDecoder(
             latent_channels=128, out_channels=1, base_channels=64
         )
-        decoder.load_state_dict(torch.load(args.baseline_decoder, weights_only=False))
+        decoder.load_state_dict(torch.load(args.baseline_decoder, weights_only=True))
         vae = AudioVAE(encoder=encoder, decoder=decoder)
         print("\nEvaluating baseline decoder...")
         results["baseline"] = evaluate_decoder(vae, prior, loader, loss_fn, device)
@@ -139,7 +139,7 @@ def main() -> None:
             base_channels=64,
             prior=prior,
         )
-        decoder.load_state_dict(torch.load(args.graph_decoder, weights_only=False))
+        decoder.load_state_dict(torch.load(args.graph_decoder, weights_only=True))
         vae = AudioVAE(encoder=encoder, decoder=decoder)
         print("\nEvaluating graph decoder...")
         results["graph"] = evaluate_decoder(vae, prior, loader, loss_fn, device)

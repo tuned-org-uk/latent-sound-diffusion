@@ -18,6 +18,7 @@ a non-repeatable, time-sampled seed — a deliberate artistic feature.
 from __future__ import annotations
 
 import json
+import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -35,6 +36,7 @@ from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.audio_codec import BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.schedule import CosineSchedule
 from ald_sc.sampling import sample_ddim
+from ald_sc.spectral_schedule import SpectralSchedule
 
 configure_logging()
 
@@ -64,20 +66,117 @@ def _resolve_seed(seed: int | None) -> int:
     return int(seed)
 
 
+def _sanitize_slug(name: str, fallback: str) -> str:
+    """Allowlist alphanumerics, '-', '_'; everything else collapses to '-'.
+
+    Prevents path traversal via user-supplied directory names.
+    """
+    return "".join(c if c.isalnum() or c in "-_" else "-" for c in name) or fallback
+
+
+def _sha256_file(path: Path) -> str:
+    import hashlib
+
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _write_digests(directory: Path, names: list[str]) -> Path:
+    """Write MANIFEST.sha256 over the given files; returns the manifest."""
+    lines = [f"{_sha256_file(directory / n)}  {n}" for n in names]
+    manifest = directory / "MANIFEST.sha256"
+    manifest.write_text("\n".join(lines) + "\n")
+    return manifest
+
+
+def _git_commit_short() -> str:
+    import subprocess
+
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5,
+        ).stdout.strip()
+    except Exception:
+        return "unknown"
+
+
 def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
     if temperature == 1.0:
         return z
     return z * float(temperature)
 
 
+_RESAMPLE_MAX_TERM = 4096
+
+
 def _resample_1d(wave: Tensor, new_length: int) -> Tensor:
-    """Resample a 1-D (T,) waveform to a target length (mono, no batch)."""
+    """Speed-change resample of a 1-D (T,) waveform to a target length.
+
+    v0.11 passed the signal *length* as ``orig_freq``; near-coprime
+    lengths (one semitone down on a 10 s clip is 239040:225631) made
+    torchaudio build quarter-million-tap sinc kernels — an OOM kill. The
+    speed ratio is therefore approximated as a small rational (terms
+    bounded by ``_RESAMPLE_MAX_TERM``; musical pitch error ≪ 1 cent) and
+    the output is trimmed/zero-padded to exactly ``new_length``.
+    """
+    from fractions import Fraction
+
     dev = wave.device
+    old_len = max(int(wave.shape[-1]), 1)
+    ratio = float(new_length) / old_len
+    frac = Fraction(ratio).limit_denominator(_RESAMPLE_MAX_TERM)
     wave = wave.unsqueeze(0).cpu()  # Resample on CPU (torchaudio MPS-safe)
-    resampler = torchaudio.transforms.Resample(
-        orig_freq=wave.shape[-1], new_freq=new_length
+    if frac.numerator == frac.denominator:
+        out = wave
+    else:
+        resampler = torchaudio.transforms.Resample(
+            orig_freq=frac.denominator, new_freq=frac.numerator
+        )
+        out = resampler(wave)
+    out = out.squeeze(0)
+    if int(out.shape[-1]) >= new_length:
+        return out[..., :new_length].to(dev)
+    return torch.nn.functional.pad(out, (0, new_length - int(out.shape[-1]))).to(dev)
+
+
+_NOTE_FADE_SECONDS = 0.003
+
+
+def _edge_fades(wave: Tensor, sr: int) -> Tensor:
+    """Raised-cosine power fades (~3 ms) on head and tail of a placed note."""
+    n = int(wave.shape[-1])
+    fade = max(1, min(int(_NOTE_FADE_SECONDS * sr), n // 2))
+    if n < 4:
+        return wave
+    w = wave.clone()
+    ramp = torch.linspace(0.0, math.pi / 2.0, fade, device=wave.device)
+    w[..., :fade] = w[..., :fade] * torch.sin(ramp)
+    w[..., -fade:] = w[..., -fade:] * torch.cos(ramp)
+    return w
+
+
+def _fit_duration(wave: Tensor, target_len: int, sr: int) -> Tensor:
+    """Fit a transposed clip to its time slot without re-pitching.
+
+    Long clips are truncated (with tail fade); short ones are zero-
+    padded. Deliberately NOT time-stretched: re-resampling after the
+    transposition step is exactly what cancelled pitch shifts in v0.11.
+    """
+    n = int(wave.shape[-1])
+    if n >= target_len:
+        return _edge_fades(wave[..., :target_len], sr)
+    out = torch.zeros(
+        *wave.shape[:-1], int(target_len), dtype=wave.dtype, device=wave.device
     )
-    return resampler(wave).squeeze(0).to(dev)
+    out[..., :n] = _edge_fades(wave, sr)
+    return out
 
 
 def _normalize(audio: Tensor) -> Tensor:
@@ -124,6 +223,7 @@ class LSDModel:
         encoder: EnCodecEncoder,
         schedule: CosineSchedule,
         sample_rate: int = 24000,
+        spectral_schedule: SpectralSchedule | None = None,
     ) -> None:
         self.prior = prior
         self.dit = dit
@@ -131,6 +231,10 @@ class LSDModel:
         self.encoder = encoder
         self.schedule = schedule
         self.sample_rate = sample_rate
+        # Barontini heat-death clock (paper §5): when given, every latent
+        # trajectory this model samples terminates on the normalized
+        # remaining-dissipation criterion instead of a fixed step count.
+        self.spectral_schedule = spectral_schedule
         self._is_baseline = isinstance(decoder, BaselineAudioDecoder)
 
     def store(
@@ -148,13 +252,11 @@ class LSDModel:
         """
         root_dir = Path(root_dir)
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-        safe_slug = (
-            "".join(c if c.isalnum() or c in "-_" else "-" for c in slug) or "model"
-        )
+        safe_slug = _sanitize_slug(slug, fallback="model")
         model_dir = root_dir / f"{ts}-{safe_slug}"
         model_dir.mkdir(parents=True, exist_ok=True)
 
-        torch.save(self.prior, model_dir / "prior.pt")
+        torch.save(self.prior.state_dict(), model_dir / "prior.pt")
         torch.save(self.decoder.state_dict(), model_dir / "decoder.pt")
         torch.save(self.dit.state_dict(), model_dir / "dit.pt")
 
@@ -169,9 +271,13 @@ class LSDModel:
             + "."
             + type(self.decoder).__name__,
             "schedule_num_steps": schedule_steps,
+            "prior_format": "state_dict",
+            "torch_version": torch.__version__,
+            "git_commit": _git_commit_short(),
             "hyperparameters": dict(hyperparams) if hyperparams else {},
         }
         (model_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+        _write_digests(model_dir, ["prior.pt", "decoder.pt", "dit.pt", "metadata.json"])
         log.info(
             "model_store",
             slug=safe_slug,
@@ -191,6 +297,12 @@ class LSDModel:
         """Sample (or use a provided) latent and decode it to a waveform."""
         device = next(self.dit.parameters()).device
 
+        # Keep the prior on the working device: callers assemble the model
+        # from separately-loaded artefacts and may move some but not all.
+        prior_device = next(self.prior.buffers()).device
+        if prior_device != device:
+            self.prior = self.prior.to(device)
+
         if z_init is None:
             z = sample_ddim(
                 self.dit,
@@ -199,6 +311,7 @@ class LSDModel:
                 steps=steps,
                 seed=seed,
                 device=device,
+                spectral_schedule=self.spectral_schedule,
             )
         else:
             z = z_init.to(device)
@@ -241,6 +354,7 @@ class LSDModel:
                     steps=steps,
                     seed=seed + i,
                     device=device,
+                    spectral_schedule=self.spectral_schedule,
                 )
                 for i in range(n)
             ]
@@ -252,6 +366,7 @@ class LSDModel:
             steps=steps,
             seed=seed,
             device=device,
+            spectral_schedule=self.spectral_schedule,
         )
 
         if bank_mode == "jitter":
@@ -272,6 +387,7 @@ class LSDModel:
                     steps=steps,
                     seed=seed + i,
                     device=device,
+                    spectral_schedule=self.spectral_schedule,
                 )
                 for i in range(1, n)
             ]
@@ -304,6 +420,7 @@ class LSDModel:
                 steps=s,
                 seed=seed,
                 device=device,
+                spectral_schedule=self.spectral_schedule,
             )
             for s in grid
         ]
@@ -469,15 +586,19 @@ class LSDModel:
     ) -> Tensor:
         """Mode C: render a MIDI note sequence using generated bank sounds.
 
-        Each MIDI note selects a bank sound (round-robin over ``bank``),
-        pitch-shifts it from ``pitch_bank_root`` to the requested note via
-        resampling, time-scales it to the requested duration, and places it
-        at the requested start time in a mono output buffer.
+        Each MIDI note selects a bank sound **by composer list position**
+        (round-robin over ``bank`` before chronological sorting, so timbre
+        identity does not become an artifact of start times), pitch-shifts
+        it from ``pitch_bank_root`` to the requested note via resampling,
+        fits it to the requested duration by truncation or zero-padding
+        (never by re-resampling, which would cancel the transposition),
+        and places it at the requested start time with ~3 ms edge fades.
 
         Parameters
         ----------
         events : list of (midi_note, start_seconds, duration_seconds)
-            The MIDI sequence.
+            The MIDI sequence. Events with negative/non-finite start or
+            non-positive/non-finite duration are skipped with a warning.
         bank : list[Tensor]
             Output sounds (e.g. from ``generate_sound_bank``). Must be
             non-empty; each element is ``(1, T)``.
@@ -485,48 +606,70 @@ class LSDModel:
             MIDI note that the bank sounds are assumed to be centred on
             (used as the pitch-shift reference).
         seed : int or None
-            Seed for round-robin / jitter; ``None`` for non-repeatable.
+            Reserved for stochastic placement; currently unused.
 
         Returns
         -------
         Tensor (1, T_out)
             Mono render covering all events.
+
+        Raises
+        ------
+        ValueError
+            If no event survives validation.
         """
         if not bank:
             raise ValueError("synthesize_midi requires a non-empty bank")
 
         sr = self.sample_rate
-        events = sorted(events, key=lambda e: e[1])
+        valid: list[tuple[int, float, float, int]] = []
+        for orig_i, ev in enumerate(events):
+            note, start, dur = ev
+            if (
+                not math.isfinite(start)
+                or not math.isfinite(dur)
+                or start < 0
+                or dur <= 0
+            ):
+                log.warning(
+                    "midi_event_invalid",
+                    index=orig_i,
+                    note=note,
+                    start=start,
+                    duration=dur,
+                )
+                continue
+            valid.append((orig_i, float(start), float(dur), int(note)))
+        if not valid:
+            raise ValueError("no valid MIDI events; check start/duration values")
+        valid.sort(key=lambda item: item[1])
 
-        total_seconds = 0.0
-        for _, start, dur in events:
-            total_seconds = max(total_seconds, start + dur)
+        total_seconds = max(start + dur for _, start, dur, _ in valid)
         total_seconds = max(total_seconds, 0.1)
         out = torch.zeros(1, int(total_seconds * sr) + 1, device=bank[0].device)
 
         s = _resolve_seed(seed)
 
-        for i, (note, start, dur) in enumerate(events):
-            src = bank[i % len(bank)].squeeze(0)  # (T,)
-            # Pitch shift via resample ratio (semitones from pitch_bank_root).
+        for orig_i, start, dur, note in valid:
+            src = bank[orig_i % len(bank)].reshape(-1)  # (T,)
+            # Transposition only: playback-speed change via one resample.
             semitones = note - pitch_bank_root
             ratio = 2.0 ** (-semitones / 12.0)
-            new_len = max(1, int(src.shape[-1] * ratio))
+            pitched_len = max(1, int(round(src.shape[-1] * ratio)))
+            pitched = _resample_1d(src, pitched_len)
 
-            pitched = _resample_1d(src, new_len)
+            fitted = _fit_duration(pitched, max(1, int(dur * sr)), sr)
 
-            # Time-scale to requested duration.
-            target_len = max(1, int(dur * sr))
-            if pitched.shape[-1] != target_len:
-                pitched = _resample_1d(pitched, target_len)
-
-            offset = int(start * sr)
-            end = min(out.shape[-1], offset + pitched.shape[-1])
-            out[0, offset:end] += pitched[: end - offset]
+            offset = max(0, int(start * sr))
+            end = min(out.shape[-1], offset + fitted.shape[-1])
+            if end <= offset:
+                continue
+            out[0, offset:end] += fitted[: end - offset]
 
         log.info(
             "midi_render",
-            n_events=len(events),
+            n_events=len(valid),
+            n_skipped=len(events) - len(valid),
             bank_size=len(bank),
             pitch_bank_root=pitch_bank_root,
             seed=s,
@@ -569,15 +712,17 @@ class Bank:
         timestamp, and provenance. Returns the bank directory path.
         """
         out_dir = Path(out_dir)
-        bank_dir = out_dir / "banks" / self.name
+        bank_dir = out_dir / "banks" / _sanitize_slug(self.name, fallback="bank")
         bank_dir.mkdir(parents=True, exist_ok=True)
 
         clip_entries = []
+        clip_names: list[str] = []
         for i, clip in enumerate(self.clips):
             fname = f"{i:02d}.wav"
-            wave = clip.squeeze(0).numpy()
+            wave = clip.squeeze(0).cpu().numpy()
             soundfile.write(str(bank_dir / fname), wave, self.model.sample_rate)
             clip_entries.append({"file": fname, "shape": list(clip.shape)})
+            clip_names.append(fname)
 
         manifest = {
             "name": self.name,
@@ -587,6 +732,7 @@ class Bank:
             "clips": clip_entries,
         }
         (bank_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        _write_digests(bank_dir, [*clip_names, "manifest.json"])
         log.info(
             "bank_store",
             name=self.name,

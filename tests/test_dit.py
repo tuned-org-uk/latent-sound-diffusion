@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import pytest
 import torch
 
-from ald_sc.dit import MinimalDiT
+from ald_sc.dit import MinimalDiT, _interpolate_pos_embed, _unpatchify
 
 
 def test_forward_shape_with_spectral_conditioning() -> None:
@@ -191,3 +192,108 @@ def test_conditioning_sensitivity() -> None:
     out_b = model(z, t, c_spec=c_spec_b)
     diff = (out_a - out_b).abs().mean()
     assert diff > 1e-4, f"c_spec must affect output, diff={diff}"
+
+
+@pytest.mark.parametrize(
+    "batch,channels,patch_size,num_patches",
+    [
+        (1, 2, 3, 4),
+        (2, 3, 4, 5),
+        (1, 128, 8, 47),  # production geometry (v0.11: 375 frames)
+        (1, 128, 8, 94),  # target geometry (10 s: 750 frames)
+    ],
+)
+def test_unpatchify_places_features_in_true_temporal_order(
+    batch: int, channels: int, patch_size: int, num_patches: int
+) -> None:
+    """Feature j=c*ps+k of token n must land at time n*ps+k.
+
+    Regression test for the v0.11 layout bug where the (ps, N) merge
+    order scattered token features to time slots k*N+n, making trained
+    checkpoints length-dependent.
+    """
+    h = torch.zeros(batch, num_patches, channels * patch_size)
+    for n in range(num_patches):
+        for c in range(channels):
+            for k in range(patch_size):
+                h[:, n, c * patch_size + k] = 1_000_000 * n + 1_000 * c + k
+
+    out = _unpatchify(h, batch, channels, patch_size)
+
+    assert out.shape == (batch, channels, num_patches * patch_size)
+    for n in range(num_patches):
+        for c in range(channels):
+            for k in range(patch_size):
+                expected = 1_000_000 * n + 1_000 * c + k
+                actual = out[:, c, n * patch_size + k]
+                assert torch.equal(actual, torch.full_like(actual, expected)), (
+                    f"token {n} feature (c={c},k={k}) at time "
+                    f"{n * patch_size + k}: got {actual[0].item()}"
+                )
+
+
+class TestInterpolatePosEmbed:
+    def test_upsampling_preserves_endpoints(self) -> None:
+        """align_corners interpolation must pin the first/last trained positions."""
+        torch.manual_seed(3407)
+        pos = torch.randn(1, 8, 64)
+
+        up = _interpolate_pos_embed(pos, 15)
+
+        assert up.shape == (1, 15, 64)
+        assert torch.allclose(up[0, 0], pos[0, 0], atol=1e-6)
+        assert torch.allclose(up[0, -1], pos[0, -1], atol=1e-6)
+
+    def test_downsampling_preserves_endpoints(self) -> None:
+        torch.manual_seed(3407)
+        pos = torch.randn(1, 15, 64)
+
+        down = _interpolate_pos_embed(pos, 8)
+
+        assert down.shape == (1, 8, 64)
+        assert torch.allclose(down[0, 0], pos[0, 0], atol=1e-6)
+        assert torch.allclose(down[0, -1], pos[0, -1], atol=1e-6)
+
+    def test_same_length_returns_original(self) -> None:
+        pos = torch.randn(1, 8, 64)
+        assert _interpolate_pos_embed(pos, 8) is pos
+
+
+class TestVariableLengthForward:
+    def _model(self) -> MinimalDiT:
+        torch.manual_seed(3407)
+        return MinimalDiT(
+            latent_channels=4,
+            latent_length=16,
+            patch_size=2,
+            dim=32,
+            depth=1,
+            num_heads=4,
+            spec_dim=12,
+        )
+
+    def test_accepts_lengths_other_than_trained(self) -> None:
+        model = self._model()
+        t = torch.tensor([500])
+        for seq_len in (10, 16, 24, 32):
+            z = torch.randn(1, 4, seq_len)
+            out = model(z, t)
+            assert out.shape == (1, 4, seq_len), f"T={seq_len}"
+
+    def test_longer_input_is_deterministic(self) -> None:
+        model = self._model().eval()
+        z = torch.randn(1, 4, 48)
+        t = torch.tensor([500])
+        with torch.no_grad():
+            out1 = model(z, t)
+            out2 = model(z, t)
+        assert torch.allclose(out1, out2)
+
+    def test_gradients_flow_through_interpolated_positions(self) -> None:
+        model = self._model()
+        z = torch.randn(1, 4, 32)
+        t = torch.tensor([500])
+        loss = model(z, t).square().mean()
+        loss.backward()
+        assert model.pos_embed.grad is not None
+        assert model.pos_embed.grad.abs().sum() > 0

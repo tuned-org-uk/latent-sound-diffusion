@@ -14,7 +14,8 @@ from pathlib import Path
 import torch
 
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
+from ald_sc.config import load_config, resolve_geometry
 from ald_sc.dit import MinimalDiT
 from ald_sc.data import ToyAudioDataset, build_audio_dataloader
 from ald_sc.schedule import CosineSchedule
@@ -27,38 +28,70 @@ def main() -> None:
     parser.add_argument("--decoder", type=str, default=None)
     parser.add_argument("--toy", action="store_true")
     parser.add_argument("--audio-length", type=int, default=24000)
-    parser.add_argument("--latent-channels", type=int, default=128)
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="YAML config (configs/audio_diffusion.yaml); CLI flags override",
+    )
+    parser.add_argument("--latent-channels", type=int, default=None)
     parser.add_argument(
         "--latent-length",
         type=int,
         default=None,
         help="Latent length (frames). If not given, derived as "
-        "audio_length // 320 (EnCodec stride).",
+        "audio_length // 320 (EnCodec stride) when no config supplies it.",
     )
-    parser.add_argument("--patch-size", type=int, default=8)
-    parser.add_argument("--dim", type=int, default=256)
-    parser.add_argument("--depth", type=int, default=4)
-    parser.add_argument("--num-heads", type=int, default=4)
+    parser.add_argument("--patch-size", type=int, default=None)
+    parser.add_argument("--dim", type=int, default=None)
+    parser.add_argument("--depth", type=int, default=None)
+    parser.add_argument("--num-heads", type=int, default=None)
     parser.add_argument("--q", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--num-steps", type=int, default=1000)
+    parser.add_argument("--seed", type=int, default=3407)
     parser.add_argument("--out", type=str, default="dit.pt")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    latent_length = args.latent_length
-    if latent_length is None:
+    raw_cfg = load_config(args.config)
+    geometry = resolve_geometry(
+        raw_cfg,
+        overrides={
+            "latent_channels": args.latent_channels,
+            "patch_size": args.patch_size,
+            "dim": args.dim,
+            "depth": args.depth,
+            "num_heads": args.num_heads,
+        },
+    )
+    if args.latent_length is not None:
+        latent_length = args.latent_length
+    elif "latent_length" in raw_cfg.get("dit", {}):
+        latent_length = int(raw_cfg["dit"]["latent_length"])
+    else:
         latent_length = args.audio_length // 320
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
-    else:
-        embeddings = torch.randn(64, 128)
+        prior = load_arrow_prior(args.prior)
+    elif args.toy:
+        gen = torch.Generator().manual_seed(args.seed)
+        embeddings = torch.randn(64, 128, generator=gen)
+        print(
+            "WARNING: seeded random fallback prior (--toy only); pass --prior "
+            "for reproducible conditioning geometry"
+        )
         prior = build_arrow_prior(embeddings, q=args.q, k=4)
+    else:
+        raise SystemExit(
+            "--prior is required: point it at a prior.pt produced by "
+            "scripts/build_audio_prior.py or scripts/run_evaluation.py "
+            "(a seeded random prior is only available with --toy)"
+        )
     prior = prior.to(device)
 
     # Build dataset
@@ -92,12 +125,12 @@ def main() -> None:
         encoder = EnCodecEncoder()
 
     decoder = BaselineAudioDecoder(
-        latent_channels=args.latent_channels,
+        latent_channels=geometry["latent_channels"],
         out_channels=1,
         base_channels=64,
     )
     if args.decoder and Path(args.decoder).exists():
-        decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
+        decoder.load_state_dict(torch.load(args.decoder, weights_only=True))
 
     vae = AudioVAE(encoder=encoder, decoder=decoder)
     for p in vae.parameters():
@@ -105,12 +138,12 @@ def main() -> None:
 
     # Build DiT
     dit = MinimalDiT(
-        latent_channels=args.latent_channels,
+        latent_channels=geometry["latent_channels"],
         latent_length=latent_length,
-        patch_size=args.patch_size,
-        dim=args.dim,
-        depth=args.depth,
-        num_heads=args.num_heads,
+        patch_size=geometry["patch_size"],
+        dim=geometry["dim"],
+        depth=geometry["depth"],
+        num_heads=geometry["num_heads"],
         spec_dim=3 * args.q,
     )
     sched = CosineSchedule(num_steps=args.num_steps)
@@ -142,11 +175,11 @@ def main() -> None:
     print(f"Exported DiT safetensors to {safe_path}")
 
     config = {
-        "dim": args.dim,
-        "depth": args.depth,
-        "num_heads": args.num_heads,
-        "patch_size": args.patch_size,
-        "latent_channels": args.latent_channels,
+        "dim": geometry["dim"],
+        "depth": geometry["depth"],
+        "num_heads": geometry["num_heads"],
+        "patch_size": geometry["patch_size"],
+        "latent_channels": geometry["latent_channels"],
         "latent_length": latent_length,
         "spec_dim": 3 * args.q,
         "q": args.q,

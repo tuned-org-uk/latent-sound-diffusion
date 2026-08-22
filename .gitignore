@@ -236,3 +236,9 @@ notebooks/results/
 results/artifacts/
 document.fdb_latexmk
 document.fls
+
+# baseline freeze: local checkpoint copies only (manifests are tracked)
+baselines/**/*.pt
+
+# release bundle: v0.12 track artifacts are canonical, keep them
+!baselines/v0.12-tracks/**
