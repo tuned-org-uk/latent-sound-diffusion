@@ -3,7 +3,7 @@
   "checkpoint_id": "037cae47f987",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 7,
+  "checkpoints_count": 8,
   "files_touched": [
     "src/ald_sc/inference.py",
     "src/ald_sc/sampling.py",
@@ -60,13 +60,20 @@
       "compact_transcript": "/03/7cae47f987/6/transcript.jsonl",
       "content_hash": "/03/7cae47f987/6/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/03/7cae47f987/7/metadata.json",
+      "transcript": "/03/7cae47f987/7/full.jsonl",
+      "compact_transcript": "/03/7cae47f987/7/transcript.jsonl",
+      "content_hash": "/03/7cae47f987/7/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
+    "input_tokens": 251494,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "cache_read_tokens": 4846592,
+    "output_tokens": 4140,
+    "api_call_count": 22
   }
 }
