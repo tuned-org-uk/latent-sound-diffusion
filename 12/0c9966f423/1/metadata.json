@@ -1,9 +1,11 @@
 {
   "cli_version": "0.10.2",
   "checkpoint_id": "120c9966f423",
+  "session_id": "ses_fda64e0b4ffeMl8Otv1Zn7Wvq4",
   "strategy": "manual-commit",
+  "created_at": "2026-08-22T00:31:32.683984Z",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     "baselines/v0.12-tracks/.DS_Store",
     "baselines/v0.12-tracks/RELEASE.md",
@@ -175,27 +177,29 @@
     "results/confirm_metrics.csv",
     "results/pilot_metrics.csv"
   ],
-  "sessions": [
-    {
-      "metadata": "/12/0c9966f423/0/metadata.json",
-      "transcript": "/12/0c9966f423/0/full.jsonl",
-      "compact_transcript": "/12/0c9966f423/0/transcript.jsonl",
-      "content_hash": "/12/0c9966f423/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/12/0c9966f423/1/metadata.json",
-      "transcript": "/12/0c9966f423/1/full.jsonl",
-      "compact_transcript": "/12/0c9966f423/1/transcript.jsonl",
-      "content_hash": "/12/0c9966f423/1/content_hash.txt",
-      "prompt": ""
-    }
-  ],
+  "agent": "OpenCode",
+  "model": "",
+  "turn_id": "4208e77c46e4",
+  "checkpoint_transcript_start": 16,
+  "transcript_lines_at_start": 16,
+  "compact_transcript_start": 16,
   "token_usage": {
     "input_tokens": 0,
     "cache_creation_tokens": 0,
     "cache_read_tokens": 0,
     "output_tokens": 0,
     "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-22T00:31:32.664328Z",
+    "agent_lines": 890,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 890,
+    "total_lines_changed": 891,
+    "agent_percentage": 100,
+    "metric_version": 2
   }
 }
