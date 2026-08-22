@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "d739b23ea06a",
+  "strategy": "manual-commit",
+  "branch": "fix/stopvar-degenerate-issue-62",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/ald_sc/inference.py",
+    "src/ald_sc/sampling.py",
+    "tests/test_inference.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d7/39b23ea06a/0/metadata.json",
+      "transcript": "/d7/39b23ea06a/0/full.jsonl",
+      "compact_transcript": "/d7/39b23ea06a/0/transcript.jsonl",
+      "content_hash": "/d7/39b23ea06a/0/content_hash.txt",
+      "prompt": "/d7/39b23ea06a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 128566,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 759872,
+    "output_tokens": 3047,
+    "api_call_count": 8
+  }
+}
