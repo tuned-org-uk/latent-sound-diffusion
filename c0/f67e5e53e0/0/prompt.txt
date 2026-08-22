@@ -1,0 +1,28 @@
+RESEARCH-ONLY code review (no edits; return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion (branch v0.12-tentative). The full diff vs main is at /tmp/v012.diff (3240 lines). Read the diff AND open the actual files for context where the diff is ambiguous. The repo: 1-D DiT diffusion over EnCodec audio latents (v-prediction, cosine schedule, DDIM samplers).
+
+CONTEXT you must respect (do NOT flag these as bugs — they are deliberate):
+- Breaking checkpoint-layout change is intentional and documented (old checkpoints must be retrained).
+- seed=None time-based fallback in inference is a documented artistic feature.
+- Legacy whole-object pickle fallback in build_prior.load_arrow_prior is deliberate with a loud warning.
+- synthesize_midi duration is fit by truncate/zero-pad instead of time-stretch, deliberately (stretch re-resampling cancelled pitch in v0.11).
+- cfg_dropout/spec conditioning intentionally inert in Phase 1.
+
+REVIEW FOR REAL DEFECTS ONLY — things that would break tests, crash at runtime, silently corrupt outputs, miscompute statistics, or create API incompatibilities:
+1. src/ald_sc/dit.py — _unpatchify permute logic, _interpolate_pos_embed usage in forward (broadcast, devices, dtype).
+2. src/ald_sc/sampling.py — eps_hat direction change in sample_ddim/sample_ddim_steps; sigma ladder steps+1 interplay with _pairwise; steps_used accounting; sample_ddim_steps generator yield positions.
+3. src/ald_sc/schedule.py — sample_sigmas edge cases: steps=1, steps>=num_steps duplicates, round() ties, clamp.
+4. src/ald_sc/trainer.py — latent_crop_range crop math (frames*320 vs available, min/max clamping order), 'latent_len' always yielded now.
+5. src/ald_sc/data.py — PairedSegmentDataset: pairing indices, crossfade clamping, off-by-one on odd lengths.
+6. src/ald_sc/stitching.py — equal_power_overlap_add: envelope construction per position, body_len negatives, batch leading dims, in-place accumulation bounds, _fade endpoints.
+7. src/ald_sc/config.py — load_config merge semantics (dict section vs scalar), resolve_geometry override skipping None, validate_dit_state_dict error paths.
+8. src/ald_sc/inference.py — synthesize_midi rewrite (validation loop, sort with orig index, _fit_duration/_edge_fades), _sanitize_slug, _write_digests ordering (manifest.json hashed after write?), store() prior state_dict format, Bank.store digest coverage.
+9. src/ald_sc/eval_stats.py — bootstrap_fad_ci percentile indexing bounds (alpha*n_boot int floors, hi_i=min(n_boot-1,...) on last index), cross_clip_frame_excess division-by-zero (empty within/cross), equivalence_verdict branch logic.
+10. src/ald_sc/audio_codec.py — _ensure_codec_device placement in encode/extract_features, interplay with .to override.
+11. src/ald_sc/build_prior.py — load_arrow_prior fallback semantics: could a valid state_dict path raise TypeError from inside the try and get swallowed into the legacy path? Check the except/raise structure carefully.
+12. src/ald_sc/spectral_schedule.py — normalized remaining_dissipation zero-nu guard returns torch.zeros(()) (device? dtype? scalar t?) — consistency.
+13. scripts/{generate_longform,train_audio_longform,eval_track_metrics,stitch_long_form}.py — argparse wiring, geometry resolution order, metadata writes, obvious runtime errors (unused vars fine, real bugs only).
+14. Test files — weak/vacuous assertions that claim coverage they don't have (e.g., tautologies), missing guards.
+
+For each finding: SEVERITY (blocker/should-fix/nit), file:line, one-sentence mechanism, one-sentence fix. Rank blockers first. If a file is clean, say so in one line. Be precise — verify by reading actual code, not by pattern-matching the diff.
