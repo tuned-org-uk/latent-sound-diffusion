@@ -24,7 +24,22 @@ depth=2, num_heads=4, spec_dim=24. Training commit `5e11c6c`+`1f359bb`
 | ref_bank | 4.00 s | 238.9 | 1352 Hz |
 
 Native 10 s beats both the stitched control and the frozen baseline.
-Pilot scale only (n=16/8); TOST confirmation bands need M≥64 per arm.
+Pilot scale (n=16/8).
+
+## Confirmation scale (M=64, fresh blocks 901100+/900100+, `confirm_metrics.csv`)
+
+| Arm | n | Duration | FAD-proxy | Centroid mean |
+|---|---|---|---|---|
+| confirm_a (native) | 64 | 9.97 s | **152.8** | 1436 Hz |
+| confirm_b (stitched control) | 32 | 7.98 s | 220.6 | 1347 Hz |
+
+The pilot ordering replicates at confirmation scale with a wider gap
+(ΔFAD ≈ 68). Pairwise pooled-feature distance stays at the contraction
+floor (~1e-4) in all arms — diversity discrimination requires per-frame
+metrics (open item on #60). TOST equivalence bands still pending; the
+direction is now established at both scales.
+
+SHA256SUMS covers pilot + confirmation artifacts.
 
 ## Integrity
 
