@@ -49,7 +49,15 @@ def main() -> None:
     parser.add_argument("--prior", type=str, required=True)
     parser.add_argument("--graph-dec", type=str, required=True)
     parser.add_argument("--metadata", type=str, default=None,
-                        help="Defaults to <dit stem>_metadata.json")
+                        help="Defaults to <dit stem>_metadata.json; 'none' "
+                        "reads geometry from the --geo-* flags instead")
+    parser.add_argument("--geo-latent-length", type=int, default=None)
+    parser.add_argument("--geo-latent-channels", type=int, default=128)
+    parser.add_argument("--geo-patch-size", type=int, default=8)
+    parser.add_argument("--geo-dim", type=int, default=64)
+    parser.add_argument("--geo-depth", type=int, default=2)
+    parser.add_argument("--geo-num-heads", type=int, default=4)
+    parser.add_argument("--geo-spec-dim", type=int, default=24)
     parser.add_argument("--base-channels", type=int, default=32,
                         help="GraphDecoder width used at training time")
     parser.add_argument("--n", type=int, default=16)
@@ -74,15 +82,29 @@ def main() -> None:
         device = torch.device(args.device)
 
     dit_path = Path(args.dit)
-    meta_path = (
-        Path(args.metadata)
-        if args.metadata
-        else dit_path.with_name(dit_path.stem + "_metadata.json")
-    )
-    if not meta_path.exists():
-        raise SystemExit(f"metadata not found: {meta_path} (pass --metadata)")
-    meta = json.loads(meta_path.read_text())
-    geo = meta["geometry"]
+    if args.metadata == "none":
+        if args.geo_latent_length is None:
+            raise SystemExit("--metadata none requires --geo-latent-length")
+        geo = {
+            "latent_length": args.geo_latent_length,
+            "latent_channels": args.geo_latent_channels,
+            "patch_size": args.geo_patch_size,
+            "dim": args.geo_dim,
+            "depth": args.geo_depth,
+            "num_heads": args.geo_num_heads,
+            "spec_dim": args.geo_spec_dim,
+        }
+        meta = {"git_commit": None}
+    else:
+        meta_path = (
+            Path(args.metadata)
+            if args.metadata
+            else dit_path.with_name(dit_path.stem + "_metadata.json")
+        )
+        if not meta_path.exists():
+            raise SystemExit(f"metadata not found: {meta_path} (pass --metadata)")
+        meta = json.loads(meta_path.read_text())
+        geo = meta["geometry"]
 
     dit = MinimalDiT(
         latent_channels=int(geo["latent_channels"]),
@@ -160,7 +182,7 @@ def main() -> None:
         "torch_version": torch.__version__,
         "device": str(device),
         "checkpoint": str(dit_path),
-        "checkpoint_metadata": str(meta_path),
+        "checkpoint_metadata": args.metadata == "none" and "none" or str(meta_path),
         "training_git_commit": meta.get("git_commit"),
         "resolved_seeds": [args.seed_start + i for i in range(len(bank))],
         "steps": args.steps,

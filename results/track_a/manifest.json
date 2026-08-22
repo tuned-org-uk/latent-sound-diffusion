@@ -1,0 +1,99 @@
+{
+  "arm": "track_a",
+  "created_at": "2026-08-22T01:15:29",
+  "git_commit": "f6f7995",
+  "torch_version": "2.13.0",
+  "device": "mps",
+  "checkpoint": "dit_v0.12_10s.pt",
+  "checkpoint_metadata": "dit_v0.12_10s_metadata.json",
+  "training_git_commit": "df98103",
+  "resolved_seeds": [
+    901000,
+    901001,
+    901002,
+    901003,
+    901004,
+    901005,
+    901006,
+    901007,
+    901008,
+    901009,
+    901010,
+    901011,
+    901012,
+    901013,
+    901014,
+    901015
+  ],
+  "steps": 50,
+  "temperature": 1.0,
+  "bank_mode": "canonical",
+  "latent_frames": 748,
+  "clips": [
+    {
+      "file": "000.wav",
+      "seed": 901000
+    },
+    {
+      "file": "001.wav",
+      "seed": 901001
+    },
+    {
+      "file": "002.wav",
+      "seed": 901002
+    },
+    {
+      "file": "003.wav",
+      "seed": 901003
+    },
+    {
+      "file": "004.wav",
+      "seed": 901004
+    },
+    {
+      "file": "005.wav",
+      "seed": 901005
+    },
+    {
+      "file": "006.wav",
+      "seed": 901006
+    },
+    {
+      "file": "007.wav",
+      "seed": 901007
+    },
+    {
+      "file": "008.wav",
+      "seed": 901008
+    },
+    {
+      "file": "009.wav",
+      "seed": 901009
+    },
+    {
+      "file": "010.wav",
+      "seed": 901010
+    },
+    {
+      "file": "011.wav",
+      "seed": 901011
+    },
+    {
+      "file": "012.wav",
+      "seed": 901012
+    },
+    {
+      "file": "013.wav",
+      "seed": 901013
+    },
+    {
+      "file": "014.wav",
+      "seed": 901014
+    },
+    {
+      "file": "015.wav",
+      "seed": 901015
+    }
+  ],
+  "protocol": "PROTOCOL_10S.md"
+}
