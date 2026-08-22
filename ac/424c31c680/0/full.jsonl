@@ -19,17 +19,17 @@
     },
     "cost": 0,
     "tokens": {
-      "input": 156458,
-      "output": 19173,
-      "reasoning": 4501,
+      "input": 158311,
+      "output": 20312,
+      "reasoning": 4511,
       "cache": {
-        "read": 3067584,
+        "read": 3461184,
         "write": 0
       }
     },
     "time": {
       "created": 1787401565950,
-      "updated": 1787403460797
+      "updated": 1787403501803
     }
   },
   "messages": [
@@ -5791,19 +5791,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 98685,
+          "input": 559,
+          "output": 334,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 97792
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787403460796
+          "created": 1787403460796,
+          "completed": 1787403475979
         },
+        "finish": "tool-calls",
         "id": "msg_0298c60bc001yxluBaEZrrnya6",
         "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
       },
@@ -5820,20 +5823,296 @@
           "tool": "bash",
           "callID": "call_fec2a82f182f41aa998378b0",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add pyproject.toml uv.lock src/ald_sc/inference.py src/ald_sc/sampling.py tests/test_inference.py tests/test_sampling.py && git commit -m \"$(cat <<'EOF'\nfix: stopvar early-stop semantics under the corrected sampler (issue #62)\n\nstopvar lost its mechanism when the sigma ladder was corrected to end at\nalpha_bar == 1 (PR #61): varying only the integrated step count re-walked\none deterministic trajectory at different discretizations, so same-seed\nbanks converged to bit-identical audio.\n\n- sample_ddim gains stop_sigma: truncate the ladder at an intermediate\n  sigma index so the latent retains sqrt(1 - ab[t]) residual noise\n- _bank_latents stopvar: all clips walk the same seeded ladder, each\n  halting at its own rung; bank_variety keeps the floor-fraction meaning\n  (top entry is now the canonical draw)\n- collapsed stop windows (< n distinct stops near variety ~1) expand\n  downward with a stopvar_grid_collapsed warning\n- jitter bank_variety above the ~0.15 NOISE_INJECT tolerance logs a\n  jitter_variety_above_tolerance warning (mode-aware clamps follow-up\n  from LSD-studio#67)\n- bump patch version 0.12.0 -> 0.12.1\n\nReproduced pre-fix with a contractive-DIT stub (same-seed pairwise L1\n2.5e-09); post-fix clips retain distinct residual-noise levels.\nEOF\n)\""
             },
+            "output": "[fix/stopvar-degenerate-issue-62 daab881] fix: stopvar early-stop semantics under the corrected sampler (issue #62)\n 6 files changed, 342 insertions(+), 27 deletions(-)\n",
+            "metadata": {
+              "output": "[fix/stopvar-degenerate-issue-62 daab881] fix: stopvar early-stop semantics under the corrected sampler (issue #62)\n 6 files changed, 342 insertions(+), 27 deletions(-)\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add pyproject.toml uv.lock src/ald_sc/inference.py src/ald_sc/sampling.py tests/test_inference.py tests/test_sampling.py && git commit -m \"$(cat <<'EOF'\nfix: stopvar early-stop semantics under the corrected sampler (issue #62)\n\nstopvar lost its mechanism when the sigma ladder was corrected to end at\nalpha_bar == 1 (PR #61): varying only the integrated step count re-walked\none deterministic trajectory at different discretizations, so same-seed\nbanks converged to bit-identical audio.\n\n- sample_ddim gains stop_sigma: truncate the ladder at an intermediate\n  sigma index so the latent retains sqrt(1 - ab[t]) residual noise\n- _bank_latents stopvar: all clips walk the same seeded ladder, each\n  halting at its own rung; bank_variety keeps the floor-fraction meaning\n  (top entry is now the canonical draw)\n- collapsed stop windows (< n distinct stops near variety ~1) expand\n  downward with a stopvar_grid_collapsed warning\n- jitter bank_variety above the ~0.15 NOISE_INJECT tolerance logs a\n  jitter_variety_above_tolerance warning (mode-aware clamps follow-up\n  from LSD-studio#67)\n- bump patch version 0.12.0 -> 0.12.1\n\nReproduced pre-fix with a contractive-DIT stub (same-seed pairwise L1\n2.5e-09); post-fix clips retain distinct residual-noise levels.\nEOF\n)\"",
             "time": {
-              "start": 1787403469461
+              "start": 1787403475899,
+              "end": 1787403475900
             }
           },
           "id": "prt_0298c8293001Tp6LngnqyGraoH",
           "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
           "messageID": "msg_0298c60bc001yxluBaEZrrnya6"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 98685,
+            "input": 559,
+            "output": 334,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 97792
+            }
+          },
+          "cost": 0,
+          "id": "prt_0298c9be4001T8kJcwSFdkXQKJ",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298c60bc001yxluBaEZrrnya6"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298c36c3001rbK8f2RXGOs7OZ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 98770,
+          "input": 434,
+          "output": 32,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 98304
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403475983,
+          "completed": 1787403484947
+        },
+        "finish": "tool-calls",
+        "id": "msg_0298c9c0f001XUJmKyOUJmw57i",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-start",
+          "id": "prt_0298ca9c9001m1oZNBdRmAt03S",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298c9c0f001XUJmKyOUJmw57i"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_86677c08a8ea4481a7a1406a",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git push -u origin fix/stopvar-degenerate-issue-62 2>&1 | tail -3"
+            },
+            "output": "To github.com:tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      fix/stopvar-degenerate-issue-62 -> fix/stopvar-degenerate-issue-62\nbranch 'fix/stopvar-degenerate-issue-62' set up to track 'origin/fix/stopvar-degenerate-issue-62'.\n",
+            "metadata": {
+              "output": "To github.com:tuned-org-uk/latent-sound-diffusion.git\n * [new branch]      fix/stopvar-degenerate-issue-62 -> fix/stopvar-degenerate-issue-62\nbranch 'fix/stopvar-degenerate-issue-62' set up to track 'origin/fix/stopvar-degenerate-issue-62'.\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git push -u origin fix/stopvar-degenerate-issue-62 2>&1 | tail -3",
+            "time": {
+              "start": 1787403484867,
+              "end": 1787403484868
+            }
+          },
+          "id": "prt_0298ca9cb001G65AkJfPqxHC7d",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298c9c0f001XUJmKyOUJmw57i"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 98770,
+            "input": 434,
+            "output": 32,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 98304
+            }
+          },
+          "cost": 0,
+          "id": "prt_0298cbeee001Ebz5Gj8fPaHbe0",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298c9c0f001XUJmKyOUJmw57i"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298c36c3001rbK8f2RXGOs7OZ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 99493,
+          "input": 158,
+          "output": 647,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 98688
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403484951,
+          "completed": 1787403501799
+        },
+        "finish": "tool-calls",
+        "id": "msg_0298cbf17001Hijr0wLEl3CARy",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-start",
+          "id": "prt_0298cf88d001MP46qk9DD2VRb0",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298cbf17001Hijr0wLEl3CARy"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_d5a544c66c1547f181e4e56f",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head fix/stopvar-degenerate-issue-62 --title \"fix: stopvar early-stop semantics under the corrected sampler (issue #62)\" --body \"$(cat <<'EOF'\nCloses #62\n\n## What changes\n\n`bank_mode=\"stopvar\"` lost its mechanism when the σ ladder was corrected to terminate at `ᾱ=1` (PR #61): varying only the integrated **step count** re-walked one deterministic trajectory at different discretizations, so same-seed banks converged to bit-identical audio at any `bank_variety`.\n\nDirection 1 from the issue, plus the mode-aware guard of direction 3:\n\n- **`sample_ddim` gains `stop_sigma`** — truncates the ladder at an intermediate σ index so the returned latent retains `√(1−ᾱ[t_stop])` residual noise instead of ending fully denoised (`None` default = unchanged behaviour).\n- **stopvar rewired to true early-stop semantics** — every clip walks the *same* seeded DDIM ladder over the full `steps` budget; each halts at its own rung. `bank_variety` keeps its documented stop-time-floor meaning (default 0.5); the top entry is now exactly the canonical draw.\n- **Secondary degeneracy guarded** — for `variety ≳ 0.96` the integer stop window holds fewer than `n` rungs; the floor expands downward so every clip gets a distinct stop point, with a `stopvar_grid_collapsed` warning.\n- **Jitter sanity warning** — `bank_variety > ~0.15` logs `jitter_variety_above_tolerance`, matching the docstring's NOISE_INJECT tolerance guidance and LSD-studio#67's \"mode-aware help/clamps\" follow-up.\n- **Patch bump 0.12.0 → 0.12.1** (gives the studio a version to gate against via `lsd_supports`).\n\n## TDD evidence\n\n- Pre-fix reproduction via a `_ContractingDIT` stub whose probability flow drains every trajectory to one attractor (analytic stand-in for the trained \"house voice\" contraction): mean pairwise L1 across same-seed latents was **2.5e-09** — bit-collapse, matching the issue's measured 0.0000–0.0008. Post-fix clips retain distinct residual-noise levels.\n- Two stale tests that codified the broken mechanism (`test_stopvar_grid_semantics`, old floor test) were rewritten to the new contract; historical notebooks/CSV baselines left untouched as records.\n\n## Verification\n\n- [x] Full suite: 348 passed\n- [x] `ruff check` + `ruff format --check` clean\n- [x] New behaviour covered: `stop_sigma` semantics ×8, shared-ladder/floor contracts, distinctness (incl. contractive repro), collapse + jitter warnings\nEOF\n)\""
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/63\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/63\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr create --repo tuned-org-uk/latent-sound-diffusion --base main --head fix/stopvar-degenerate-issue-62 --title \"fix: stopvar early-stop semantics under the corrected sampler (issue #62)\" --body \"$(cat <<'EOF'\nCloses #62\n\n## What changes\n\n`bank_mode=\"stopvar\"` lost its mechanism when the σ ladder was corrected to terminate at `ᾱ=1` (PR #61): varying only the integrated **step count** re-walked one deterministic trajectory at different discretizations, so same-seed banks converged to bit-identical audio at any `bank_variety`.\n\nDirection 1 from the issue, plus the mode-aware guard of direction 3:\n\n- **`sample_ddim` gains `stop_sigma`** — truncates the ladder at an intermediate σ index so the returned latent retains `√(1−ᾱ[t_stop])` residual noise instead of ending fully denoised (`None` default = unchanged behaviour).\n- **stopvar rewired to true early-stop semantics** — every clip walks the *same* seeded DDIM ladder over the full `steps` budget; each halts at its own rung. `bank_variety` keeps its documented stop-time-floor meaning (default 0.5); the top entry is now exactly the canonical draw.\n- **Secondary degeneracy guarded** — for `variety ≳ 0.96` the integer stop window holds fewer than `n` rungs; the floor expands downward so every clip gets a distinct stop point, with a `stopvar_grid_collapsed` warning.\n- **Jitter sanity warning** — `bank_variety > ~0.15` logs `jitter_variety_above_tolerance`, matching the docstring's NOISE_INJECT tolerance guidance and LSD-studio#67's \"mode-aware help/clamps\" follow-up.\n- **Patch bump 0.12.0 → 0.12.1** (gives the studio a version to gate against via `lsd_supports`).\n\n## TDD evidence\n\n- Pre-fix reproduction via a `_ContractingDIT` stub whose probability flow drains every trajectory to one attractor (analytic stand-in for the trained \"house voice\" contraction): mean pairwise L1 across same-seed latents was **2.5e-09** — bit-collapse, matching the issue's measured 0.0000–0.0008. Post-fix clips retain distinct residual-noise levels.\n- Two stale tests that codified the broken mechanism (`test_stopvar_grid_semantics`, old floor test) were rewritten to the new contract; historical notebooks/CSV baselines left untouched as records.\n\n## Verification\n\n- [x] Full suite: 348 passed\n- [x] `ruff check` + `ruff format --check` clean\n- [x] New behaviour covered: `stop_sigma` semantics ×8, shared-ladder/floor contracts, distinctness (incl. contractive repro), collapse + jitter warnings\nEOF\n)\"",
+            "time": {
+              "start": 1787403501714,
+              "end": 1787403501716
+            }
+          },
+          "id": "prt_0298cf88f001VxWIBd24ZBZr1U",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298cbf17001Hijr0wLEl3CARy"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 99493,
+            "input": 158,
+            "output": 647,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 98688
+            }
+          },
+          "cost": 0,
+          "id": "prt_0298d00c20012xp0XmVM5hTZqM",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298cbf17001Hijr0wLEl3CARy"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0298c36c3001rbK8f2RXGOs7OZ",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 99654,
+          "input": 702,
+          "output": 126,
+          "reasoning": 10,
+          "cache": {
+            "write": 0,
+            "read": 98816
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787403501803,
+          "completed": 1787403506502
+        },
+        "finish": "stop",
+        "id": "msg_0298d00eb001XE30gZBnvG1BgA",
+        "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4"
+      },
+      "parts": [
+        {
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-start",
+          "id": "prt_0298d09c5001hFoFZ3ujc1lgQ9",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298d00eb001XE30gZBnvG1BgA"
+        },
+        {
+          "type": "reasoning",
+          "text": "PR created: https://github.com/tuned-org-uk/latent-sound-diffusion/pull/63\n\nDone. Concise summary.",
+          "time": {
+            "start": 1787403504070,
+            "end": 1787403504630
+          },
+          "id": "prt_0298d09c60019nV5JafyDgRMVe",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298d00eb001XE30gZBnvG1BgA"
+        },
+        {
+          "type": "text",
+          "text": "PR opened: **https://github.com/tuned-org-uk/latent-sound-diffusion/pull/63**\n\n- Commit `daab881` on `fix/stopvar-degenerate-issue-62` → `main` (6 files, +342/−27)\n- Closes #62; includes the 0.12.0 → 0.12.1 patch bump so LSD-studio can gate via `lsd_supports(\"v0.12.1\")`",
+          "time": {
+            "start": 1787403504631,
+            "end": 1787403506424
+          },
+          "id": "prt_0298d0bf7001tG41BZQd4Qm3LF",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298d00eb001XE30gZBnvG1BgA"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "b652a9943c402689f5d1e9993feb977b0b24658d",
+          "type": "step-finish",
+          "tokens": {
+            "total": 99654,
+            "input": 702,
+            "output": 126,
+            "reasoning": 10,
+            "cache": {
+              "write": 0,
+              "read": 98816
+            }
+          },
+          "cost": 0,
+          "id": "prt_0298d1323001Hk6kTmCnCsXLDS",
+          "sessionID": "ses_fd6908901ffeMnbCbBIEL37UX4",
+          "messageID": "msg_0298d00eb001XE30gZBnvG1BgA"
         }
       ]
     }
