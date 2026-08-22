@@ -3,7 +3,7 @@
   "checkpoint_id": "ef2d3b48dd52",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".gitignore",
     "baselines/v0.12-tracks/RELEASE.md",
@@ -18,6 +18,13 @@
       "transcript": "/ef/2d3b48dd52/0/full.jsonl",
       "compact_transcript": "/ef/2d3b48dd52/0/transcript.jsonl",
       "content_hash": "/ef/2d3b48dd52/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/ef/2d3b48dd52/1/metadata.json",
+      "transcript": "/ef/2d3b48dd52/1/full.jsonl",
+      "compact_transcript": "/ef/2d3b48dd52/1/transcript.jsonl",
+      "content_hash": "/ef/2d3b48dd52/1/content_hash.txt",
       "prompt": ""
     }
   ],
