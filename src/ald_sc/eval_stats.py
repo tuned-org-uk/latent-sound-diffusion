@@ -12,6 +12,7 @@ from __future__ import annotations
 import itertools
 
 import torch
+from torch import Tensor
 
 __all__ = ["cross_clip_frame_excess", "bootstrap_fad_ci", "equivalence_verdict"]
 
@@ -40,9 +41,7 @@ def cross_clip_frame_excess(clouds: list[Tensor]) -> float:
     n = len(clouds)
     if n < 2:
         return 0.0
-    within = [
-        _mean_pair_distance(c, c) for c in clouds if c.shape[0] > 1
-    ]
+    within = [_mean_pair_distance(c, c) for c in clouds if c.shape[0] > 1]
     cross = [
         _mean_pair_distance(clouds[i], clouds[j])
         for i, j in itertools.combinations(range(n), 2)

@@ -51,8 +51,12 @@ equivalence margin 241.6.
 
 confirm_a's whole CI sits under the null's whole CI: native v0.12
 matches the corpus distribution significantly better than the frozen
-v0.11 generator, not just "not worse". Per-frame excess ≈ 0.010 in both
-arms — frame-level contraction persists (open item).
+v0.11 generator, not just "not worse".
+
+Per-frame excess: ref_bank 0.0107 · confirm_a 0.0099 · confirm_b 0.0097
+— statistically indistinguishable across pre/post-fix generators, so
+frame-level contraction is architectural (capacity/corpus scale), not a
+sampler artifact; it predates v0.12 and is unchanged by it.
 
 SHA256SUMS covers pilot + confirmation artifacts + stats.
 

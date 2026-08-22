@@ -503,7 +503,7 @@ class TestArtefactHardening:
             digest, name = line.split(maxsplit=1)
             actual = hashlib.sha256((out / name).read_bytes()).hexdigest()
             assert digest == actual, name
-        assert {l.split()[1] for l in manifest.read_text().splitlines()} == {
+        assert {line.split()[1] for line in manifest.read_text().splitlines()} == {
             "prior.pt",
             "decoder.pt",
             "dit.pt",

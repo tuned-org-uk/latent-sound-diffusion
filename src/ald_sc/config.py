@@ -13,7 +13,6 @@ import copy
 import math
 from pathlib import Path
 
-import torch
 import yaml
 
 __all__ = [

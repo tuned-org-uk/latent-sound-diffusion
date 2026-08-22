@@ -13,8 +13,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import itertools
-import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +21,12 @@ import soundfile
 import torch
 
 from ald_sc.data import Esc50Dataset, PairedSegmentDataset
-from ald_sc.eval import encodec_pooled_features, fad_score, spectral_centroid, split_files
+from ald_sc.eval import (
+    encodec_pooled_features,
+    fad_score,
+    spectral_centroid,
+    split_files,
+)
 from ald_sc.eval_stats import (
     bootstrap_fad_ci,
     cross_clip_frame_excess,
@@ -104,11 +107,19 @@ def arm_stats(waves: list[torch.Tensor], sample_rate: int) -> dict[str, float]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="PROTOCOL_10S arm metrics")
-    parser.add_argument("--arm", action="append", required=True,
-                        help="Generated arm directory (repeatable)")
-    parser.add_argument("--reference-dir", type=str, default=None,
-                        help="Pre-built reference wav directory; otherwise "
-                        "built from ESC-50 test split via equal-power pairing")
+    parser.add_argument(
+        "--arm",
+        action="append",
+        required=True,
+        help="Generated arm directory (repeatable)",
+    )
+    parser.add_argument(
+        "--reference-dir",
+        type=str,
+        default=None,
+        help="Pre-built reference wav directory; otherwise "
+        "built from ESC-50 test split via equal-power pairing",
+    )
     parser.add_argument("--esc50", type=str, default="data/esc50/ESC-50-master")
     parser.add_argument("--n-reference", type=int, default=64)
     parser.add_argument("--max-clips", type=int, default=None)
@@ -116,12 +127,20 @@ def main() -> None:
     parser.add_argument("--device", type=str, default="auto")
     parser.add_argument("--n-boot", type=int, default=300)
     parser.add_argument("--alpha", type=float, default=0.05)
-    parser.add_argument("--fad-margin", type=float, default=None,
-                        help="Equivalence margin; default derives from the "
-                        "--null-dir bootstrap CI (empirical same-generator band)")
-    parser.add_argument("--null-dir", type=str, default=None,
-                        help="Same-generator arm used to derive the null CI "
-                        "(e.g. baselines/v0.12-tracks/ref_bank)")
+    parser.add_argument(
+        "--fad-margin",
+        type=float,
+        default=None,
+        help="Equivalence margin; default derives from the "
+        "--null-dir bootstrap CI (empirical same-generator band)",
+    )
+    parser.add_argument(
+        "--null-dir",
+        type=str,
+        default=None,
+        help="Same-generator arm used to derive the null CI "
+        "(e.g. baselines/v0.12-tracks/ref_bank)",
+    )
     parser.add_argument("--out", type=str, default="results/track_metrics.csv")
     args = parser.parse_args()
 
@@ -129,7 +148,8 @@ def main() -> None:
         torch.device(args.device)
         if args.device != "auto"
         else torch.device(
-            "cuda" if torch.cuda.is_available()
+            "cuda"
+            if torch.cuda.is_available()
             else ("mps" if torch.backends.mps.is_available() else "cpu")
         )
     )
@@ -148,6 +168,7 @@ def main() -> None:
         files = [str(p) for p in sorted((root / "audio").glob("*.wav"))]
         _, _, test_files = split_files(files, seed=3407)
         index = {str(p): i for i, p in enumerate(ds.files)}
+
         class _Subset(torch.utils.data.Dataset):
             def __init__(self, paths):
                 self.paths = paths
