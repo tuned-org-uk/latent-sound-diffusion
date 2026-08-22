@@ -49,9 +49,13 @@ def main() -> None:
     parser.add_argument("--dit", type=str, required=True)
     parser.add_argument("--prior", type=str, required=True)
     parser.add_argument("--graph-dec", type=str, required=True)
-    parser.add_argument("--metadata", type=str, default=None,
-                        help="Defaults to <dit stem>_metadata.json; 'none' "
-                        "reads geometry from the --geo-* flags instead")
+    parser.add_argument(
+        "--metadata",
+        type=str,
+        default=None,
+        help="Defaults to <dit stem>_metadata.json; 'none' "
+        "reads geometry from the --geo-* flags instead",
+    )
     parser.add_argument("--geo-latent-length", type=int, default=None)
     parser.add_argument("--geo-latent-channels", type=int, default=128)
     parser.add_argument("--geo-patch-size", type=int, default=8)
@@ -59,15 +63,21 @@ def main() -> None:
     parser.add_argument("--geo-depth", type=int, default=2)
     parser.add_argument("--geo-num-heads", type=int, default=4)
     parser.add_argument("--geo-spec-dim", type=int, default=24)
-    parser.add_argument("--base-channels", type=int, default=32,
-                        help="GraphDecoder width used at training time")
+    parser.add_argument(
+        "--base-channels",
+        type=int,
+        default=32,
+        help="GraphDecoder width used at training time",
+    )
     parser.add_argument("--n", type=int, default=16)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--temperature", type=float, default=1.0)
-    parser.add_argument("--seed-start", type=int, default=901000,
-                        help="PROTOCOL_10S Track-A eval block")
-    parser.add_argument("--bank-mode", type=str, default="canonical",
-                        choices=list(BANK_MODES))
+    parser.add_argument(
+        "--seed-start", type=int, default=901000, help="PROTOCOL_10S Track-A eval block"
+    )
+    parser.add_argument(
+        "--bank-mode", type=str, default="canonical", choices=list(BANK_MODES)
+    )
     parser.add_argument("--num-steps-schedule", type=int, default=1000)
     parser.add_argument("--sample-rate", type=int, default=24000)
     parser.add_argument("--device", type=str, default="auto")
@@ -76,7 +86,8 @@ def main() -> None:
 
     if args.device == "auto":
         device = torch.device(
-            "cuda" if torch.cuda.is_available()
+            "cuda"
+            if torch.cuda.is_available()
             else ("mps" if torch.backends.mps.is_available() else "cpu")
         )
     else:
@@ -137,7 +148,9 @@ def main() -> None:
         prior=prior,
         upsample_strides=(2, 4, 5, 8),
     )
-    graph_dec.load_state_dict(torch.load(args.graph_dec, weights_only=True))
+    graph_dec.load_state_dict(
+        torch.load(args.graph_dec, weights_only=True, map_location="cpu")
+    )
     graph_dec = graph_dec.to(device).eval()
 
     encoder = EnCodecEncoder(sample_rate=args.sample_rate, bandwidth=24)

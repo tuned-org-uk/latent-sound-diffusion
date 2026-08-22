@@ -216,9 +216,7 @@ def test_unpatchify_places_features_in_true_temporal_order(
     for n in range(num_patches):
         for c in range(channels):
             for k in range(patch_size):
-                h[:, n, c * patch_size + k] = (
-                    1_000_000 * n + 1_000 * c + k
-                )
+                h[:, n, c * patch_size + k] = 1_000_000 * n + 1_000 * c + k
 
     out = _unpatchify(h, batch, channels, patch_size)
 

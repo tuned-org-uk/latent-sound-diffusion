@@ -61,3 +61,11 @@ class TestEqualPowerOverlapAdd:
         b = torch.ones(2, 32)
         out = equal_power_overlap_add([a, b], overlap=8)
         assert out.shape == (2, 56)
+
+    def test_middle_segment_shorter_than_double_overlap_raises(self) -> None:
+        """Middle segments carry head AND tail fades; need len >= 2*overlap."""
+        a = torch.ones(1, 100)
+        mid = torch.ones(1, 5)
+        c = torch.ones(1, 100)
+        with pytest.raises(ValueError, match="middle"):
+            equal_power_overlap_add([a, mid, c], overlap=4)

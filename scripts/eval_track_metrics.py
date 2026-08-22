@@ -121,7 +121,13 @@ def main() -> None:
         "built from ESC-50 test split via equal-power pairing",
     )
     parser.add_argument("--esc50", type=str, default="data/esc50/ESC-50-master")
-    parser.add_argument("--n-reference", type=int, default=64)
+    parser.add_argument(
+        "--n-reference",
+        type=int,
+        default=64,
+        help="Number of reference clips to BUILD (each consumes two "
+        "corpus clips via equal-power pairing)",
+    )
     parser.add_argument("--max-clips", type=int, default=None)
     parser.add_argument("--sample-rate", type=int, default=24000)
     parser.add_argument("--device", type=str, default="auto")
@@ -180,9 +186,7 @@ def main() -> None:
                 return ds[index[str(self.paths[i])]]
 
         paired = PairedSegmentDataset(_Subset(test_files), crossfade_samples=480)
-        ref_waves = [
-            paired[i].cpu() for i in range(min(args.n_reference // 2, len(paired)))
-        ]
+        ref_waves = [paired[i].cpu() for i in range(min(args.n_reference, len(paired)))]
     print(f"reference clips: {len(ref_waves)}")
 
     ref_feats = encodec_pooled_features(iter(ref_waves), encoder, device)

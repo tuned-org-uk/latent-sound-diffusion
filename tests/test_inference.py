@@ -399,10 +399,10 @@ class TestSynthesizeMidiCorrectness:
         with structlog.testing.capture_logs() as caps:
             out = m.synthesize_midi(
                 [
-                    (60, -0.5, 0.5),          # negative start: wraparound risk
+                    (60, -0.5, 0.5),  # negative start: wraparound risk
                     (60, float("nan"), 0.5),  # non-finite start
-                    (60, 0.0, -1.0),          # negative duration
-                    (60, 0.0, 0.1),           # the one valid event
+                    (60, 0.0, -1.0),  # negative duration
+                    (60, 0.0, 0.1),  # the one valid event
                 ],
                 bank=[tone],
                 seed=3407,
@@ -449,9 +449,7 @@ class TestSynthesizeMidiCorrectness:
         assert early > 600, (
             f"second-listed sound plays first chronologically; f={early:.0f}"
         )
-        assert late < 400, (
-            f"first-listed sound must take the later slot; f={late:.0f}"
-        )
+        assert late < 400, f"first-listed sound must take the later slot; f={late:.0f}"
 
 
 class TestArtefactHardening:
@@ -467,9 +465,7 @@ class TestArtefactHardening:
         prior = load_arrow_prior(path)
 
         for key in ("L_F", "U_q", "eigvals_q", "lambdas_ed"):
-            assert torch.allclose(
-                getattr(prior, key), getattr(m.prior, key)
-            ), key
+            assert torch.allclose(getattr(prior, key), getattr(m.prior, key)), key
 
     def test_load_arrow_prior_legacy_pickle_falls_back_with_warning(
         self, tmp_path
@@ -487,9 +483,7 @@ class TestArtefactHardening:
         assert any(e.get("event") == "legacy_pickle_artifact" for e in caps)
         assert torch.allclose(prior.L_F, m.prior.L_F)
 
-    def test_store_writes_state_dict_prior_and_digest_manifest(
-        self, tmp_path
-    ) -> None:
+    def test_store_writes_state_dict_prior_and_digest_manifest(self, tmp_path) -> None:
         import hashlib
 
         out = _make_model().store(root_dir=tmp_path, slug="hardened")

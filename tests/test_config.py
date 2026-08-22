@@ -44,16 +44,12 @@ class TestResolveGeometry:
     def test_defaults_resolve(self) -> None:
         geo = resolve_geometry(load_config(None))
         assert geo["latent_length"] == DEFAULT_CONFIG["dit"]["latent_length"]
-        assert geo["num_patches"] == math.ceil(
-            geo["latent_length"] / geo["patch_size"]
-        )
+        assert geo["num_patches"] == math.ceil(geo["latent_length"] / geo["patch_size"])
 
     def test_cli_overrides_config(self, tmp_path) -> None:
         path = tmp_path / "cfg.yaml"
         path.write_text("dit:\n  latent_length: 375\n")
-        geo = resolve_geometry(
-            load_config(path), overrides={"latent_length": 750}
-        )
+        geo = resolve_geometry(load_config(path), overrides={"latent_length": 750})
         assert geo["latent_length"] == 750
         assert geo["num_patches"] == 94
 
@@ -78,7 +74,9 @@ class TestValidateDitStateDict:
 
     def test_length_mismatch_raises_with_hint(self) -> None:
         sd = self._state_dict(length=16)
-        with pytest.raises(ValueError, match="latent_length.*interpolate|interpolate.*latent_length"):
+        with pytest.raises(
+            ValueError, match="latent_length.*interpolate|interpolate.*latent_length"
+        ):
             validate_dit_state_dict(
                 sd, latent_channels=4, latent_length=32, patch_size=2
             )

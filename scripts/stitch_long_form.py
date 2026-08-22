@@ -19,26 +19,43 @@ from ald_sc.stitching import equal_power_overlap_add
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Track-B long-form stitching")
-    parser.add_argument("--bank", type=str, required=True,
-                        help="Directory of NN.wav clips (Bank.store layout)")
+    parser.add_argument(
+        "--bank",
+        type=str,
+        required=True,
+        help="Directory of NN.wav clips (Bank.store layout)",
+    )
     parser.add_argument("--out", type=str, default="results/long_form.wav")
     parser.add_argument("--overlap-ms", type=float, default=20.0)
     parser.add_argument("--sample-rate", type=int, default=24000)
-    parser.add_argument("--rms-match", action="store_true",
-                        help="RMS-match clip bodies before stitching")
-    parser.add_argument("--seed", type=int, default=3407,
-                        help="Seed for clip-order shuffling (0 = keep order)")
+    parser.add_argument(
+        "--rms-match",
+        action="store_true",
+        help="RMS-match clip bodies before stitching",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=3407,
+        help="Seed for clip-order shuffling (0 = keep order)",
+    )
     args = parser.parse_args()
 
     clips = sorted(Path(args.bank).glob("*.wav"))
     if len(clips) < 2:
-        raise SystemExit(f"--bank must contain >= 2 .wav files; found {len(clips)} in {args.bank}")
+        raise SystemExit(
+            f"--bank must contain >= 2 .wav files; found {len(clips)} in {args.bank}"
+        )
 
     waves = []
     for path in clips:
         audio, sr = soundfile.read(str(path))
         if sr != args.sample_rate:
-            raise SystemExit(f"{path.name}: sample rate {sr} != expected {args.sample_rate}")
+            raise SystemExit(
+                f"{path.name}: sample rate {sr} != expected {args.sample_rate}"
+            )
+        if audio.ndim > 1:
+            audio = audio.mean(axis=-1)  # downmix stereo to mono
         waves.append(torch.from_numpy(audio).float().unsqueeze(0))
 
     gen = torch.Generator().manual_seed(args.seed)
@@ -50,7 +67,7 @@ def main() -> None:
     if args.rms_match:
         matched = []
         for wave in waves:
-            body = wave[:, wave.shape[-1] // 4:]
+            body = wave[:, wave.shape[-1] // 4 :]
             rms = body.pow(2).mean().sqrt()
             scale = 1.0 / rms if rms > 1e-8 else 1.0
             matched.append(wave * scale)

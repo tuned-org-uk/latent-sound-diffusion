@@ -158,7 +158,7 @@ class SpectralSchedule(nn.Module):
         ab_k = self.alpha_bar_k(t)
         total = self.nu.sum()
         if float(total.item()) <= 0.0:
-            return torch.zeros(())
+            return torch.zeros((), device=self.nu.device, dtype=self.nu.dtype)
         return (self.nu * (1.0 - ab_k)).sum() / total
 
     def is_heat_death(self, t: Tensor) -> bool:

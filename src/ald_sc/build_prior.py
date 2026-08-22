@@ -41,14 +41,7 @@ def load_arrow_prior(path) -> ArrowSpacePrior:
     path = Path(path)
     try:
         sd = torch.load(path, weights_only=True, map_location="cpu")
-        if isinstance(sd, dict) and set(_PRIOR_KEYS) <= set(sd):
-            return ArrowSpacePrior(
-                sd["L_F"], sd["U_q"], sd["eigvals_q"], sd["lambdas_ed"]
-            )
-        raise TypeError(f"{path} is not an ArrowSpacePrior state dict")
     except Exception as exc:
-        if isinstance(exc, TypeError) and "state dict" in str(exc):
-            raise
         log.warning(
             "legacy_pickle_artifact",
             path=str(path),
@@ -62,6 +55,9 @@ def load_arrow_prior(path) -> ArrowSpacePrior:
                 "legacy pickled prior"
             ) from exc
         return obj
+    if not (isinstance(sd, dict) and set(_PRIOR_KEYS) <= set(sd)):
+        raise TypeError(f"{path} is not an ArrowSpacePrior state dict")
+    return ArrowSpacePrior(sd["L_F"], sd["U_q"], sd["eigvals_q"], sd["lambdas_ed"])
 
 
 def build_feature_laplacian(embeddings: Tensor, k: int = 8) -> tuple[Tensor, Tensor]:

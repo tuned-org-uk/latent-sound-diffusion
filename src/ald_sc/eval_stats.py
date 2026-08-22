@@ -34,14 +34,22 @@ def cross_clip_frame_excess(clouds: list[Tensor]) -> float:
     float
         ``mean_{i≠j} D(i, j) − mean_i S_i`` where ``D`` is the mean
         pairwise frame distance across two clips and ``S_i`` the within-
-        clip temporal spread. Near zero ⇒ every clip explores the same
-        frame cloud (contraction); large positive ⇒ seeds genuinely
-        diverge at frame level.
+        clip temporal spread (self-distances excluded). Near zero ⇒ every
+        clip explores the same frame cloud (contraction); large positive
+        ⇒ seeds genuinely diverge at frame level. For exactly equal
+        clouds the statistic dips slightly negative ((k−1)/k artifact of
+        the aligned zero pairs in D).
     """
     n = len(clouds)
     if n < 2:
         return 0.0
-    within = [_mean_pair_distance(c, c) for c in clouds if c.shape[0] > 1]
+    within = []
+    for c in clouds:
+        if c.shape[0] > 1:
+            d = torch.cdist(c, c)
+            k = d.shape[0]
+            off_diag = d[~torch.eye(k, dtype=torch.bool, device=d.device)]
+            within.append(float(off_diag.mean().item()))
     cross = [
         _mean_pair_distance(clouds[i], clouds[j])
         for i, j in itertools.combinations(range(n), 2)

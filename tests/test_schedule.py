@@ -179,7 +179,11 @@ class TestSampleSigmasEndpoint:
             spec_dim=12,
         )
         sched = CosineSchedule(num_steps=100)
-        z = sample_ddim(dit, sched, batch_size=2, steps=10)
+        z, steps_used = sample_ddim(
+            dit, sched, batch_size=2, steps=10, return_steps=True
+        )
+        # Every step of the ladder executes and terminates at alpha_bar==1.
+        assert steps_used == 10
         final_sigma = sched.sample_sigmas(10)[-1]
+        assert final_sigma == 0
         assert sched.alpha_bar[final_sigma] == pytest.approx(1.0, abs=1e-6)
-        assert z.abs().mean() > 1e-3

@@ -371,7 +371,13 @@ class TestTrainAudioDiffusionVariableCrop:
             dit.zero_grad(set_to_none=True)
             records = list(
                 train_audio_diffusion(
-                    loader, vae, dit, prior, sched, epochs=1, lr=0.0,
+                    loader,
+                    vae,
+                    dit,
+                    prior,
+                    sched,
+                    epochs=1,
+                    lr=0.0,
                     latent_crop_range=(lo, lo),
                 )
             )
@@ -379,6 +385,27 @@ class TestTrainAudioDiffusionVariableCrop:
             assert all(r["latent_len"] == lo for r in records)
             assert dit.pos_embed.grad is not None
             assert float(dit.pos_embed.grad.abs().sum()) > 0
+
+    def test_crop_range_with_undersized_batch_raises_clearly(self) -> None:
+        loader, vae, dit, prior, sched = self._setup()
+        # 319 samples < 320 -> zero available frames
+        torch.manual_seed(3407)
+        tiny = torch.randn(4, 1, 319)
+        loader = DataLoader(TensorDataset(tiny), batch_size=4)
+        import pytest
+
+        with pytest.raises(RuntimeError, match="cannot crop to even one latent frame"):
+            list(
+                train_audio_diffusion(
+                    loader,
+                    vae,
+                    dit,
+                    prior,
+                    sched,
+                    epochs=1,
+                    latent_crop_range=(1, 4),
+                )
+            )
 
 
 class TestLogTraining:

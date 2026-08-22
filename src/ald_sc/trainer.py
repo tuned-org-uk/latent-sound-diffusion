@@ -217,6 +217,12 @@ def train_audio_diffusion(
                 lo = max(1, int(latent_crop_range[0]))
                 hi = max(lo, int(latent_crop_range[1]))
                 available = x.shape[-1] // 320
+                if available < 1:
+                    raise RuntimeError(
+                        f"batch has {x.shape[-1]} samples (< 320): cannot "
+                        "crop to even one latent frame. Check the dataset's "
+                        "audio_length."
+                    )
                 hi = min(hi, available)
                 lo = min(lo, hi)
                 frames = int(torch.randint(lo, hi + 1, (1,)).item())

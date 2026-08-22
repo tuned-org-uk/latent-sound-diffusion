@@ -40,6 +40,14 @@ def equal_power_overlap_add(segments: list[Tensor], overlap: int) -> Tensor:
         raise ValueError(
             f"overlap ({overlap}) must be smaller than the shortest segment ({shortest})"
         )
+    if len(segments) > 2:
+        middle = min(int(seg.shape[-1]) for seg in segments[1:-1])
+        if overlap * 2 >= middle:
+            raise ValueError(
+                f"middle segments carry head and tail fades: overlap*2 "
+                f"({overlap * 2}) must stay below the shortest middle "
+                f"segment ({middle})"
+            )
     if any(seg.shape[:-1] != segments[0].shape[:-1] for seg in segments[1:]):
         raise ValueError("all segments must share the same leading shape (batch)")
 
@@ -48,9 +56,7 @@ def equal_power_overlap_add(segments: list[Tensor], overlap: int) -> Tensor:
     total = sum(int(s.shape[-1]) for s in segments) - overlap * (len(segments) - 1)
     out = torch.zeros(*lead, total, dtype=first.dtype, device=first.device)
 
-    fade_out, fade_in = (
-        _fade(overlap, first.device) if overlap > 0 else (None, None)
-    )
+    fade_out, fade_in = _fade(overlap, first.device) if overlap > 0 else (None, None)
 
     pos = 0
     last = len(segments) - 1
@@ -59,7 +65,11 @@ def equal_power_overlap_add(segments: list[Tensor], overlap: int) -> Tensor:
         if overlap > 0:
             head = fade_in.expand(*lead, -1) if i > 0 else None
             tail = fade_out.expand(*lead, -1) if i < last else None
-            body_len = int(seg.shape[-1]) - overlap * (head is not None) - overlap * (tail is not None)
+            body_len = (
+                int(seg.shape[-1])
+                - overlap * (head is not None)
+                - overlap * (tail is not None)
+            )
             parts = [
                 p
                 for p in (
@@ -70,7 +80,7 @@ def equal_power_overlap_add(segments: list[Tensor], overlap: int) -> Tensor:
                     tail,
                 )
                 if p is not None
-                ]
+            ]
             env = torch.cat(parts, dim=-1) if parts else None
         windowed = seg if env is None else seg * env
         end = pos + int(seg.shape[-1])
