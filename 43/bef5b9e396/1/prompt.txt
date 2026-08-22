@@ -1,0 +1,25 @@
+RESEARCH-ONLY task (no code changes, return findings in your final message).
+
+Repo: /Users/tuned-silicon/papers/latent-sound-diffusion — "LSD" research codebase: 1-D DiT diffusion over EnCodec audio latents (v-prediction, cosine schedule, DDIM/Euler samplers, ArrowSpace spectral prior). USER GOAL (weight your findings by impact on this): extend generation from current 2–4 s clips to coherent 10 s stems without quality regression; dense attention stays default; issue #46 plans reversible sparse attention later.
+
+SCOPE (read fully):
+- src/ald_sc/dit.py
+- src/ald_sc/sampling.py
+- src/ald_sc/schedule.py
+- src/ald_sc/spectral_schedule.py
+May consult: src/ald_sc/trainer.py (loss construction), configs/audio_diffusion.yaml, tests/test_sampling.py, test_spectral_stopping.py, test_schedule.py.
+
+YOUR PERSONA: Diffusion Theory Researcher (background: score-based generative modeling, v-prediction, samplers, schedules).
+Evaluate mathematically:
+1. sample_euler update (sampling.py:151-160): is `z0_pred = sqrt_ab*x - sqrt(1-ab)*v` then the re-noising step a correct DDIM-deterministic step for v-prediction? Check the epsilon guard `(1-ab).sqrt() + 1e-8` in denominator — when ab→1 does this distort the update? Compare against sample_ddim (sampling.py:248-257) which omits the guard: are they algebraically identical? Is "euler" a misnomer here?
+2. Schedule indexing: `schedule.alpha_bar[int(sig)]` with sigmas from sample_sigmas(steps) — integer casting of sigma indices; off-by-one or non-monotonic risk; does heat-death check use sig BEFORE the step consistently (sampling.py:143-146)?
+3. Heat-death stopping criterion Σν_k·(1−ᾱ_k(t)) < ε (spectral_schedule.py): theoretically sound? Interaction with early stop + steps_used accounting.
+4. Conditioning: CFG dropout zeroes c_spec during training only if provided (dit.py:211-214), but trainer passes c_spec derived per batch — check trainer.py what's actually passed; unconditional branch always feeds spec_proj(zero) (dit.py:222-225): consequence of conditioning dims trained on zeros?
+5. Length extension theory: what breaks/matters going 375→750 latent frames? Timestep-count scaling for longer sequences (same 50 steps?), position encoding generalization (learned absolute vs relative/RoPE), whether v-prediction error accumulates differently over longer horizons, and whether sparse attention (local window + global anchors + bypass, LiteFocus-style) is theoretically compatible with this sampler stack.
+Red flags: formulas that differ from cited references, silent approximations, criterion thresholds without derivation.
+
+Independence rule: isolated reviewer.
+
+OUTPUT (final message): MAX 5 findings, ranked by severity (weight by 10s-goal impact). Each:
+TITLE / SEVERITY: critical|high|medium|low|info / CONFIDENCE: 0-100 / LOCATION: file:line / EVIDENCE: 1-3 sentences citing actual code (show the algebra where relevant) / RECOMMENDATION: concrete fix.
+Verify claims by reading code; cite real line numbers.
