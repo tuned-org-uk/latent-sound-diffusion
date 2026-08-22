@@ -538,13 +538,15 @@ class TestResample1dAnchored:
 
             def forward(self, x):
                 n = int(round(x.shape[-1] * captured["ratio"]))
-                return x[..., :n] if n <= x.shape[-1] else torch.nn.functional.pad(x, (0, n - x.shape[-1]))
+                return (
+                    x[..., :n]
+                    if n <= x.shape[-1]
+                    else torch.nn.functional.pad(x, (0, n - x.shape[-1]))
+                )
 
         import torchaudio.transforms
 
-        monkeypatch.setattr(
-            torchaudio.transforms, "Resample", FakeResample
-        )
+        monkeypatch.setattr(torchaudio.transforms, "Resample", FakeResample)
         from ald_sc.inference import _resample_1d
 
         src = torch.zeros(239040)

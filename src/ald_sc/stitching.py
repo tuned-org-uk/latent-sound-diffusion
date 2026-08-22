@@ -56,13 +56,14 @@ def equal_power_overlap_add(segments: list[Tensor], overlap: int) -> Tensor:
     total = sum(int(s.shape[-1]) for s in segments) - overlap * (len(segments) - 1)
     out = torch.zeros(*lead, total, dtype=first.dtype, device=first.device)
 
-    fade_out, fade_in = _fade(overlap, first.device) if overlap > 0 else (None, None)
+    fades = _fade(overlap, first.device) if overlap > 0 else None
 
     pos = 0
     last = len(segments) - 1
     for i, seg in enumerate(segments):
         env = None
-        if overlap > 0:
+        if fades is not None:
+            fade_out, fade_in = fades
             head = fade_in.expand(*lead, -1) if i > 0 else None
             tail = fade_out.expand(*lead, -1) if i < last else None
             body_len = (

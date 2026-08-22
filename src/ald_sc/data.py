@@ -10,6 +10,7 @@ This module must not add model logic (per AGENTS.md §11).
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Protocol
 
 import soundfile
 import torch
@@ -347,6 +348,14 @@ class Esc50Dataset(Dataset):
         )
 
 
+class _SizedDataset(Protocol):
+    """A map-style dataset whose length is known."""
+
+    def __getitem__(self, index: int) -> Tensor: ...
+
+    def __len__(self) -> int: ...
+
+
 class PairedSegmentDataset(Dataset):
     """Virtual k-times-longer segments from a base dataset of short clips.
 
@@ -358,7 +367,7 @@ class PairedSegmentDataset(Dataset):
     Parameters
     ----------
     base : Dataset
-        Dataset yielding (1, T) waveforms.
+        Sized dataset (implements ``__len__``) yielding (1, T) waveforms.
     crossfade_samples : int
         Overlap between consecutive joined clips, clamped to fit.
     clips_per_segment : int
@@ -368,18 +377,14 @@ class PairedSegmentDataset(Dataset):
 
     def __init__(
         self,
-        base: Dataset,
+        base: _SizedDataset,
         crossfade_samples: int = 480,
         clips_per_segment: int = 2,
     ) -> None:
         if crossfade_samples < 0:
-            raise ValueError(
-                f"crossfade_samples must be >= 0; got {crossfade_samples}"
-            )
+            raise ValueError(f"crossfade_samples must be >= 0; got {crossfade_samples}")
         if clips_per_segment < 2:
-            raise ValueError(
-                f"clips_per_segment must be >= 2; got {clips_per_segment}"
-            )
+            raise ValueError(f"clips_per_segment must be >= 2; got {clips_per_segment}")
         self.base = base
         self.crossfade_samples = int(crossfade_samples)
         self.clips_per_segment = int(clips_per_segment)
@@ -389,13 +394,8 @@ class PairedSegmentDataset(Dataset):
 
     def __getitem__(self, index: int) -> Tensor:
         start = index * self.clips_per_segment
-        group = [
-            self.base[start + i] for i in range(self.clips_per_segment)
-        ]
-        overlap = min(
-            [self.crossfade_samples]
-            + [int(g.shape[-1]) - 1 for g in group]
-        )
+        group = [self.base[start + i] for i in range(self.clips_per_segment)]
+        overlap = min([self.crossfade_samples] + [int(g.shape[-1]) - 1 for g in group])
         overlap = max(overlap, 0)
         return equal_power_overlap_add(group, overlap=overlap)
 

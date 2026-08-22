@@ -228,9 +228,7 @@ class TestPairedSegmentDataset:
 
         torch.manual_seed(3407)
         base = ToyAudioDataset(num_samples=9, audio_length=8000)
-        ds = PairedSegmentDataset(
-            base, crossfade_samples=480, clips_per_segment=3
-        )
+        ds = PairedSegmentDataset(base, crossfade_samples=480, clips_per_segment=3)
         assert len(ds) == 3
         item = ds[0]
         expected = 3 * 8000 - 2 * 480

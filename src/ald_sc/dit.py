@@ -42,15 +42,12 @@ def _interpolate_pos_embed(pos_embed: Tensor, num_tokens: int) -> Tensor:
     """
     if pos_embed.shape[1] == num_tokens:
         return pos_embed
-    return (
-        nn.functional.interpolate(
-            pos_embed.transpose(1, 2),
-            size=num_tokens,
-            mode="linear",
-            align_corners=True,
-        )
-        .transpose(1, 2)
-    )
+    return nn.functional.interpolate(
+        pos_embed.transpose(1, 2),
+        size=num_tokens,
+        mode="linear",
+        align_corners=True,
+    ).transpose(1, 2)
 
 
 class SinusoidalTimeEmb(nn.Module):

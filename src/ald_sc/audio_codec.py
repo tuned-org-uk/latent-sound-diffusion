@@ -174,9 +174,7 @@ class EnCodecEncoder(nn.Module):
         except StopIteration:
             return
         if codec_device != device:
-            logger.info(
-                "moving lazily-loaded EnCodec %s -> %s", codec_device, device
-            )
+            logger.info("moving lazily-loaded EnCodec %s -> %s", codec_device, device)
             self._encodec = self._encodec.to(device)
             self._device = device
 

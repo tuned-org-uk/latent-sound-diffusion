@@ -71,10 +71,7 @@ def _sanitize_slug(name: str, fallback: str) -> str:
 
     Prevents path traversal via user-supplied directory names.
     """
-    return (
-        "".join(c if c.isalnum() or c in "-_" else "-" for c in name)
-        or fallback
-    )
+    return "".join(c if c.isalnum() or c in "-_" else "-" for c in name) or fallback
 
 
 def _sha256_file(path: Path) -> str:
@@ -280,9 +277,7 @@ class LSDModel:
             "hyperparameters": dict(hyperparams) if hyperparams else {},
         }
         (model_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
-        _write_digests(
-            model_dir, ["prior.pt", "decoder.pt", "dit.pt", "metadata.json"]
-        )
+        _write_digests(model_dir, ["prior.pt", "decoder.pt", "dit.pt", "metadata.json"])
         log.info(
             "model_store",
             slug=safe_slug,
@@ -721,11 +716,13 @@ class Bank:
         bank_dir.mkdir(parents=True, exist_ok=True)
 
         clip_entries = []
+        clip_names: list[str] = []
         for i, clip in enumerate(self.clips):
             fname = f"{i:02d}.wav"
             wave = clip.squeeze(0).cpu().numpy()
             soundfile.write(str(bank_dir / fname), wave, self.model.sample_rate)
             clip_entries.append({"file": fname, "shape": list(clip.shape)})
+            clip_names.append(fname)
 
         manifest = {
             "name": self.name,
@@ -735,9 +732,7 @@ class Bank:
             "clips": clip_entries,
         }
         (bank_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
-        _write_digests(
-            bank_dir, [e["file"] for e in clip_entries] + ["manifest.json"]
-        )
+        _write_digests(bank_dir, [*clip_names, "manifest.json"])
         log.info(
             "bank_store",
             name=self.name,
