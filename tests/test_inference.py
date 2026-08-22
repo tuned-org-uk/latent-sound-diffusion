@@ -57,6 +57,28 @@ def _make_model(latent_length: int = 16) -> LSDModel:
     )
 
 
+class _ContractingDIT(nn.Module):
+    """Stub DiT whose probability flow drains every trajectory to zero.
+
+    Returning ``v = sqrt(ab) / sqrt(1-ab) * x`` makes every DDIM update
+    predict z0 == 0, so a FULL run ends at exactly the zero tensor no
+    matter how many steps the ladder has — the analytic stand-in for the
+    trained "house voice" DiT whose contraction collapsed stopvar banks
+    in issue #62. Early-stopped runs instead retain
+    ``x * sqrt(1-ab[t_stop]) / sqrt(1-ab[t_start])``.
+    """
+
+    def __init__(self, schedule: CosineSchedule) -> None:
+        super().__init__()
+        self.schedule = schedule
+        self.latent_shape = (4, 16)
+        self.dummy = nn.Parameter(torch.zeros(1))  # device anchor for samplers
+
+    def forward(self, x: Tensor, t: Tensor, c_spec: Tensor | None = None) -> Tensor:
+        ab = self.schedule.alpha_bar.to(x.device)[t].view(-1, 1, 1)
+        return ab.sqrt() / (1 - ab).clamp_min(1e-8).sqrt() * x
+
+
 class TestGenerateSoundBank:
     def test_returns_n_clips(self) -> None:
         m = _make_model()
@@ -128,38 +150,160 @@ class TestBankModes:
             assert torch.allclose(bank[0], canon, atol=1e-5), mode
             assert torch.allclose(bank[1], canon, atol=1e-5), mode
 
-    def test_stopvar_grid_semantics(self) -> None:
-        """stopvar = same seed, step counts spread over the trajectory.
+    def test_stopvar_stops_on_shared_ladder(self) -> None:
+        """stopvar = one seeded trajectory, truncated at distinct rungs.
 
-        With steps=4, n=3, bank_variety=0.5 the grid is lo=round(4*0.5)=2
-        to hi=round(4*0.98)=4, i.e. {2, 3, 4}: each latent must equal a
-        fresh DDIM draw at that step count with the SAME seed.
+        Issue #62: every clip walks the SAME seeded DDIM ladder over the
+        full ``steps`` budget; each halts integration at its own sigma
+        index, so returned latents retain alpha_bar < 1 residual noise.
+        With steps=8, n=3, bank_variety=0.5 the grid is {4, 6, 8}.
         """
         from ald_sc.sampling import sample_ddim
 
         m = _make_model()
         latents = m._bank_latents(
-            n=3, steps=4, seed=5, bank_mode="stopvar", bank_variety=0.5
+            n=3, steps=8, seed=5, bank_mode="stopvar", bank_variety=0.5
         )
-        for z, s in zip(latents, (2, 3, 4)):
+        ladder = m.schedule.sample_sigmas(steps=8)
+        for z, s in zip(latents, (4, 6, 8)):
             ref = sample_ddim(
-                m.dit, m.schedule, batch_size=1, steps=s, seed=5, device=z.device
+                m.dit,
+                m.schedule,
+                batch_size=1,
+                steps=8,
+                seed=5,
+                device=z.device,
+                stop_sigma=int(ladder[s]),
             )
             assert torch.allclose(z, ref, atol=1e-6)
 
     def test_stopvar_floor_follows_variety(self) -> None:
-        """bank_variety is the stop-time floor: lowest grid entry follows it."""
+        """bank_variety sets the earliest stop point of the shared ladder."""
         from ald_sc.sampling import sample_ddim
 
         m = _make_model()
         latents = m._bank_latents(
             n=2, steps=10, seed=5, bank_mode="stopvar", bank_variety=0.24
         )
-        # floor round(10 * 0.24) = 2; ceil entry round(10 * 0.98) = 10
-        ref_lo = sample_ddim(m.dit, m.schedule, batch_size=1, steps=2, seed=5)
+        # floor round(10 * 0.24) = 2; ceiling round(10 * 0.98) -> 10 (full run)
+        ladder = m.schedule.sample_sigmas(steps=10)
+        ref_lo = sample_ddim(
+            m.dit,
+            m.schedule,
+            batch_size=1,
+            steps=10,
+            seed=5,
+            stop_sigma=int(ladder[2]),
+        )
         ref_hi = sample_ddim(m.dit, m.schedule, batch_size=1, steps=10, seed=5)
         assert torch.allclose(latents[0], ref_lo.to(latents[0].device), atol=1e-6)
         assert torch.allclose(latents[1], ref_hi.to(latents[1].device), atol=1e-6)
+
+    def test_stopvar_same_seed_clips_are_distinct(self) -> None:
+        """Issue #62 reproduction: a same-seed stopvar bank must spread.
+
+        Under the v0.12 sampler, varying only the integrated step count
+        re-walked one deterministic trajectory at different
+        discretizations — every clip converged (mean pairwise distance
+        ~1e-3 or less). Truncating the shared ladder mid-flight must keep
+        the clips genuinely apart.
+        """
+        m = _make_model()
+        latents = m._bank_latents(
+            n=4, steps=20, seed=777, bank_mode="stopvar", bank_variety=0.5
+        )
+        dists = [
+            float((latents[i] - latents[j]).abs().mean())
+            for i in range(4)
+            for j in range(i + 1, 4)
+        ]
+        assert sum(dists) / len(dists) > 0.01, (
+            f"stopvar clips converged (mean pairwise L1 {sum(dists) / len(dists):.2e})"
+        )
+
+    def test_stopvar_degeneracy_under_contractive_dit(self) -> None:
+        """Faithful #62 repro: contractive velocity field kills old stopvar.
+
+        The trained 'house voice' DiT contracts trajectories, so running
+        the SAME seed at different step counts lands every clip at the
+        same attractor (bit-identical audio after peak-norm). A stub DiT
+        whose ODE drains every state to 0 reproduces that contraction
+        analytically: full runs end at exactly zero regardless of the
+        step count, while early-stopped runs must retain non-zero,
+        mutually distinct states.
+        """
+        m = _make_model()
+        m.dit = _ContractingDIT(m.schedule)
+        latents = m._bank_latents(
+            n=4, steps=20, seed=777, bank_mode="stopvar", bank_variety=0.974
+        )
+        dists = [
+            float((latents[i] - latents[j]).abs().mean())
+            for i in range(4)
+            for j in range(i + 1, 4)
+        ]
+        assert sum(dists) / len(dists) > 1e-3, (
+            "same-seed clips collapsed onto the shared attractor "
+            f"(mean pairwise L1 {sum(dists) / len(dists):.2e}); "
+            "stopvar lost its early-stop mechanism (issue #62)"
+        )
+
+    def test_stopvar_decoded_clips_are_not_identical(self) -> None:
+        """End-to-end guard: peak-normalised stopvar clips must differ."""
+        m = _make_model()
+        bank = m.generate_sound_bank(n=3, steps=4, seed=777, bank_mode="stopvar")
+        pairs = [
+            float((bank[i] - bank[j]).abs().mean())
+            for i in range(3)
+            for j in range(i + 1, 3)
+        ]
+        assert sum(pairs) / len(pairs) > 1e-3, (
+            f"decoded stopvar clips near-identical ({sum(pairs) / len(pairs):.2e})"
+        )
+
+    def test_stopvar_grid_collapse_warns_and_expands_downward(self) -> None:
+        """variety >= ~0.96 collapses the integer grid; recover with warning.
+
+        Secondary degeneracy from issue #62: at high bank_variety the
+        requested stop window holds fewer than n integers. The floor must
+        expand downward so every clip gets its own stop point, and a
+        stopvar_grid_collapsed warning must be logged.
+        """
+        import structlog
+
+        m = _make_model()
+        with structlog.testing.capture_logs() as caps:
+            latents = m._bank_latents(
+                n=4, steps=12, seed=777, bank_mode="stopvar", bank_variety=0.974
+            )
+        assert any(e.get("event") == "stopvar_grid_collapsed" for e in caps)
+        dists = [
+            float((latents[i] - latents[j]).abs().mean())
+            for i in range(4)
+            for j in range(i + 1, 4)
+        ]
+        assert min(dists) > 0, "collapsed grid still produced duplicate clips"
+
+    def test_jitter_high_variety_warns_above_tolerance(self) -> None:
+        """Docstring advises jitter alpha <= ~0.15; exceeding it warns."""
+        import structlog
+
+        m = _make_model()
+        with structlog.testing.capture_logs() as caps:
+            m.generate_sound_bank(
+                n=2, steps=3, seed=5, bank_mode="jitter", bank_variety=0.5
+            )
+        assert any(e.get("event") == "jitter_variety_above_tolerance" for e in caps)
+
+    def test_jitter_sane_variety_does_not_warn(self) -> None:
+        import structlog
+
+        m = _make_model()
+        with structlog.testing.capture_logs() as caps:
+            m.generate_sound_bank(
+                n=2, steps=3, seed=5, bank_mode="jitter", bank_variety=0.1
+            )
+        assert not any(e.get("event") == "jitter_variety_above_tolerance" for e in caps)
 
     def test_generated_banks_are_dc_free(self) -> None:
         """DC-block: outputs must carry no DC offset (PR #59 feedback fix).

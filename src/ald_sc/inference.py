@@ -55,8 +55,13 @@ MidiEvent = tuple[int, float, float]
 # z_bar, exploiting the decoder's NOISE_INJECT-trained tolerance:
 #   "jitter"   — z_bar + variety * std(z_bar) * eps_i      (fresh noise)
 #   "residual" — z_bar amplified seed residual to relative std `variety`
-#   "stopvar"  — same seed, step count swept 0.24..0.98 * steps
+#   "stopvar"  — same seed, one shared ladder truncated per clip
+#                (early-stop semantics, issue #62)
 BANK_MODES = ("canonical", "jitter", "residual", "stopvar")
+
+# Decoder NOISE_INJECT noise tolerance: jitter amplitudes above this push
+# latents off-manifold (issue #62 direction 3; enforced as a warning only).
+_JITTER_MAX_VARIETY = 0.15
 
 
 def _resolve_seed(seed: int | None) -> int:
@@ -341,7 +346,10 @@ class LSDModel:
         All non-canonical modes vary *around the canonical draw* z_bar
         (the DDIM endpoint for ``seed``), where the decoder's
         NOISE_INJECT-trained tolerance guarantees a latent neighbourhood
-        that decodes to genuinely distinct waveforms.
+        that decodes to genuinely distinct waveforms. stopvar instead
+        truncates the shared seeded trajectory at per-clip sigma indices
+        (early-stop semantics, issue #62); its top entry is the canonical
+        draw itself.
         """
         device = next(self.dit.parameters()).device
 
@@ -370,6 +378,14 @@ class LSDModel:
         )
 
         if bank_mode == "jitter":
+            if bank_variety > _JITTER_MAX_VARIETY:
+                log.warning(
+                    "jitter_variety_above_tolerance",
+                    bank_variety=bank_variety,
+                    hint="decoder NOISE_INJECT tolerance is about 0.15; "
+                    "larger amplitudes push off-manifold and may decode "
+                    "to unplayable audio",
+                )
             sig = z_bar.std()
             latents = []
             for i in range(n):
@@ -405,22 +421,44 @@ class LSDModel:
             k = bank_variety * float(z_bar.std()) / max(resid_std, 1e-12)
             return [z_bar] + [z_bar + k * (d - z_bar) for d in draws]
 
-        # bank_mode == "stopvar": bank_variety is the stop-time floor as a
-        # fraction of `steps` (default 0.5). Floors below ~0.5 produced
-        # under-denoised, unplayable clips on the v0.11 checkpoints
-        # (perceptual feedback, PR #59) — kept controllable, not encouraged.
+        # bank_mode == "stopvar": true early-stop semantics (issue #62).
+        # Every clip walks the SAME seeded DDIM ladder over the full
+        # `steps` budget; each halts integration at its own sigma index
+        # and keeps the alpha_bar < 1 residual noise. (Varying only the
+        # integrated step count re-discretized one deterministic
+        # trajectory whose endpoint is identical for every entry under
+        # the corrected v0.12 sampler — same-seed banks came out
+        # bit-identical.) bank_variety stays the stop-time floor as a
+        # fraction of `steps` (default 0.5): lower floors retain more
+        # noise (more spread, less playability on v0.11-era feedback,
+        # PR #59).
         lo = max(1, int(round(steps * bank_variety)))
-        hi = max(lo + 1, int(round(steps * 0.98)))
+        hi = min(steps, max(lo + 1, int(round(steps * 0.98))))
+        if hi - lo + 1 < n:
+            # Secondary degeneracy (#62): near variety ~1 the integer
+            # stop window holds fewer than n rungs; expand downward so
+            # every clip gets its own stop point.
+            lo = max(1, hi - (n - 1))
+            log.warning(
+                "stopvar_grid_collapsed",
+                bank_variety=bank_variety,
+                steps=steps,
+                n=n,
+                hint="requested stop window holds fewer than n distinct "
+                "stops; floor expanded downward",
+            )
         grid = [lo + (hi - lo) * i // max(n - 1, 1) for i in range(n)]
+        ladder = self.schedule.sample_sigmas(steps)
         return [
             sample_ddim(
                 self.dit,
                 self.schedule,
                 batch_size=1,
-                steps=s,
+                steps=steps,
                 seed=seed,
                 device=device,
                 spectral_schedule=self.spectral_schedule,
+                stop_sigma=int(ladder[s]),
             )
             for s in grid
         ]
@@ -459,15 +497,19 @@ class LSDModel:
               to relative std ``bank_variety``. At preliminary scale the
               residual is numerical roundoff (contraction) and the
               amplified variants may be harsh; a warning is logged.
-            - ``"stopvar"`` — same seed, step count swept from
-              ``bank_variety * steps`` to ``0.98 * steps`` (floor
-              default 0.5; lower floors trade playability for spread).
+            - ``"stopvar"`` — same seed, one shared DDIM ladder; each clip
+              halts integration at its own sigma index and keeps the
+              retained residual noise (early-stop semantics, issue #62).
+              The stop window runs from ``bank_variety * steps`` (floor,
+              default 0.5) to ~``0.98 * steps``; lower floors trade
+              playability for spread. Windows too narrow for ``n``
+              distinct stops are expanded downward with a warning.
 
         bank_variety : float
             Diversity dial, interpreted per mode: jitter amplitude
-            (alpha; stay <= ~0.15 to remain within the decoder's
-            NOISE_INJECT noise tolerance), residual relative std, or
-            the stop-time floor fraction for stopvar. Defaults to 0.5;
+            (alpha; values above the ~0.15 decoder NOISE_INJECT tolerance
+            log a warning), residual relative std, or the stop-time floor
+            fraction for stopvar. Defaults to 0.5;
             0 disables variation (canonical output).
 
         Returns
