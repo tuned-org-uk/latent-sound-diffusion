@@ -20,17 +20,17 @@
     },
     "cost": 0,
     "tokens": {
-      "input": 2710076,
-      "output": 124423,
-      "reasoning": 26361,
+      "input": 2713594,
+      "output": 127019,
+      "reasoning": 26587,
       "cache": {
-        "read": 55201024,
+        "read": 58633152,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787360407986
+      "updated": 1787360708295
     }
   },
   "messages": [
@@ -38155,6 +38155,20 @@
               "status": "modified"
             },
             {
+              "file": "notebooks/02_long_form_generation.ipynb",
+              "patch": "Index: notebooks/02_long_form_generation.ipynb\n===================================================================\n--- notebooks/02_long_form_generation.ipynb\t\n+++ notebooks/02_long_form_generation.ipynb\t\n@@ -1,683 +1,620 @@\n {\n  \"cells\": [\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"05d1ace1\",\n    \"metadata\": {},\n    \"source\": [\n     \"# Long-Form Sound Generation (5-8 seconds)\\n\",\n     \"\\n\",\n     \"Generate longer audio segments by training the pipeline on short clips and\\n\",\n     \"stitching them via **overlap-and-add**. Post-processing knobs let you shape\\n\",\n     \"the generated audio with **pitch envelopes, amplitude envelopes (ADSR),\\n\",\n     \"and timbral filtering**.\\n\",\n     \"\\n\",\n     \"### Pipeline\\n\",\n     \"1. Train on 1-second clips (fast on CPU)\\n\",\n     \"2. Generate multiple short latents\\n\",\n     \"3. Crossfade / overlap-and-add into a continuous 5-8s segment\\n\",\n     \"4. Apply post-processing: pitch shift envelope, ADSR, lowpass/highpass\\n\",\n     \"\\n\",\n     \"### Sound shaping knobs\\n\",\n-    \"- `PITCH_START` / `PITCH_END` — pitch envelope (semitone shift from base)\\n\",\n-    \"- `ADSR_ATTACK` / `ADSR_DECAY` / `ADSR_SUSTAIN` / `ADSR_RELEASE` — amplitude envelope\\n\",\n-    \"- `LP_CUTOFF` / `HP_CUTOFF` — timbral filtering (Hz)\\n\",\n-    \"- `SEGMENT_SECONDS` — total output length (5-8s)\\n\",\n-    \"- `OVERLAP_FRAC` — crossfade overlap between segments (0.25-0.75)\\n\",\n-    \"- `SEED`, `STEPS`, `TEMPERATURE`, `USE_C_SPEC` — generation knobs\"\n+    \"- `PITCH_START` / `PITCH_END` \\u2014 pitch envelope (semitone shift from base)\\n\",\n+    \"- `ADSR_ATTACK` / `ADSR_DECAY` / `ADSR_SUSTAIN` / `ADSR_RELEASE` \\u2014 amplitude envelope\\n\",\n+    \"- `LP_CUTOFF` / `HP_CUTOFF` \\u2014 timbral filtering (Hz)\\n\",\n+    \"- `SEGMENT_SECONDS` \\u2014 total output length (5-8s)\\n\",\n+    \"- `OVERLAP_FRAC` \\u2014 crossfade overlap between segments (0.25-0.75)\\n\",\n+    \"- `SEED`, `STEPS`, `TEMPERATURE`, `USE_C_SPEC` \\u2014 generation knobs\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"dec1dab6\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# --- Generation knobs ---\\n\",\n     \"SEED = 42\\n\",\n     \"STEPS = 50\\n\",\n     \"TEMPERATURE = 1.0\\n\",\n     \"USE_C_SPEC = True\\n\",\n     \"\\n\",\n     \"# --- Long-form knobs ---\\n\",\n     \"SEGMENT_SECONDS = 6       # total output length (5-8)\\n\",\n     \"OVERLAP_FRAC = 0.5        # crossfade overlap fraction (0.25-0.75)\\n\",\n     \"\\n\",\n     \"# --- Pitch envelope knobs (semitones, applied as time-stretch ratio) ---\\n\",\n     \"PITCH_START = 0.0         # starting pitch shift (semitones)\\n\",\n     \"PITCH_END = 7.0           # ending pitch shift (semitones, e.g. +7 = perfect fifth up)\\n\",\n     \"PITCH_CURVE = 'linear'    # 'linear' or 'exponential'\\n\",\n     \"\\n\",\n     \"# --- Amplitude envelope (ADSR) knobs ---\\n\",\n     \"ADSR_ATTACK = 0.05        # attack time in seconds\\n\",\n     \"ADSR_DECAY = 0.1          # decay time in seconds\\n\",\n     \"ADSR_SUSTAIN = 0.7        # sustain level (0-1)\\n\",\n     \"ADSR_RELEASE = 0.3        # release time in seconds\\n\",\n     \"\\n\",\n     \"# --- Timbral filtering knobs ---\\n\",\n     \"LP_CUTOFF = 8000          # lowpass cutoff in Hz (0 = bypass)\\n\",\n     \"HP_CUTOFF = 80            # highpass cutoff in Hz (0 = bypass)\\n\",\n     \"\\n\",\n     \"# --- Training knobs ---\\n\",\n     \"DECODER_EPOCHS = 20\\n\",\n     \"DIFFUSION_EPOCHS = 20\\n\",\n     \"CLIP_SECONDS = 1.0        # training clip length\\n\",\n     \"NUM_SAMPLES = 64\\n\",\n     \"SAMPLE_RATE = 24000\\n\",\n     \"\\n\",\n     \"CLIP_LENGTH = int(CLIP_SECONDS * SAMPLE_RATE)\\n\",\n     \"TOTAL_LENGTH = int(SEGMENT_SECONDS * SAMPLE_RATE)\\n\",\n     \"print(f'Target: {SEGMENT_SECONDS}s ({TOTAL_LENGTH} samples @ {SAMPLE_RATE}Hz)')\\n\",\n     \"print(f'Training clips: {CLIP_SECONDS}s ({CLIP_LENGTH} samples)')\\n\",\n     \"print(f'Pitch: {PITCH_START} -> {PITCH_END} semitones ({PITCH_CURVE})')\\n\",\n     \"print(f'ADSR: A={ADSR_ATTACK} D={ADSR_DECAY} S={ADSR_SUSTAIN} R={ADSR_RELEASE}')\\n\",\n     \"print(f'Filter: LP={LP_CUTOFF}Hz HP={HP_CUTOFF}Hz')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"d1065f6a\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"import math\\n\",\n     \"import torch\\n\",\n     \"import torch.nn as nn\\n\",\n     \"import torchaudio\\n\",\n     \"from IPython.display import Audio, display\\n\",\n     \"import matplotlib.pyplot as plt\\n\",\n     \"\\n\",\n     \"from ald_sc.build_prior import build_arrow_prior\\n\",\n     \"from ald_sc.audio_codec import BaselineAudioDecoder, AudioVAE\\n\",\n     \"from ald_sc.graph_decoder import GraphDecoder\\n\",\n     \"from ald_sc.dit import MinimalDiT\\n\",\n     \"from ald_sc.data import ToyAudioDataset, build_audio_dataloader\\n\",\n     \"from ald_sc.losses import ALDSCLoss\\n\",\n     \"from ald_sc.schedule import CosineSchedule\\n\",\n     \"from ald_sc.sampling import sample_ddim\\n\",\n     \"from ald_sc.trainer import train_audio_decoder, train_audio_diffusion\\n\",\n     \"\\n\",\n     \"device = torch.device('cpu')\\n\",\n     \"torch.manual_seed(SEED)\\n\",\n     \"print('Ready. Device:', device)\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"b8964812\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 1: Build prior + train decoder + train DiT (on 1s clips)\\n\",\n     \"\\n\",\n     \"Same pipeline as notebook 01, but encapsulated for reuse.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"a4c24795\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"STRIDE = 320  # EnCodec 24kHz stride\\n\",\n     \"\\n\",\n     \"class StubEncoder(nn.Module):\\n\",\n     \"    def __init__(self, latent_dim=128, stride=320):\\n\",\n     \"        super().__init__()\\n\",\n     \"        self.proj = nn.Conv1d(1, latent_dim, stride, stride=stride)\\n\",\n     \"    def encode(self, x, prior):\\n\",\n     \"        z = self.proj(x).float()\\n\",\n     \"        a = z.mean(dim=2)\\n\",\n     \"        c_spec = prior.chart_energy_descriptor(a)\\n\",\n     \"        return z, a, c_spec\\n\",\n     \"    def extract_features(self, x):\\n\",\n     \"        return self.proj(x).float()\\n\",\n     \"\\n\",\n     \"encoder = StubEncoder()\\n\",\n     \"latent_length = CLIP_LENGTH // STRIDE\\n\",\n     \"\\n\",\n     \"# Build prior\\n\",\n     \"dataset = ToyAudioDataset(num_samples=NUM_SAMPLES, audio_length=CLIP_LENGTH)\\n\",\n     \"loader = build_audio_dataloader(dataset, batch_size=8, shuffle=False)\\n\",\n     \"features = []\\n\",\n     \"for batch in loader:\\n\",\n     \"    features.append(encoder.extract_features(batch).mean(dim=2))\\n\",\n     \"embeddings = torch.cat(features, dim=0)\\n\",\n     \"prior = build_arrow_prior(embeddings, q=8, k=4)\\n\",\n     \"print(f'Prior: L_F={prior.L_F.shape}, q={prior.q}')\\n\",\n     \"\\n\",\n     \"# Train graph decoder\\n\",\n     \"graph_decoder = GraphDecoder(\\n\",\n     \"    latent_channels=128, out_channels=1, feature_dim=128,\\n\",\n     \"    base_channels=32, prior=prior, upsample_strides=(2, 4, 5, 8),\\n\",\n     \")\\n\",\n     \"baseline_decoder = BaselineAudioDecoder(\\n\",\n     \"    latent_channels=128, out_channels=1, base_channels=32,\\n\",\n     \"    upsample_strides=(2, 4, 5, 8),\\n\",\n     \")\\n\",\n     \"loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0,\\n\",\n     \"                    lambda_chart=0.5, lambda_smooth=0.1)\\n\",\n     \"train_loader = build_audio_dataloader(dataset, batch_size=4, shuffle=True)\\n\",\n     \"\\n\",\n     \"graph_vae = AudioVAE(encoder=encoder, decoder=graph_decoder)\\n\",\n     \"print('Training graph decoder...')\\n\",\n     \"gl = list(train_audio_decoder(train_loader, graph_vae, prior, loss_fn,\\n\",\n     \"                              epochs=DECODER_EPOCHS, lr=1e-3, device=device))\\n\",\n     \"print(f'  {gl[0][\\\"loss\\\"]:.4f} -> {gl[-1][\\\"loss\\\"]:.4f}')\\n\",\n     \"\\n\",\n     \"baseline_vae = AudioVAE(encoder=encoder, decoder=baseline_decoder)\\n\",\n     \"print('Training baseline decoder...')\\n\",\n     \"bl = list(train_audio_decoder(train_loader, baseline_vae, prior, loss_fn,\\n\",\n     \"                              epochs=DECODER_EPOCHS, lr=1e-3, device=device))\\n\",\n     \"print(f'  {bl[0][\\\"loss\\\"]:.4f} -> {bl[-1][\\\"loss\\\"]:.4f}')\\n\",\n     \"\\n\",\n     \"# Train DiT\\n\",\n     \"dit = MinimalDiT(\\n\",\n     \"    latent_channels=128, latent_length=latent_length,\\n\",\n     \"    patch_size=8, dim=64, depth=2, num_heads=4, spec_dim=24,\\n\",\n     \")\\n\",\n     \"sched = CosineSchedule(num_steps=1000)\\n\",\n     \"for p in graph_vae.parameters():\\n\",\n     \"    p.requires_grad_(False)\\n\",\n     \"print('Training DiT...')\\n\",\n     \"dl = list(train_audio_diffusion(train_loader, graph_vae, dit, prior, sched,\\n\",\n     \"                                epochs=DIFFUSION_EPOCHS, lr=1e-3, device=device))\\n\",\n     \"print(f'  {dl[0][\\\"loss\\\"]:.4f} -> {dl[-1][\\\"loss\\\"]:.4f}')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"cf4e1d1d\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 2: Generate multiple segments and stitch with overlap-and-add\\n\",\n     \"\\n\",\n     \"Each segment is a 1s clip generated from independent noise. We crossfade\\n\",\n     \"them with `OVERLAP_FRAC` to create a continuous long-form output.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"4249ffdb\",\n    \"metadata\": {},\n    \"outputs\": [],\n-   \"source\": [\n-    \"def generate_segment(seed_val, steps, temperature, use_cspec):\\n\",\n-    \"    \\\"\\\"\\\"Generate a single 1-second audio segment.\\\"\\\"\\\"\\n\",\n-    \"    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\\n\",\n-    \"    z = z * temperature\\n\",\n-    \"    a = z.mean(dim=2)\\n\",\n-    \"    c_spec = prior.chart_energy_descriptor(a)\\n\",\n-    \"    with torch.no_grad():\\n\",\n-    \"        if use_cspec:\\n\",\n-    \"            audio = graph_decoder(z, c_spec)\\n\",\n-    \"        else:\\n\",\n-    \"            audio = graph_decoder(z, torch.zeros_like(c_spec))\\n\",\n-    \"    return audio.squeeze(0).squeeze(0)  # (T,)\\n\",\n-    \"\\n\",\n-    \"def overlap_add(segments, overlap_frac, sample_rate):\\n\",\n-    \"    \\\"\\\"\\\"Stitch segments with crossfade overlap-and-add.\\\"\\\"\\\"\\n\",\n-    \"    seg_len = segments[0].shape[-1]\\n\",\n-    \"    overlap = int(seg_len * overlap_frac)\\n\",\n-    \"    hop = seg_len - overlap\\n\",\n-    \"    total_len = hop * (len(segments) - 1) + seg_len\\n\",\n-    \"    output = torch.zeros(total_len)\\n\",\n-    \"    window = torch.linspace(0, 1, overlap)  # linear crossfade\\n\",\n-    \"    for i, seg in enumerate(segments):\\n\",\n-    \"        start = i * hop\\n\",\n-    \"        output[start:start + seg_len] += seg\\n\",\n-    \"        if i > 0:\\n\",\n-    \"            # Apply crossfade in overlap region\\n\",\n-    \"            fade_in = window\\n\",\n-    \"            fade_out = 1 - window\\n\",\n-    \"            prev_overlap_start = start - overlap\\n\",\n-    \"            output[prev_overlap_start:prev_overlap_start + overlap] *= fade_out\\n\",\n-    \"            output[start:start + overlap] *= fade_in\\n\",\n-    \"    return output\\n\",\n-    \"\\n\",\n-    \"# Determine how many segments we need\\n\",\n-    \"clip_samples = CLIP_LENGTH\\n\",\n-    \"hop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\\n\",\n-    \"num_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\\n\",\n-    \"print(f'Generating {num_segments} segments (hop={hop_samples} samples, overlap={int(clip_samples * OVERLAP_FRAC)} samples)')\\n\",\n-    \"\\n\",\n-    \"# Generate segments with different seeds for variety\\n\",\n-    \"segments = []\\n\",\n-    \"for i in range(num_segments):\\n\",\n-    \"    seg_seed = SEED + i * 1000\\n\",\n-    \"    seg = generate_segment(seg_seed, STEPS, TEMPERATURE, USE_C_SPEC)\\n\",\n-    \"    segments.append(seg)\\n\",\n-    \"    print(f'  Segment {i+1}/{num_segments} (seed={seg_seed}): {seg.shape[-1]} samples')\\n\",\n-    \"\\n\",\n-    \"# Stitch\\n\",\n-    \"raw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)\\n\",\n-    \"# Crop to target length\\n\",\n-    \"if raw_audio.shape[-1] > TOTAL_LENGTH:\\n\",\n-    \"    raw_audio = raw_audio[:TOTAL_LENGTH]\\n\",\n-    \"elif raw_audio.shape[-1] < TOTAL_LENGTH:\\n\",\n-    \"    raw_audio = torch.nn.functional.pad(raw_audio, (0, TOTAL_LENGTH - raw_audio.shape[-1]))\\n\",\n-    \"\\n\",\n-    \"# Normalize\\n\",\n-    \"raw_audio = raw_audio - raw_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n-    \"peak = raw_audio.abs().max()\\n\",\n-    \"if peak > 0:\\n\",\n-    \"    raw_audio = raw_audio / peak\\n\",\n-    \"\\n\",\n-    \"print(f'Stitched audio: {raw_audio.shape[-1]} samples ({raw_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\"\n-   ]\n+   \"source\": \"def generate_segment(seed_val, steps, temperature, use_cspec):\\n    \\\"\\\"\\\"Generate a single 1-second audio segment.\\\"\\\"\\\"\\n    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\\n    z = z * temperature\\n    a = z.mean(dim=2)\\n    c_spec = prior.chart_energy_descriptor(a)\\n    with torch.no_grad():\\n        if use_cspec:\\n            audio = graph_decoder(z, c_spec)\\n        else:\\n            audio = graph_decoder(z, torch.zeros_like(c_spec))\\n    return audio.squeeze(0).squeeze(0)  # (T,)\\n\\ndef overlap_add(segments, overlap_samples):\\n    \\\"\\\"\\\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\\n    keep constant power through every seam. Delegates to the verified\\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\\n    faded the previous segment's exclusive tail, producing periodic\\n    dropouts and double-energy seams).\\\"\\\"\\\"\\n    from ald_sc.stitching import equal_power_overlap_add\\n\\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\\n               for s in segments]\\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\\n\\n# Determine how many segments we need\\nclip_samples = CLIP_LENGTH\\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\\nprint(f'Generating {num_segments} segments (hop={hop_samples} samples, overlap={int(clip_samples * OVERLAP_FRAC)} samples)')\\n\\n# Generate segments with different seeds for variety\\nsegments = []\\nfor i in range(num_segments):\\n    seg_seed = SEED + i * 1000\\n    seg = generate_segment(seg_seed, STEPS, TEMPERATURE, USE_C_SPEC)\\n    segments.append(seg)\\n    print(f'  Segment {i+1}/{num_segments} (seed={seg_seed}): {seg.shape[-1]} samples')\\n\\n# Stitch\\nraw_audio = overlap_add(segments, int(OVERLAP_FRAC * clip_samples))\\n# Crop to target length\\nif raw_audio.shape[-1] > TOTAL_LENGTH:\\n    raw_audio = raw_audio[:TOTAL_LENGTH]\\nelif raw_audio.shape[-1] < TOTAL_LENGTH:\\n    raw_audio = torch.nn.functional.pad(raw_audio, (0, TOTAL_LENGTH - raw_audio.shape[-1]))\\n\\n# Normalize\\nraw_audio = raw_audio - raw_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\npeak = raw_audio.abs().max()\\nif peak > 0:\\n    raw_audio = raw_audio / peak\\n\\nprint(f'Stitched audio: {raw_audio.shape[-1]} samples ({raw_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\"\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"174045a5\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 3: Apply pitch envelope\\n\",\n     \"\\n\",\n     \"Apply a time-varying pitch shift from `PITCH_START` to `PITCH_END`\\n\",\n     \"semitones. We implement this via **variable-speed resampling**: divide\\n\",\n     \"the audio into windows, compute a per-window pitch ratio, and resample\\n\",\n     \"each window accordingly.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"9c5f6d09\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def apply_pitch_envelope(audio, pitch_start, pitch_end, curve='linear', sr=24000, window_ms=50):\\n\",\n     \"    \\\"\\\"\\\"Apply a time-varying pitch shift via variable-speed resampling.\\n\",\n     \"    \\n\",\n     \"    Divides audio into windows, linearly or exponentially interpolates\\n\",\n     \"    the pitch ratio from pitch_start to pitch_end semitones, and\\n\",\n     \"    resamples each window.\\n\",\n     \"    \\\"\\\"\\\"\\n\",\n     \"    if pitch_start == 0 and pitch_end == 0:\\n\",\n     \"        return audio\\n\",\n     \"    \\n\",\n     \"    window_samples = int(sr * window_ms / 1000)\\n\",\n     \"    num_windows = max(1, len(audio) // window_samples)\\n\",\n     \"    \\n\",\n     \"    if curve == 'exponential':\\n\",\n     \"        # Exponential pitch curve (perceptually linear)\\n\",\n     \"        pitches = torch.linspace(0, 1, num_windows)\\n\",\n     \"        pitches = pitch_start * (1 - pitches) + pitch_end * pitches\\n\",\n     \"    else:\\n\",\n     \"        pitches = torch.linspace(pitch_start, pitch_end, num_windows)\\n\",\n     \"    \\n\",\n     \"    # Convert semitones to resampling ratio\\n\",\n     \"    # +n semitones = speed up by 2^(n/12), which raises pitch\\n\",\n     \"    # To raise pitch, we speed up then the output is shorter, so we need to\\n\",\n     \"    # resample: new_len = old_len / ratio\\n\",\n     \"    resampled_chunks = []\\n\",\n     \"    for i in range(num_windows):\\n\",\n     \"        start = i * window_samples\\n\",\n     \"        end = min(start + window_samples, len(audio))\\n\",\n     \"        chunk = audio[start:end]\\n\",\n     \"        if len(chunk) == 0:\\n\",\n     \"            break\\n\",\n     \"        ratio = 2.0 ** (pitches[i].item() / 12.0)\\n\",\n     \"        new_len = max(1, int(len(chunk) / ratio))\\n\",\n     \"        chunk_2d = chunk.unsqueeze(0).unsqueeze(0)  # (1, 1, T)\\n\",\n     \"        resampled = torch.nn.functional.interpolate(chunk_2d, size=new_len, mode='linear', align_corners=False)\\n\",\n     \"        resampled_chunks.append(resampled.squeeze())\\n\",\n     \"    \\n\",\n     \"    return torch.cat(resampled_chunks)\\n\",\n     \"\\n\",\n     \"pitched_audio = apply_pitch_envelope(raw_audio, PITCH_START, PITCH_END, PITCH_CURVE, SAMPLE_RATE)\\n\",\n     \"print(f'After pitch envelope: {pitched_audio.shape[-1]} samples ({pitched_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\\n\",\n     \"print(f'Pitch: {PITCH_START} -> {PITCH_END} semitones ({PITCH_CURVE})')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"e5e19fe1\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 4: Apply ADSR amplitude envelope\\n\",\n     \"\\n\",\n     \"Shape the amplitude over the full duration with an ADSR envelope:\\n\",\n     \"- **Attack**: ramp up from 0 to 1 over `ADSR_ATTACK` seconds\\n\",\n     \"- **Decay**: ramp from 1 to sustain level over `ADSR_DECAY` seconds\\n\",\n     \"- **Sustain**: hold at `ADSR_SUSTAIN` level until release begins\\n\",\n     \"- **Release**: ramp from sustain level to 0 over `ADSR_RELEASE` seconds\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"006e24dc\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def apply_adsr(audio, attack, decay, sustain, release, sr=24000):\\n\",\n     \"    \\\"\\\"\\\"Apply ADSR amplitude envelope to audio.\\\"\\\"\\\"\\n\",\n     \"    total = len(audio)\\n\",\n     \"    a_samples = int(attack * sr)\\n\",\n     \"    d_samples = int(decay * sr)\\n\",\n     \"    r_samples = int(release * sr)\\n\",\n     \"    s_start = a_samples + d_samples\\n\",\n     \"    s_end = max(s_start + 1, total - r_samples)\\n\",\n     \"    \\n\",\n     \"    envelope = torch.ones(total)\\n\",\n     \"    \\n\",\n     \"    # Attack: 0 -> 1\\n\",\n     \"    if a_samples > 0:\\n\",\n     \"        envelope[:a_samples] = torch.linspace(0, 1, a_samples)\\n\",\n     \"    \\n\",\n     \"    # Decay: 1 -> sustain\\n\",\n     \"    if d_samples > 0 and s_start < total:\\n\",\n     \"        actual_d = min(d_samples, total - a_samples)\\n\",\n     \"        envelope[a_samples:a_samples + actual_d] = torch.linspace(1, sustain, actual_d)\\n\",\n     \"    \\n\",\n     \"    # Sustain: hold\\n\",\n     \"    if s_end > s_start and s_end <= total:\\n\",\n     \"        envelope[s_start:s_end] = sustain\\n\",\n     \"    \\n\",\n     \"    # Release: sustain -> 0\\n\",\n     \"    if r_samples > 0 and s_end < total:\\n\",\n     \"        actual_r = min(r_samples, total - s_end)\\n\",\n     \"        envelope[s_end:s_end + actual_r] = torch.linspace(sustain, 0, actual_r)\\n\",\n     \"    \\n\",\n     \"    return audio * envelope\\n\",\n     \"\\n\",\n     \"env_audio = apply_adsr(pitched_audio, ADSR_ATTACK, ADSR_DECAY, ADSR_SUSTAIN, ADSR_RELEASE, SAMPLE_RATE)\\n\",\n     \"\\n\",\n     \"# Re-normalize\\n\",\n     \"env_audio = env_audio - env_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = env_audio.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    env_audio = env_audio / peak\\n\",\n     \"\\n\",\n     \"print(f'After ADSR: {env_audio.shape[-1]} samples ({env_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\\n\",\n     \"\\n\",\n     \"# Plot the envelope\\n\",\n     \"fig, axes = plt.subplots(2, 1, figsize=(12, 4))\\n\",\n     \"t = torch.arange(len(raw_audio)) / SAMPLE_RATE\\n\",\n     \"axes[0].plot(t.numpy(), raw_audio.numpy(), alpha=0.5, label='Raw')\\n\",\n     \"axes[0].set_title('Raw stitched audio')\\n\",\n     \"axes[0].set_xlabel('Time (s)')\\n\",\n     \"axes[0].legend()\\n\",\n     \"\\n\",\n     \"t_env = torch.arange(len(env_audio)) / SAMPLE_RATE\\n\",\n     \"axes[1].plot(t_env.numpy(), env_audio.numpy(), alpha=0.7, label='After ADSR')\\n\",\n     \"axes[1].set_title(f'After pitch envelope ({PITCH_START}->{PITCH_END} st) + ADSR')\\n\",\n     \"axes[1].set_xlabel('Time (s)')\\n\",\n     \"axes[1].legend()\\n\",\n     \"plt.tight_layout()\\n\",\n     \"plt.show()\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"57311fa8\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 5: Apply timbral filtering\\n\",\n     \"\\n\",\n     \"Lowpass and highpass filters shape the spectral content.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"81240172\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def apply_filters(audio, lp_cutoff, hp_cutoff, sr=24000):\\n\",\n     \"    \\\"\\\"\\\"Apply lowpass and highpass filters via biquad.\\\"\\\"\\\"\\n\",\n     \"    audio_2d = audio.unsqueeze(0)  # (1, T)\\n\",\n     \"    \\n\",\n     \"    if lp_cutoff > 0 and lp_cutoff < sr / 2:\\n\",\n     \"        audio_2d = torchaudio.functional.lowpass_biquad(audio_2d, sr, lp_cutoff)\\n\",\n     \"    \\n\",\n     \"    if hp_cutoff > 0 and hp_cutoff < sr / 2:\\n\",\n     \"        audio_2d = torchaudio.functional.highpass_biquad(audio_2d, sr, hp_cutoff)\\n\",\n     \"    \\n\",\n     \"    return audio_2d.squeeze()\\n\",\n     \"\\n\",\n     \"final_audio = apply_filters(env_audio, LP_CUTOFF, HP_CUTOFF, SAMPLE_RATE)\\n\",\n     \"\\n\",\n     \"# Final normalization\\n\",\n     \"final_audio = final_audio - final_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = final_audio.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    final_audio = final_audio / peak\\n\",\n     \"\\n\",\n     \"print(f'Final audio: {final_audio.shape[-1]} samples ({final_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\\n\",\n     \"print(f'Filters: LP={LP_CUTOFF}Hz HP={HP_CUTOFF}Hz')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"75fbeee8\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 6: Playback and comparison\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"36b8687a\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"print('Final generated audio (with pitch envelope, ADSR, filtering):')\\n\",\n     \"display(Audio(final_audio.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"743ff8e8\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"print('Raw stitched audio (no post-processing):')\\n\",\n     \"display(Audio(raw_audio.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"c9aa457b\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"print('With pitch envelope only (no ADSR/filter):')\\n\",\n     \"display(Audio(pitched_audio.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"44808947\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Plot full pipeline comparison\\n\",\n     \"fig, axes = plt.subplots(4, 1, figsize=(14, 10), sharex=False)\\n\",\n     \"\\n\",\n     \"# Raw waveform\\n\",\n     \"t1 = torch.arange(len(raw_audio)) / SAMPLE_RATE\\n\",\n     \"axes[0].plot(t1.numpy(), raw_audio.numpy(), alpha=0.7)\\n\",\n     \"axes[0].set_title('1. Raw overlap-and-add stitched')\\n\",\n     \"axes[0].set_ylabel('Amplitude')\\n\",\n     \"\\n\",\n     \"# After pitch\\n\",\n     \"t2 = torch.arange(len(pitched_audio)) / SAMPLE_RATE\\n\",\n     \"axes[1].plot(t2.numpy(), pitched_audio.numpy(), alpha=0.7, color='orange')\\n\",\n     \"axes[1].set_title(f'2. After pitch envelope ({PITCH_START} -> {PITCH_END} st)')\\n\",\n     \"axes[1].set_ylabel('Amplitude')\\n\",\n     \"\\n\",\n     \"# After ADSR\\n\",\n     \"t3 = torch.arange(len(env_audio)) / SAMPLE_RATE\\n\",\n     \"axes[2].plot(t3.numpy(), env_audio.numpy(), alpha=0.7, color='green')\\n\",\n     \"axes[2].set_title(f'3. After ADSR (A={ADSR_ATTACK} D={ADSR_DECAY} S={ADSR_SUSTAIN} R={ADSR_RELEASE})')\\n\",\n     \"axes[2].set_ylabel('Amplitude')\\n\",\n     \"\\n\",\n     \"# After filtering\\n\",\n     \"t4 = torch.arange(len(final_audio)) / SAMPLE_RATE\\n\",\n     \"axes[3].plot(t4.numpy(), final_audio.numpy(), alpha=0.7, color='red')\\n\",\n     \"axes[3].set_title(f'4. After filters (LP={LP_CUTOFF}Hz HP={HP_CUTOFF}Hz)')\\n\",\n     \"axes[3].set_ylabel('Amplitude')\\n\",\n     \"axes[3].set_xlabel('Time (s)')\\n\",\n     \"\\n\",\n     \"plt.tight_layout()\\n\",\n     \"plt.show()\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"8c735239\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 7: Generate variations\\n\",\n     \"\\n\",\n     \"Quickly generate different sounds by changing only the seed and pitch knobs.\\n\",\n     \"The trained models are reused.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"bef32355\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def generate_with_knobs(seed, pitch_start, pitch_end, attack, release, lp, hp, label=''):\\n\",\n     \"    \\\"\\\"\\\"Full generation pipeline with custom knobs (reuses trained models).\\\"\\\"\\\"\\n\",\n     \"    # Generate segments\\n\",\n     \"    segs = []\\n\",\n     \"    for i in range(num_segments):\\n\",\n     \"        seg = generate_segment(seed + i * 1000, STEPS, TEMPERATURE, USE_C_SPEC)\\n\",\n     \"        segs.append(seg)\\n\",\n     \"    audio = overlap_add(segs, OVERLAP_FRAC, SAMPLE_RATE)\\n\",\n     \"    if len(audio) > TOTAL_LENGTH:\\n\",\n     \"        audio = audio[:TOTAL_LENGTH]\\n\",\n     \"    elif len(audio) < TOTAL_LENGTH:\\n\",\n     \"        audio = torch.nn.functional.pad(audio, (0, TOTAL_LENGTH - len(audio)))\\n\",\n     \"    \\n\",\n     \"    # Pitch envelope\\n\",\n     \"    audio = apply_pitch_envelope(audio, pitch_start, pitch_end, PITCH_CURVE, SAMPLE_RATE)\\n\",\n     \"    \\n\",\n     \"    # ADSR\\n\",\n     \"    audio = apply_adsr(audio, attack, ADSR_DECAY, ADSR_SUSTAIN, release, SAMPLE_RATE)\\n\",\n     \"    \\n\",\n     \"    # Filters\\n\",\n     \"    audio = apply_filters(audio, lp, hp, SAMPLE_RATE)\\n\",\n     \"    \\n\",\n     \"    # Normalize\\n\",\n     \"    audio = audio - audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"    peak = audio.abs().max()\\n\",\n     \"    if peak > 0:\\n\",\n     \"        audio = audio / peak\\n\",\n     \"    \\n\",\n     \"    print(f'{label} (seed={seed}, pitch={pitch_start}->{pitch_end}, LP={lp}, HP={hp})')\\n\",\n     \"    display(Audio(audio.numpy(), rate=SAMPLE_RATE))\\n\",\n     \"    return audio\\n\",\n     \"\\n\",\n     \"# Variation 1: rising pitch\\n\",\n     \"v1 = generate_with_knobs(seed=100, pitch_start=0, pitch_end=12, attack=0.1, release=0.5,\\n\",\n     \"                         lp=6000, hp=100, label='Rising octave')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"acfff039\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Variation 2: falling pitch, dark timbre\\n\",\n     \"v2 = generate_with_knobs(seed=200, pitch_start=7, pitch_end=-5, attack=0.3, release=0.8,\\n\",\n     \"                         lp=3000, hp=50, label='Falling fifth, dark')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"44b98b12\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Variation 3: no pitch shift, bright, plucky\\n\",\n     \"v3 = generate_with_knobs(seed=300, pitch_start=0, pitch_end=0, attack=0.005, release=0.1,\\n\",\n     \"                         lp=12000, hp=200, label='No shift, bright pluck')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"511a2cf0\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Variation 4: dramatic sweep\\n\",\n     \"v4 = generate_with_knobs(seed=42, pitch_start=-7, pitch_end=19, attack=0.5, release=1.0,\\n\",\n     \"                         lp=8000, hp=80, label='Dramatic sweep (-7 to +19)')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"99e22efa\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Summary\\n\",\n     \"\\n\",\n     \"This notebook extends the 1-second generation pipeline to **5-8 seconds**\\n\",\n     \"via overlap-and-add stitching, with **post-processing sound shaping knobs**:\\n\",\n     \"\\n\",\n     \"| Knob | What it controls |\\n\",\n     \"|------|-------------------|\\n\",\n     \"| `SEGMENT_SECONDS` | Total output length (5-8s) |\\n\",\n     \"| `OVERLAP_FRAC` | Crossfade overlap (0.25-0.75) |\\n\",\n     \"| `PITCH_START` / `PITCH_END` | Pitch envelope in semitones |\\n\",\n     \"| `PITCH_CURVE` | `'linear'` or `'exponential'` pitch ramp |\\n\",\n     \"| `ADSR_ATTACK/DECAY/SUSTAIN/RELEASE` | Amplitude envelope |\\n\",\n     \"| `LP_CUTOFF` / `HP_CUTOFF` | Timbral filtering (Hz) |\\n\",\n     \"| `SEED` / `STEPS` / `TEMPERATURE` / `USE_C_SPEC` | Generation knobs |\\n\",\n     \"\\n\",\n     \"### Approach\\n\",\n     \"- Train on 1s clips (fast CPU training)\\n\",\n     \"- Generate N segments with different seeds\\n\",\n     \"- Overlap-and-add with crossfade for seamless stitching\\n\",\n     \"- Variable-speed resampling for pitch envelope\\n\",\n     \"- ADSR for amplitude shaping\\n\",\n     \"- Lowpass/highpass for timbral control\\n\",\n     \"\\n\",\n     \"### Next steps\\n\",\n     \"- Train DiT on longer latents directly (avoids stitching artifacts)\\n\",\n     \"- Add CLAP text conditioning (Phase 2)\\n\",\n     \"- Use real EnCodec + ESC-50 for richer sounds\"\n    ]\n   }\n  ],\n  \"metadata\": {\n   \"kernelspec\": {\n    \"display_name\": \".venv\",\n    \"language\": \"python\",\n    \"name\": \"python3\"\n   },\n   \"language_info\": {\n    \"codemirror_mode\": {\n     \"name\": \"ipython\",\n     \"version\": 3\n    },\n    \"file_extension\": \".py\",\n    \"mimetype\": \"text/x-python\",\n    \"name\": \"python\",\n    \"nbconvert_exporter\": \"python\",\n    \"pygments_lexer\": \"ipython3\",\n    \"version\": \"3.13.12\"\n   }\n  },\n  \"nbformat\": 4,\n  \"nbformat_minor\": 5\n-}\n+}\n\\ No newline at end of file\n",
+              "additions": 8,
+              "deletions": 71,
+              "status": "modified"
+            },
+            {
+              "file": "notebooks/04_latent_concatenation.ipynb",
+              "patch": "Index: notebooks/04_latent_concatenation.ipynb\n===================================================================\n--- notebooks/04_latent_concatenation.ipynb\t\n+++ notebooks/04_latent_concatenation.ipynb\t\n@@ -1,764 +1,715 @@\n {\n  \"cells\": [\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"43348b02\",\n    \"metadata\": {},\n    \"source\": [\n     \"# Latent-Space Concatenation (~20s)\\n\",\n     \"\\n\",\n     \"Generate multiple sound variations and **concatenate them in latent space**\\n\",\n-    \"using the LSD model itself — not just audio-level crossfading.\\n\",\n+    \"using the LSD model itself \\u2014 not just audio-level crossfading.\\n\",\n     \"\\n\",\n     \"### Approach\\n\",\n     \"1. Train the pipeline (1s clips, same as notebook 03)\\n\",\n     \"2. Generate 3 sets of raw audio segments (different seeds/BPS configs)\\n\",\n     \"3. **Encode** each variation back to EnCodec latent space\\n\",\n     \"4. **Concatenate the latents** with crossfade overlap in latent space\\n\",\n     \"5. **Decode the long latent** through the graph decoder in a single pass\\n\",\n     \"6. Apply BPS modulation + pedalboard effects on the full ~20s output\\n\",\n     \"\\n\",\n     \"### Why latent-space concatenation?\\n\",\n     \"Audio-level crossfading blends waveforms, which can produce phase artifacts\\n\",\n     \"and discontinuities. Latent-space concatenation lets the graph decoder's\\n\",\n-    \"project→gate→lift mechanism smooth the transition across the boundary,\\n\",\n+    \"project\\u2192gate\\u2192lift mechanism smooth the transition across the boundary,\\n\",\n     \"because the decoder sees the full sequence at once and the\\n\",\n     \"`WaveReconstructionBlock` pools over the entire temporal axis.\\n\",\n     \"\\n\",\n     \"### Knobs\\n\",\n     \"All knobs from notebook 03, plus:\\n\",\n-    \"- `NUM_VARIATIONS` — number of segments to concatenate (3 → ~18-20s)\\n\",\n-    \"- `LATENT_OVERLAP_FRAC` — crossfade overlap in latent space (0.1-0.5)\\n\",\n+    \"- `NUM_VARIATIONS` \\u2014 number of segments to concatenate (3 \\u2192 ~18-20s)\\n\",\n+    \"- `LATENT_OVERLAP_FRAC` \\u2014 crossfade overlap in latent space (0.1-0.5)\\n\",\n     \"- Per-variation BPS/effect settings defined in `VARIATIONS` list\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"bd29a5a3\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# --- Generation knobs ---\\n\",\n     \"SEED = 42\\n\",\n     \"STEPS = 50\\n\",\n     \"TEMPERATURE = 1.0\\n\",\n     \"USE_C_SPEC = True\\n\",\n     \"\\n\",\n     \"# --- Concatenation knobs ---\\n\",\n     \"NUM_VARIATIONS = 3         # number of variations to concatenate\\n\",\n     \"LATENT_OVERLAP_FRAC = 0.25 # crossfade overlap in latent space\\n\",\n     \"CLIP_SECONDS = 1.0         # training clip length\\n\",\n     \"SEGMENT_SECONDS = 6        # per-variation target length\\n\",\n     \"OVERLAP_FRAC = 0.5         # audio overlap-and-add within each variation\\n\",\n     \"SAMPLE_RATE = 24000\\n\",\n     \"\\n\",\n     \"# --- BPS modulation (shared across all variations) ---\\n\",\n     \"MOD_WAVEFORM = 'sine'\\n\",\n     \"\\n\",\n     \"# --- Per-variation settings ---\\n\",\n     \"# Each entry: (label, seed, bps, trem_depth, vib_depth, sweep_min, sweep_max,\\n\",\n     \"#             reverb_room, delay_sec, dist_drive)\\n\",\n     \"VARIATIONS = [\\n\",\n     \"    ('Ambient',   200, 1.5, 0.2, 3.0, 200,  2000, 0.7, 0.5,   0),\\n\",\n     \"    ('Gritty',    300, 4.0, 0.5, 0.5, 500,  5000, 0.3, 0.1875, 15),\\n\",\n     \"    ('Dreamy',     42, 2.0, 0.4, 2.0, 300,  8000, 0.5, 0.375,  0),\\n\",\n     \"]\\n\",\n     \"\\n\",\n     \"# --- Training knobs ---\\n\",\n     \"DECODER_EPOCHS = 20\\n\",\n     \"DIFFUSION_EPOCHS = 20\\n\",\n     \"NUM_SAMPLES = 64\\n\",\n     \"\\n\",\n     \"CLIP_LENGTH = int(CLIP_SECONDS * SAMPLE_RATE)\\n\",\n     \"TOTAL_LENGTH = int(SEGMENT_SECONDS * SAMPLE_RATE)\\n\",\n     \"STRIDE = 320\\n\",\n     \"LATENT_LENGTH_PER_CLIP = CLIP_LENGTH // STRIDE\\n\",\n     \"print(f'Target: {NUM_VARIATIONS} x {SEGMENT_SECONDS}s = ~{NUM_VARIATIONS * SEGMENT_SECONDS}s')\\n\",\n     \"print(f'Latent overlap: {LATENT_OVERLAP_FRAC} ({int(LATENT_LENGTH_PER_CLIP * SEGMENT_SECONDS * LATENT_OVERLAP_FRAC)} frames)')\\n\",\n     \"print(f'Variations: {[v[0] for v in VARIATIONS]}')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"60983478\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"import math\\n\",\n     \"import numpy as np\\n\",\n     \"import scipy.signal as scisig\\n\",\n     \"import torch\\n\",\n     \"import torch.nn as nn\\n\",\n     \"import torchaudio\\n\",\n     \"from IPython.display import Audio, display\\n\",\n     \"import matplotlib.pyplot as plt\\n\",\n     \"from pedalboard import (\\n\",\n     \"    Pedalboard, Compressor, Reverb, Delay, Chorus,\\n\",\n     \"    Distortion, Phaser, Bitcrush, Gain, Limiter,\\n\",\n     \"    LowShelfFilter, HighShelfFilter, PeakFilter,\\n\",\n     \")\\n\",\n     \"\\n\",\n     \"from ald_sc.build_prior import build_arrow_prior\\n\",\n     \"from ald_sc.audio_codec import BaselineAudioDecoder, AudioVAE\\n\",\n     \"from ald_sc.graph_decoder import GraphDecoder\\n\",\n     \"from ald_sc.dit import MinimalDiT\\n\",\n     \"from ald_sc.data import ToyAudioDataset, build_audio_dataloader\\n\",\n     \"from ald_sc.losses import ALDSCLoss\\n\",\n     \"from ald_sc.schedule import CosineSchedule\\n\",\n     \"from ald_sc.sampling import sample_ddim\\n\",\n     \"from ald_sc.trainer import train_audio_decoder, train_audio_diffusion\\n\",\n     \"\\n\",\n     \"device = torch.device('cpu')\\n\",\n     \"torch.manual_seed(SEED)\\n\",\n     \"print('Ready. Device:', device)\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"32ad7fe0\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 1: Train the pipeline (1s clips)\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"48997340\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"class StubEncoder(nn.Module):\\n\",\n     \"    def __init__(self, latent_dim=128, stride=320):\\n\",\n     \"        super().__init__()\\n\",\n     \"        self.proj = nn.Conv1d(1, latent_dim, stride, stride=stride)\\n\",\n     \"    def encode(self, x, prior):\\n\",\n     \"        z = self.proj(x).float()\\n\",\n     \"        a = z.mean(dim=2)\\n\",\n     \"        c_spec = prior.chart_energy_descriptor(a)\\n\",\n     \"        return z, a, c_spec\\n\",\n     \"    def extract_features(self, x):\\n\",\n     \"        return self.proj(x).float()\\n\",\n     \"\\n\",\n     \"encoder = StubEncoder()\\n\",\n     \"latent_length = CLIP_LENGTH // STRIDE\\n\",\n     \"\\n\",\n     \"dataset = ToyAudioDataset(num_samples=NUM_SAMPLES, audio_length=CLIP_LENGTH)\\n\",\n     \"loader = build_audio_dataloader(dataset, batch_size=8, shuffle=False)\\n\",\n     \"features = [encoder.extract_features(b).mean(dim=2) for b in loader]\\n\",\n     \"embeddings = torch.cat(features, dim=0)\\n\",\n     \"prior = build_arrow_prior(embeddings, q=8, k=4)\\n\",\n     \"print(f'Prior: q={prior.q}')\\n\",\n     \"\\n\",\n     \"graph_decoder = GraphDecoder(\\n\",\n     \"    latent_channels=128, out_channels=1, feature_dim=128,\\n\",\n     \"    base_channels=32, prior=prior, upsample_strides=(2, 4, 5, 8),\\n\",\n     \")\\n\",\n     \"loss_fn = ALDSCLoss(prior=prior, lambda_rec=1.0, lambda_stft=0.0,\\n\",\n     \"                    lambda_chart=0.5, lambda_smooth=0.1)\\n\",\n     \"train_loader = build_audio_dataloader(dataset, batch_size=4, shuffle=True)\\n\",\n     \"\\n\",\n     \"graph_vae = AudioVAE(encoder=encoder, decoder=graph_decoder)\\n\",\n     \"print('Training graph decoder...')\\n\",\n     \"gl = list(train_audio_decoder(train_loader, graph_vae, prior, loss_fn,\\n\",\n     \"                              epochs=DECODER_EPOCHS, lr=1e-3, device=device))\\n\",\n     \"print(f'  {gl[0][\\\"loss\\\"]:.4f} -> {gl[-1][\\\"loss\\\"]:.4f}')\\n\",\n     \"\\n\",\n     \"dit = MinimalDiT(latent_channels=128, latent_length=latent_length,\\n\",\n     \"                 patch_size=8, dim=64, depth=2, num_heads=4, spec_dim=24)\\n\",\n     \"sched = CosineSchedule(num_steps=1000)\\n\",\n     \"for p in graph_vae.parameters():\\n\",\n     \"    p.requires_grad_(False)\\n\",\n     \"print('Training DiT...')\\n\",\n     \"dl = list(train_audio_diffusion(train_loader, graph_vae, dit, prior, sched,\\n\",\n     \"                                epochs=DIFFUSION_EPOCHS, lr=1e-3, device=device))\\n\",\n     \"print(f'  {dl[0][\\\"loss\\\"]:.4f} -> {dl[-1][\\\"loss\\\"]:.4f}')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"3dfd0471\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 2: Generate raw audio for each variation\\n\",\n     \"\\n\",\n     \"For each variation, generate 1s segments and stitch with overlap-and-add\\n\",\n     \"into a ~6s raw audio clip (before effects).\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"aa404d31\",\n    \"metadata\": {},\n    \"outputs\": [],\n-   \"source\": [\n-    \"def generate_segment(seed_val):\\n\",\n-    \"    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\\n\",\n-    \"    z = z * TEMPERATURE\\n\",\n-    \"    a = z.mean(dim=2)\\n\",\n-    \"    c_spec = prior.chart_energy_descriptor(a)\\n\",\n-    \"    with torch.no_grad():\\n\",\n-    \"        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\\n\",\n-    \"    return audio.squeeze(0).squeeze(0)\\n\",\n-    \"\\n\",\n-    \"def overlap_add(segments, overlap_frac):\\n\",\n-    \"    seg_len = segments[0].shape[-1]\\n\",\n-    \"    overlap = int(seg_len * overlap_frac)\\n\",\n-    \"    hop = seg_len - overlap\\n\",\n-    \"    total_len = hop * (len(segments) - 1) + seg_len\\n\",\n-    \"    output = torch.zeros(total_len)\\n\",\n-    \"    window = torch.linspace(0, 1, overlap)\\n\",\n-    \"    for i, seg in enumerate(segments):\\n\",\n-    \"        start = i * hop\\n\",\n-    \"        if i > 0:\\n\",\n-    \"            prev_start = start - overlap\\n\",\n-    \"            output[prev_start:prev_start + overlap] *= (1 - window)\\n\",\n-    \"        output[start:start + seg_len] += seg\\n\",\n-    \"        if i > 0:\\n\",\n-    \"            output[start:start + overlap] *= window\\n\",\n-    \"    return output\\n\",\n-    \"\\n\",\n-    \"clip_samples = CLIP_LENGTH\\n\",\n-    \"hop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\\n\",\n-    \"num_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\\n\",\n-    \"\\n\",\n-    \"# Generate raw audio for each variation\\n\",\n-    \"raw_audios = []\\n\",\n-    \"for i, (label, seed, *_) in enumerate(VARIATIONS):\\n\",\n-    \"    segs = [generate_segment(seed + j * 1000) for j in range(num_segments)]\\n\",\n-    \"    audio = overlap_add(segs, OVERLAP_FRAC)\\n\",\n-    \"    if audio.shape[-1] > TOTAL_LENGTH:\\n\",\n-    \"        audio = audio[:TOTAL_LENGTH]\\n\",\n-    \"    elif audio.shape[-1] < TOTAL_LENGTH:\\n\",\n-    \"        audio = torch.nn.functional.pad(audio, (0, TOTAL_LENGTH - audio.shape[-1]))\\n\",\n-    \"    audio = audio - audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n-    \"    peak = audio.abs().max()\\n\",\n-    \"    if peak > 0:\\n\",\n-    \"        audio = audio / peak\\n\",\n-    \"    raw_audios.append(audio)\\n\",\n-    \"    print(f'  {label}: {audio.shape[-1]} samples ({audio.shape[-1]/SAMPLE_RATE:.1f}s)')\\n\",\n-    \"\\n\",\n-    \"print(f'\\\\nGenerated {len(raw_audios)} variations, each ~{SEGMENT_SECONDS}s')\\n\",\n-    \"print(f'Total if concatenated: ~{len(raw_audios) * SEGMENT_SECONDS}s')\"\n-   ]\n+   \"source\": \"def generate_segment(seed_val):\\n    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\\n    z = z * TEMPERATURE\\n    a = z.mean(dim=2)\\n    c_spec = prior.chart_energy_descriptor(a)\\n    with torch.no_grad():\\n        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\\n    return audio.squeeze(0).squeeze(0)\\n\\ndef overlap_add(segments, overlap_samples):\\n    \\\"\\\"\\\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\\n    keep constant power through every seam. Delegates to the verified\\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\\n    faded the previous segment's exclusive tail, producing periodic\\n    dropouts and double-energy seams).\\\"\\\"\\\"\\n    from ald_sc.stitching import equal_power_overlap_add\\n\\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\\n               for s in segments]\\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\\n\\nclip_samples = CLIP_LENGTH\\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\\n\\n# Generate raw audio for each variation\\nraw_audios = []\\nfor i, (label, seed, *_) in enumerate(VARIATIONS):\\n    segs = [generate_segment(seed + j * 1000) for j in range(num_segments)]\\n    audio = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))\\n    if audio.shape[-1] > TOTAL_LENGTH:\\n        audio = audio[:TOTAL_LENGTH]\\n    elif audio.shape[-1] < TOTAL_LENGTH:\\n        audio = torch.nn.functional.pad(audio, (0, TOTAL_LENGTH - audio.shape[-1]))\\n    audio = audio - audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n    peak = audio.abs().max()\\n    if peak > 0:\\n        audio = audio / peak\\n    raw_audios.append(audio)\\n    print(f'  {label}: {audio.shape[-1]} samples ({audio.shape[-1]/SAMPLE_RATE:.1f}s)')\\n\\nprint(f'\\\\nGenerated {len(raw_audios)} variations, each ~{SEGMENT_SECONDS}s')\\nprint(f'Total if concatenated: ~{len(raw_audios) * SEGMENT_SECONDS}s')\"\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"8acb07b0\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Listen to each raw variation\\n\",\n     \"for i, (label, *_) in enumerate(VARIATIONS):\\n\",\n     \"    print(f'Variation {i+1}: {label}')\\n\",\n     \"    display(Audio(raw_audios[i].numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"d76e6ac4\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 3: Latent-space concatenation\\n\",\n     \"\\n\",\n     \"This is the key step. Instead of crossfading audio waveforms, we:\\n\",\n     \"1. **Encode** each variation back to latent space via the stub encoder\\n\",\n     \"2. **Crossfade the latents** at their boundaries in latent space\\n\",\n     \"3. **Decode the concatenated latent** through the graph decoder in one pass\\n\",\n     \"\\n\",\n     \"The graph decoder sees the full ~18s latent at once. Its\\n\",\n     \"`WaveReconstructionBlock` pools over the entire temporal axis, so the\\n\",\n-    \"project→gate→lift mechanism naturally smooths transitions across\\n\",\n+    \"project\\u2192gate\\u2192lift mechanism naturally smooths transitions across\\n\",\n     \"variation boundaries.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"9067812d\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def encode_audio(encoder, audio, prior):\\n\",\n     \"    \\\"\\\"\\\"Encode audio waveform to latent z (B, C, T_latent).\\\"\\\"\\\"\\n\",\n     \"    x = audio.unsqueeze(0).unsqueeze(0)  # (1, 1, T)\\n\",\n     \"    with torch.no_grad():\\n\",\n     \"        z = encoder.extract_features(x)  # (1, 128, T_latent)\\n\",\n     \"    return z\\n\",\n     \"\\n\",\n     \"def latent_crossfade(z_list, overlap_frac):\\n\",\n     \"    \\\"\\\"\\\"Concatenate latents with crossfade overlap in latent space.\\n\",\n     \"    \\n\",\n     \"    z_list: list of (1, C, T) tensors\\n\",\n     \"    Returns: (1, C, T_total) concatenated tensor\\n\",\n     \"    \\\"\\\"\\\"\\n\",\n     \"    if len(z_list) == 1:\\n\",\n     \"        return z_list[0]\\n\",\n     \"    \\n\",\n     \"    T = z_list[0].shape[-1]\\n\",\n     \"    overlap = max(1, int(T * overlap_frac))\\n\",\n     \"    hop = T - overlap\\n\",\n     \"    total_len = hop * (len(z_list) - 1) + T\\n\",\n     \"    \\n\",\n     \"    output = torch.zeros(1, z_list[0].shape[1], total_len)\\n\",\n     \"    window = torch.linspace(0, 1, overlap)\\n\",\n     \"    \\n\",\n     \"    for i, z in enumerate(z_list):\\n\",\n     \"        start = i * hop\\n\",\n     \"        if i > 0:\\n\",\n     \"            prev_start = start - overlap\\n\",\n     \"            output[:, :, prev_start:prev_start + overlap] *= (1 - window)\\n\",\n     \"        output[:, :, start:start + T] += z\\n\",\n     \"        if i > 0:\\n\",\n     \"            output[:, :, start:start + overlap] *= window\\n\",\n     \"    \\n\",\n     \"    return output\\n\",\n     \"\\n\",\n     \"# Encode each variation to latent space\\n\",\n     \"print('Encoding variations to latent space...')\\n\",\n     \"z_list = []\\n\",\n     \"for i, (label, *_) in enumerate(VARIATIONS):\\n\",\n     \"    z = encode_audio(encoder, raw_audios[i], prior)\\n\",\n     \"    z_list.append(z)\\n\",\n     \"    print(f'  {label}: z={z.shape} ({z.shape[-1]} latent frames)')\\n\",\n     \"\\n\",\n     \"# Concatenate in latent space with crossfade\\n\",\n     \"z_concat = latent_crossfade(z_list, LATENT_OVERLAP_FRAC)\\n\",\n     \"print(f'\\\\nConcatenated latent: {z_concat.shape} ({z_concat.shape[-1]} frames)')\\n\",\n     \"print(f'  = {z_concat.shape[-1] * STRIDE / SAMPLE_RATE:.1f}s of audio')\\n\",\n     \"\\n\",\n     \"# Derive c_spec from the full concatenated latent\\n\",\n     \"a_full = z_concat.mean(dim=2)\\n\",\n     \"c_spec_full = prior.chart_energy_descriptor(a_full)\\n\",\n     \"print(f'c_spec (from full latent): {c_spec_full.shape}')\\n\",\n     \"\\n\",\n     \"# Decode the concatenated latent in one pass through the graph decoder\\n\",\n     \"print('\\\\nDecoding concatenated latent through graph decoder...')\\n\",\n     \"with torch.no_grad():\\n\",\n     \"    concat_audio = graph_decoder(z_concat, c_spec_full)\\n\",\n     \"concat_audio = concat_audio.squeeze(0).squeeze(0)  # (T,)\\n\",\n     \"\\n\",\n     \"concat_audio = concat_audio - concat_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = concat_audio.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    concat_audio = concat_audio / peak\\n\",\n     \"\\n\",\n     \"print(f'Concatenated audio: {concat_audio.shape[-1]} samples '\\n\",\n     \"      f'({concat_audio.shape[-1]/SAMPLE_RATE:.1f}s)')\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"c3f12a2e\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Compare: latent-space concatenation vs naive audio concatenation\\n\",\n     \"# Naive: just crossfade the raw audio at the same overlap\\n\",\n     \"naive_audio = overlap_add(raw_audios, LATENT_OVERLAP_FRAC)\\n\",\n     \"naive_audio = naive_audio - naive_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = naive_audio.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    naive_audio = naive_audio / peak\\n\",\n     \"\\n\",\n     \"print(f'Latent-space concat: {concat_audio.shape[-1]/SAMPLE_RATE:.1f}s')\\n\",\n     \"print(f'Naive audio concat:  {naive_audio.shape[-1]/SAMPLE_RATE:.1f}s')\\n\",\n     \"\\n\",\n     \"fig, axes = plt.subplots(2, 1, figsize=(14, 5))\\n\",\n     \"t1 = torch.arange(len(concat_audio)) / SAMPLE_RATE\\n\",\n     \"axes[0].plot(t1.numpy(), concat_audio.numpy(), alpha=0.7, linewidth=0.3)\\n\",\n     \"axes[0].set_title('Latent-space concatenation (graph decoder sees full sequence)')\\n\",\n     \"axes[0].set_ylabel('Amplitude')\\n\",\n     \"\\n\",\n     \"t2 = torch.arange(len(naive_audio)) / SAMPLE_RATE\\n\",\n     \"axes[1].plot(t2.numpy(), naive_audio.numpy(), alpha=0.7, linewidth=0.3, color='orange')\\n\",\n     \"axes[1].set_title('Naive audio crossfade')\\n\",\n     \"axes[1].set_ylabel('Amplitude')\\n\",\n     \"axes[1].set_xlabel('Time (s)')\\n\",\n     \"\\n\",\n     \"# Mark variation boundaries\\n\",\n     \"for ax in axes:\\n\",\n     \"    for i in range(1, NUM_VARIATIONS):\\n\",\n     \"        boundary = i * SEGMENT_SECONDS\\n\",\n     \"        ax.axvline(x=boundary, color='red', linestyle='--', alpha=0.3, label=f'V{i+1} boundary' if i == 1 else '')\\n\",\n     \"    ax.legend(fontsize=8)\\n\",\n     \"\\n\",\n     \"plt.tight_layout()\\n\",\n     \"plt.show()\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"db633ad5\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"print('Latent-space concatenation:')\\n\",\n     \"display(Audio(concat_audio.numpy(), rate=SAMPLE_RATE))\\n\",\n     \"print('\\\\nNaive audio crossfade:')\\n\",\n     \"display(Audio(naive_audio.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"3af136f1\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 4: Apply per-section BPS modulation + effects\\n\",\n     \"\\n\",\n     \"Now apply the BPS modulation and pedalboard effects from notebook 03,\\n\",\n     \"but with **per-section settings** that change at each variation boundary.\\n\",\n     \"The modulation parameters transition smoothly across boundaries.\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"5cbbe831\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"def make_lfo(num_samples, bps, sr, waveform='sine'):\\n\",\n     \"    t = torch.arange(num_samples, dtype=torch.float32) / sr\\n\",\n     \"    phase = 2 * math.pi * bps * t\\n\",\n     \"    if waveform == 'sine':\\n\",\n     \"        return torch.sin(phase)\\n\",\n     \"    elif waveform == 'triangle':\\n\",\n     \"        return 2 * (phase / (2 * math.pi) % 1) - 1\\n\",\n     \"    elif waveform == 'square':\\n\",\n     \"        return torch.sign(torch.sin(phase))\\n\",\n     \"    elif waveform == 'sawtooth':\\n\",\n     \"        return 2 * (phase / (2 * math.pi) % 1) - 1\\n\",\n     \"    raise ValueError(f'Unknown waveform: {waveform}')\\n\",\n     \"\\n\",\n     \"def apply_tremolo(audio, lfo, depth):\\n\",\n     \"    gain = 1.0 - depth * (1.0 - lfo) / 2.0\\n\",\n     \"    return audio * gain\\n\",\n     \"\\n\",\n     \"def apply_vibrato(audio, lfo, depth_semitones, sr=24000, window_ms=10):\\n\",\n     \"    if depth_semitones == 0:\\n\",\n     \"        return audio\\n\",\n     \"    window_samples = max(1, int(sr * window_ms / 1000))\\n\",\n     \"    num_windows = max(1, len(audio) // window_samples)\\n\",\n     \"    pitch_shifts = lfo[:num_windows] * depth_semitones\\n\",\n     \"    ratios = 2.0 ** (pitch_shifts / 12.0)\\n\",\n     \"    chunks = []\\n\",\n     \"    for i in range(num_windows):\\n\",\n     \"        start = i * window_samples\\n\",\n     \"        end = min(start + window_samples, len(audio))\\n\",\n     \"        chunk = audio[start:end]\\n\",\n     \"        if len(chunk) == 0:\\n\",\n     \"            break\\n\",\n     \"        new_len = max(1, int(len(chunk) / ratios[i].item()))\\n\",\n     \"        r = torch.nn.functional.interpolate(\\n\",\n     \"            chunk.unsqueeze(0).unsqueeze(0), size=new_len, mode='linear', align_corners=False\\n\",\n     \"        )\\n\",\n     \"        chunks.append(r.squeeze())\\n\",\n     \"    return torch.cat(chunks)\\n\",\n     \"\\n\",\n     \"def make_sectional_lfo(total_samples, sr, section_lengths_s, bps_list, waveform='sine'):\\n\",\n     \"    \\\"\\\"\\\"Build an LFO that changes BPS rate at each section boundary.\\n\",\n     \"    Uses phase-continuous stitching to avoid clicks.\\\"\\\"\\\"\\n\",\n     \"    lfo = torch.zeros(total_samples)\\n\",\n     \"    phase_acc = 0.0\\n\",\n     \"    sample_pos = 0\\n\",\n     \"    for sec_len, bps in zip(section_lengths_s, bps_list):\\n\",\n     \"        n = int(sec_len * sr)\\n\",\n     \"        n = min(n, total_samples - sample_pos)\\n\",\n     \"        if n <= 0:\\n\",\n     \"            break\\n\",\n     \"        phase_inc = 2 * math.pi * bps / sr\\n\",\n     \"        for j in range(n):\\n\",\n     \"            phase = phase_acc + j * phase_inc\\n\",\n     \"            if waveform == 'sine':\\n\",\n     \"                lfo[sample_pos + j] = math.sin(phase)\\n\",\n     \"            elif waveform == 'triangle':\\n\",\n     \"                p = (phase / (2 * math.pi)) % 1\\n\",\n     \"                lfo[sample_pos + j] = 2 * p - 1\\n\",\n     \"            elif waveform == 'square':\\n\",\n     \"                lfo[sample_pos + j] = 1.0 if math.sin(phase) >= 0 else -1.0\\n\",\n     \"            elif waveform == 'sawtooth':\\n\",\n     \"                p = (phase / (2 * math.pi)) % 1\\n\",\n     \"                lfo[sample_pos + j] = 2 * p - 1\\n\",\n     \"        phase_acc = phase_acc + n * phase_inc\\n\",\n     \"        sample_pos += n\\n\",\n     \"    return lfo\\n\",\n     \"\\n\",\n     \"# Build sectional LFO with per-variation BPS\\n\",\n     \"bps_list = [v[2] for v in VARIATIONS]  # BPS from each variation\\n\",\n     \"section_lengths = [SEGMENT_SECONDS] * NUM_VARIATIONS\\n\",\n     \"\\n\",\n     \"# Use the latent-concatenated audio length\\n\",\n     \"total_samples = len(concat_audio)\\n\",\n     \"lfo = make_sectional_lfo(total_samples, SAMPLE_RATE, section_lengths, bps_list, MOD_WAVEFORM)\\n\",\n     \"\\n\",\n     \"print(f'Sectional LFO: BPS changes at boundaries = {bps_list}')\\n\",\n     \"print(f'Total LFO length: {total_samples} samples ({total_samples/SAMPLE_RATE:.1f}s)')\\n\",\n     \"\\n\",\n     \"# Plot LFO\\n\",\n     \"fig, ax = plt.subplots(figsize=(14, 2))\\n\",\n     \"t = torch.arange(total_samples) / SAMPLE_RATE\\n\",\n     \"ax.plot(t.numpy(), lfo.numpy(), linewidth=0.3)\\n\",\n     \"for i in range(1, NUM_VARIATIONS):\\n\",\n     \"    ax.axvline(x=i * SEGMENT_SECONDS, color='red', linestyle='--', alpha=0.3)\\n\",\n     \"ax.set_title(f'Sectional LFO (BPS: {bps_list})')\\n\",\n     \"ax.set_xlabel('Time (s)')\\n\",\n     \"plt.tight_layout()\\n\",\n     \"plt.show()\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"17e07792\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Apply tremolo and vibrato with per-section depths\\n\",\n     \"# We need per-sample depth interpolation across sections\\n\",\n     \"def make_sectional_param(total_samples, sr, section_lengths_s, values):\\n\",\n     \"    \\\"\\\"\\\"Build a parameter curve that steps at each section boundary.\\\"\\\"\\\"\\n\",\n     \"    curve = torch.zeros(total_samples)\\n\",\n     \"    pos = 0\\n\",\n     \"    for sec_len, val in zip(section_lengths_s, values):\\n\",\n     \"        n = min(int(sec_len * sr), total_samples - pos)\\n\",\n     \"        curve[pos:pos + n] = val\\n\",\n     \"        pos += n\\n\",\n     \"    # Fill remainder\\n\",\n     \"    if pos < total_samples:\\n\",\n     \"        curve[pos:] = values[-1]\\n\",\n     \"    return curve\\n\",\n     \"\\n\",\n     \"# Per-section depth parameters\\n\",\n     \"trem_depths = [v[3] for v in VARIATIONS]\\n\",\n     \"vib_depths = [v[4] for v in VARIATIONS]\\n\",\n     \"\\n\",\n     \"# Apply tremolo with per-section depth\\n\",\n     \"trem_curve = make_sectional_param(total_samples, SAMPLE_RATE, section_lengths, trem_depths)\\n\",\n     \"trem_gain = 1.0 - trem_curve * (1.0 - lfo) / 2.0\\n\",\n     \"audio_mod = concat_audio * trem_gain\\n\",\n     \"\\n\",\n     \"# Apply vibrato (use max depth for windowed resampling, per-section would require\\n\",\n-    \"# more complex windowed approach — we use the overall LFO with max depth)\\n\",\n+    \"# more complex windowed approach \\u2014 we use the overall LFO with max depth)\\n\",\n     \"max_vib = max(vib_depths)\\n\",\n     \"if max_vib > 0:\\n\",\n     \"    audio_mod = apply_vibrato(audio_mod, lfo, max_vib, SAMPLE_RATE)\\n\",\n     \"\\n\",\n     \"audio_mod = audio_mod - audio_mod.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = audio_mod.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    audio_mod = audio_mod / peak\\n\",\n     \"\\n\",\n     \"print(f'After BPS modulation (sectional): {audio_mod.shape[-1]/SAMPLE_RATE:.1f}s')\\n\",\n     \"display(Audio(audio_mod.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"468e72db\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Apply pedalboard effects with per-section settings\\n\",\n     \"# We process each section separately through its own pedalboard chain,\\n\",\n     \"# then crossfade at boundaries\\n\",\n     \"\\n\",\n     \"def build_board(variation_params):\\n\",\n     \"    \\\"\\\"\\\"Build pedalboard from variation tuple.\\\"\\\"\\\"\\n\",\n     \"    (_, _, _, _, _, _, _, reverb_room, delay_sec, dist_drive) = variation_params\\n\",\n     \"    effects = [Compressor(threshold_db=-20, ratio=4)]\\n\",\n     \"    if dist_drive > 0:\\n\",\n     \"        effects.append(Distortion(drive_db=dist_drive))\\n\",\n     \"    effects.append(Delay(delay_seconds=delay_sec, mix=0.25))\\n\",\n     \"    effects.append(Reverb(room_size=reverb_room))\\n\",\n     \"    effects.append(Limiter(threshold_db=-1.0))\\n\",\n     \"    return Pedalboard(effects)\\n\",\n     \"\\n\",\n     \"# Process each section through its own pedalboard\\n\",\n     \"section_audio = []\\n\",\n     \"fade_samples = int(SAMPLE_RATE * 0.1)  # 100ms crossfade between sections\\n\",\n     \"window = torch.linspace(0, 1, fade_samples)\\n\",\n     \"\\n\",\n     \"pos = 0\\n\",\n     \"for i, var in enumerate(VARIATIONS):\\n\",\n     \"    sec_samples = min(int(SEGMENT_SECONDS * SAMPLE_RATE), len(audio_mod) - pos)\\n\",\n     \"    chunk = audio_mod[pos:pos + sec_samples].numpy().astype(np.float32)\\n\",\n     \"    \\n\",\n     \"    board = build_board(var)\\n\",\n     \"    processed = torch.from_numpy(board(chunk, SAMPLE_RATE))\\n\",\n     \"    section_audio.append(processed)\\n\",\n     \"    pos += sec_samples\\n\",\n     \"\\n\",\n     \"# Crossfade sections\\n\",\n     \"final_audio = section_audio[0]\\n\",\n     \"for i in range(1, len(section_audio)):\\n\",\n     \"    # Overlap crossfade\\n\",\n     \"    prev_tail = final_audio[-fade_samples:]\\n\",\n     \"    curr_head = section_audio[i][:fade_samples]\\n\",\n     \"    blended = prev_tail * (1 - window) + curr_head * window\\n\",\n     \"    final_audio = torch.cat([\\n\",\n     \"        final_audio[:-fade_samples],\\n\",\n     \"        blended,\\n\",\n     \"        section_audio[i][fade_samples:]\\n\",\n     \"    ])\\n\",\n     \"\\n\",\n     \"final_audio = final_audio - final_audio.mean()  # DC-block: decoder emits large DC (PR #59)\\n\",\n     \"peak = final_audio.abs().max()\\n\",\n     \"if peak > 0:\\n\",\n     \"    final_audio = final_audio / peak\\n\",\n     \"\\n\",\n     \"print(f'Final audio: {final_audio.shape[-1]} samples ({final_audio.shape[-1]/SAMPLE_RATE:.1f}s)')\\n\",\n     \"display(Audio(final_audio.numpy(), rate=SAMPLE_RATE))\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"26d0ed99\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Step 5: Full pipeline visualization\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"e2813a0b\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"stages = [\\n\",\n     \"    ('1. Raw variations (stacked)', None),  # special handling\\n\",\n     \"    ('2. Latent-space concatenation', concat_audio),\\n\",\n     \"    ('3. After BPS modulation', audio_mod),\\n\",\n     \"    ('4. After pedalboard (per-section)', final_audio),\\n\",\n     \"]\\n\",\n     \"\\n\",\n     \"fig, axes = plt.subplots(len(stages), 1, figsize=(14, 2.5 * len(stages)))\\n\",\n     \"\\n\",\n     \"# Stage 1: stacked raw variations\\n\",\n     \"ax = axes[0]\\n\",\n     \"offset = 0\\n\",\n     \"colors = ['blue', 'green', 'orange']\\n\",\n     \"for i, (audio, var) in enumerate(zip(raw_audios, VARIATIONS)):\\n\",\n     \"    t = (torch.arange(len(audio)) + offset) / SAMPLE_RATE\\n\",\n     \"    ax.plot(t.numpy(), audio.numpy() + (len(raw_audios) - i) * 1.5,\\n\",\n     \"            alpha=0.6, linewidth=0.3, color=colors[i % len(colors)],\\n\",\n     \"            label=f'{var[0]} (seed={var[1]})')\\n\",\n     \"    offset += len(audio)\\n\",\n     \"ax.set_title('1. Raw variations (each ~6s)')\\n\",\n     \"ax.legend(fontsize=7, loc='upper right')\\n\",\n     \"ax.set_ylabel('Amplitude (offset)')\\n\",\n     \"\\n\",\n     \"# Remaining stages\\n\",\n     \"for ax, (name, audio) in zip(axes[1:], stages[1:]):\\n\",\n     \"    t = torch.arange(len(audio)) / SAMPLE_RATE\\n\",\n     \"    ax.plot(t.numpy(), audio.numpy(), alpha=0.7, linewidth=0.3)\\n\",\n     \"    ax.set_title(name)\\n\",\n     \"    ax.set_ylabel('Amplitude')\\n\",\n     \"    for i in range(1, NUM_VARIATIONS):\\n\",\n     \"        ax.axvline(x=i * SEGMENT_SECONDS, color='red', linestyle='--', alpha=0.2)\\n\",\n     \"\\n\",\n     \"axes[-1].set_xlabel('Time (s)')\\n\",\n     \"plt.tight_layout()\\n\",\n     \"plt.show()\"\n    ]\n   },\n   {\n    \"cell_type\": \"code\",\n    \"execution_count\": null,\n    \"id\": \"93435fdd\",\n    \"metadata\": {},\n    \"outputs\": [],\n    \"source\": [\n     \"# Export to WAV\\n\",\n     \"import torchaudio\\n\",\n     \"import soundfile as sf\\n\",\n     \"from pathlib import Path\\n\",\n     \"\\n\",\n     \"out_dir = Path('results')\\n\",\n     \"out_dir.mkdir(exist_ok=True)\\n\",\n     \"\\n\",\n     \"# Save final output\\n\",\n     \"sf.write(str(out_dir / 'latent_concat_20s.wav'),\\n\",\n     \"         final_audio.numpy(), SAMPLE_RATE)\\n\",\n     \"print(f'Saved: {out_dir / \\\"latent_concat_20s.wav\\\"} ({final_audio.shape[-1]/SAMPLE_RATE:.1f}s)')\\n\",\n     \"\\n\",\n     \"# Also save individual raw variations\\n\",\n     \"for i, (label, *_) in enumerate(VARIATIONS):\\n\",\n     \"    path = out_dir / f'variation_{i+1}_{label.lower()}.wav'\\n\",\n     \"    sf.write(str(path), raw_audios[i].numpy(), SAMPLE_RATE)\\n\",\n     \"    print(f'Saved: {path}')\"\n    ]\n   },\n   {\n    \"cell_type\": \"markdown\",\n    \"id\": \"b83a6d6e\",\n    \"metadata\": {},\n    \"source\": [\n     \"## Summary\\n\",\n     \"\\n\",\n-    \"This notebook demonstrates **latent-space concatenation** — using the LSD\\n\",\n+    \"This notebook demonstrates **latent-space concatenation** \\u2014 using the LSD\\n\",\n     \"model itself to join multiple sound variations into a continuous ~20s piece:\\n\",\n     \"\\n\",\n     \"1. **Generate** 3 variations (different seeds, ~6s each)\\n\",\n     \"2. **Encode** each variation back to EnCodec latent space\\n\",\n     \"3. **Crossfade latents** at boundaries in latent space\\n\",\n     \"4. **Decode the full concatenated latent** through the graph decoder in one pass\\n\",\n     \"5. **Apply per-section BPS modulation** (tremolo, vibrato) with phase-continuous LFO\\n\",\n     \"6. **Apply per-section pedalboard effects** with crossfade between sections\\n\",\n     \"\\n\",\n     \"### Why latent-space concatenation works\\n\",\n     \"\\n\",\n     \"The graph decoder's `WaveReconstructionBlock` pools over the **entire** temporal\\n\",\n     \"axis when computing the feature field `A`. When the decoder sees a 18s latent\\n\",\n-    \"instead of a 1s latent, the project→gate→lift mechanism uses the full spectral\\n\",\n-    \"context — the `c_spec` derived from all 3 variations. This naturally smooths\\n\",\n+    \"instead of a 1s latent, the project\\u2192gate\\u2192lift mechanism uses the full spectral\\n\",\n+    \"context \\u2014 the `c_spec` derived from all 3 variations. This naturally smooths\\n\",\n     \"transitions at boundaries, because the gating weights are computed from the\\n\",\n     \"global energy distribution, not local frame-by-frame.\\n\",\n     \"\\n\",\n     \"### Knobs\\n\",\n     \"\\n\",\n     \"| Knob | What it controls |\\n\",\n     \"|------|-------------------|\\n\",\n-    \"| `NUM_VARIATIONS` | Number of segments to concatenate (3 → ~18-20s) |\\n\",\n+    \"| `NUM_VARIATIONS` | Number of segments to concatenate (3 \\u2192 ~18-20s) |\\n\",\n     \"| `LATENT_OVERLAP_FRAC` | Crossfade overlap in latent space (0.1-0.5) |\\n\",\n     \"| `VARIATIONS` | Per-section: seed, BPS, tremolo/vibrato depth, FX params |\\n\",\n     \"| `MOD_WAVEFORM` | LFO shape shared across sections (phase-continuous) |\\n\",\n     \"\\n\",\n     \"### Next steps\\n\",\n     \"- Train DiT on longer latents directly (avoid overlap-and-add within sections)\\n\",\n     \"- Add CLAP conditioning per section (Phase 2)\\n\",\n     \"- Use real EnCodec for richer latent space\\n\",\n     \"- Integrate with the DSL composition system (issue #18)\"\n    ]\n   }\n  ],\n  \"metadata\": {\n   \"kernelspec\": {\n    \"display_name\": \".venv\",\n    \"language\": \"python\",\n    \"name\": \"python3\"\n   },\n   \"language_info\": {\n    \"codemirror_mode\": {\n     \"name\": \"ipython\",\n     \"version\": 3\n    },\n    \"file_extension\": \".py\",\n    \"mimetype\": \"text/x-python\",\n    \"name\": \"python\",\n    \"nbconvert_exporter\": \"python\",\n    \"pygments_lexer\": \"ipython3\",\n    \"version\": \"3.13.12\"\n   }\n  },\n  \"nbformat\": 4,\n  \"nbformat_minor\": 5\n-}\n+}\n\\ No newline at end of file\n",
+              "additions": 12,
+              "deletions": 61,
+              "status": "modified"
+            },
+            {
               "file": "scripts/eval_track_metrics.py",
               "patch": "Index: scripts/eval_track_metrics.py\n===================================================================\n--- scripts/eval_track_metrics.py\t\n+++ scripts/eval_track_metrics.py\t\n@@ -1,237 +1,258 @@\n \"\"\"Arm metrics per PROTOCOL_10S.md: FAD-proxy, diversity, spectral stats.\n \n Compares generated-arm directories (wavs) against a length-matched\n reference set built by pairing held-out ESC-50 clips (equal-power join,\n same operator as Track-B stitching).\n \n Usage:\n     uv run python scripts/eval_track_metrics.py \\\n         --arm results/track_a --arm results/track_b \\\n         --esc50 data/esc50/ESC-50-master --out results/track_metrics.csv\n \"\"\"\n \n from __future__ import annotations\n \n import argparse\n-import itertools\n-import json\n import subprocess\n from datetime import datetime\n from pathlib import Path\n \n import soundfile\n import torch\n \n from ald_sc.data import Esc50Dataset, PairedSegmentDataset\n-from ald_sc.eval import encodec_pooled_features, fad_score, spectral_centroid, split_files\n+from ald_sc.eval import (\n+    encodec_pooled_features,\n+    fad_score,\n+    spectral_centroid,\n+    split_files,\n+)\n from ald_sc.eval_stats import (\n     bootstrap_fad_ci,\n     cross_clip_frame_excess,\n     equivalence_verdict,\n )\n \n \n def _frame_clouds(\n     waves: list[torch.Tensor],\n     encoder,\n     device: torch.device,\n     k: int = 32,\n ) -> list[torch.Tensor]:\n     \"\"\"Per-clip (K,F) L2-normalized EnCodec frame clouds (no pooling).\"\"\"\n     clouds = []\n     total = max(w.shape[-1] for w in waves)\n     for w in waves:\n         x = w.unsqueeze(0).to(device) if w.dim() == 2 else w.to(device)\n         with torch.no_grad():\n             z = encoder.extract_features(x).squeeze(0)  # (F, T')\n         frames = z.T  # (T', F)\n         idx = torch.linspace(0, frames.shape[0] - 1, min(k, frames.shape[0])).long()\n         sel = frames[idx]\n         sel = torch.nn.functional.normalize(sel.float(), dim=-1)\n         pad = k - sel.shape[0]\n         if pad > 0:\n             sel = torch.nn.functional.pad(sel, (0, 0, 0, pad))\n         clouds.append(sel)\n     del total\n     return clouds\n \n \n def _git_commit() -> str:\n     try:\n         return subprocess.run(\n             [\"git\", \"rev-parse\", \"--short\", \"HEAD\"],\n             capture_output=True,\n             text=True,\n             check=True,\n             timeout=5,\n         ).stdout.strip()\n     except Exception:\n         return \"unknown\"\n \n \n def load_arm(directory: Path, max_clips: int | None = None) -> list[torch.Tensor]:\n     waves = []\n     for path in sorted(directory.glob(\"*.wav\")):\n         audio, sr = soundfile.read(str(path))\n         if audio.ndim > 1:\n             audio = audio.mean(axis=-1)\n         waves.append(torch.from_numpy(audio).float().unsqueeze(0))\n         if max_clips and len(waves) >= max_clips:\n             break\n     if not waves:\n         raise SystemExit(f\"no wavs under {directory}\")\n     return waves\n \n \n def pairwise_cosine_distance(feats: torch.Tensor) -> float:\n     normed = torch.nn.functional.normalize(feats, dim=-1)\n     sims = normed @ normed.T\n     n = feats.shape[0]\n     off = sims[~torch.eye(n, dtype=torch.bool)]\n     return float(1.0 - off.mean().item())\n \n \n def arm_stats(waves: list[torch.Tensor], sample_rate: int) -> dict[str, float]:\n     centroids = torch.cat([spectral_centroid(w, sample_rate) for w in waves])\n     rms = torch.stack([w.pow(2).mean().sqrt() for w in waves])\n     return {\n         \"centroid_mean_hz\": float(centroids.mean().item()),\n         \"centroid_std_hz\": float(centroids.std(unbiased=False).item()),\n         \"rms_mean\": float(rms.mean().item()),\n         \"rms_std\": float(rms.std(unbiased=False).item()),\n     }\n \n \n def main() -> None:\n     parser = argparse.ArgumentParser(description=\"PROTOCOL_10S arm metrics\")\n-    parser.add_argument(\"--arm\", action=\"append\", required=True,\n-                        help=\"Generated arm directory (repeatable)\")\n-    parser.add_argument(\"--reference-dir\", type=str, default=None,\n-                        help=\"Pre-built reference wav directory; otherwise \"\n-                        \"built from ESC-50 test split via equal-power pairing\")\n+    parser.add_argument(\n+        \"--arm\",\n+        action=\"append\",\n+        required=True,\n+        help=\"Generated arm directory (repeatable)\",\n+    )\n+    parser.add_argument(\n+        \"--reference-dir\",\n+        type=str,\n+        default=None,\n+        help=\"Pre-built reference wav directory; otherwise \"\n+        \"built from ESC-50 test split via equal-power pairing\",\n+    )\n     parser.add_argument(\"--esc50\", type=str, default=\"data/esc50/ESC-50-master\")\n     parser.add_argument(\"--n-reference\", type=int, default=64)\n     parser.add_argument(\"--max-clips\", type=int, default=None)\n     parser.add_argument(\"--sample-rate\", type=int, default=24000)\n     parser.add_argument(\"--device\", type=str, default=\"auto\")\n     parser.add_argument(\"--n-boot\", type=int, default=300)\n     parser.add_argument(\"--alpha\", type=float, default=0.05)\n-    parser.add_argument(\"--fad-margin\", type=float, default=None,\n-                        help=\"Equivalence margin; default derives from the \"\n-                        \"--null-dir bootstrap CI (empirical same-generator band)\")\n-    parser.add_argument(\"--null-dir\", type=str, default=None,\n-                        help=\"Same-generator arm used to derive the null CI \"\n-                        \"(e.g. baselines/v0.12-tracks/ref_bank)\")\n+    parser.add_argument(\n+        \"--fad-margin\",\n+        type=float,\n+        default=None,\n+        help=\"Equivalence margin; default derives from the \"\n+        \"--null-dir bootstrap CI (empirical same-generator band)\",\n+    )\n+    parser.add_argument(\n+        \"--null-dir\",\n+        type=str,\n+        default=None,\n+        help=\"Same-generator arm used to derive the null CI \"\n+        \"(e.g. baselines/v0.12-tracks/ref_bank)\",\n+    )\n     parser.add_argument(\"--out\", type=str, default=\"results/track_metrics.csv\")\n     args = parser.parse_args()\n \n     device = (\n         torch.device(args.device)\n         if args.device != \"auto\"\n         else torch.device(\n-            \"cuda\" if torch.cuda.is_available()\n+            \"cuda\"\n+            if torch.cuda.is_available()\n             else (\"mps\" if torch.backends.mps.is_available() else \"cpu\")\n         )\n     )\n \n     from ald_sc.audio_codec import EnCodecEncoder\n \n     encoder = EnCodecEncoder()\n \n     # Reference set: length-matched (paired ~10 s) held-out corpus clips.\n     # PROTOCOL forbids zero-padding; pairing mirrors the Track-B operator.\n     if args.reference_dir:\n         ref_waves = load_arm(Path(args.reference_dir), args.n_reference)\n     else:\n         root = Path(args.esc50)\n         ds = Esc50Dataset(root, audio_length=5 * args.sample_rate)\n         files = [str(p) for p in sorted((root / \"audio\").glob(\"*.wav\"))]\n         _, _, test_files = split_files(files, seed=3407)\n         index = {str(p): i for i, p in enumerate(ds.files)}\n+\n         class _Subset(torch.utils.data.Dataset):\n             def __init__(self, paths):\n                 self.paths = paths\n \n             def __len__(self):\n                 return len(self.paths)\n \n             def __getitem__(self, i):\n                 return ds[index[str(self.paths[i])]]\n \n         paired = PairedSegmentDataset(_Subset(test_files), crossfade_samples=480)\n         ref_waves = [\n             paired[i].cpu() for i in range(min(args.n_reference // 2, len(paired)))\n         ]\n     print(f\"reference clips: {len(ref_waves)}\")\n \n     ref_feats = encodec_pooled_features(iter(ref_waves), encoder, device)\n     ref_stats = arm_stats(ref_waves, args.sample_rate)\n \n     # Null CI: same-generator variability defines the equivalence margin\n     # when none is supplied (protocol: margins from empirical pilot spread).\n     margin = args.fad_margin\n     null_ci = None\n     if args.null_dir:\n         null_waves = load_arm(Path(args.null_dir), args.max_clips)\n         null_feats = encodec_pooled_features(iter(null_waves), encoder, device)\n         null_ci = bootstrap_fad_ci(\n             null_feats, ref_feats, n_boot=args.n_boot, alpha=args.alpha\n         )\n         if margin is None:\n             margin = null_ci[1]\n         print(f\"null CI (same-generator): {null_ci}  -> margin {margin}\")\n \n     rows: list[str] = []\n     header = (\n         \"arm,n,fad_vs_ref,fad_ci_low,fad_ci_high,fad_margin,verdict,\"\n         \"frame_excess,pairwise_cos_dist,centroid_mean_hz,centroid_std_hz,\"\n         \"rms_mean,rms_std,duration_s\"\n     )\n     rows.append(header)\n     for arm_dir in args.arm:\n         path = Path(arm_dir)\n         waves = load_arm(path, args.max_clips)\n         feats = encodec_pooled_features(iter(waves), encoder, device)\n         duration = float(waves[0].shape[-1]) / args.sample_rate\n         stats = arm_stats(waves, args.sample_rate)\n         ci_low, ci_high = bootstrap_fad_ci(\n             feats, ref_feats, n_boot=args.n_boot, alpha=args.alpha\n         )\n         verdict = (\n             equivalence_verdict(ci_low, ci_high, margin)\n             if margin is not None\n             else \"no-margin\"\n         )\n         clouds = _frame_clouds(waves, encoder, device)\n         row = {\n             \"arm\": path.name,\n             \"n\": len(waves),\n             \"fad_vs_ref\": round(fad_score(feats, ref_feats), 2),\n             \"fad_ci_low\": round(ci_low, 2),\n             \"fad_ci_high\": round(ci_high, 2),\n             \"fad_margin\": margin,\n             \"verdict\": verdict,\n             \"frame_excess\": round(cross_clip_frame_excess(clouds), 4),\n             \"pairwise_cos_dist\": round(pairwise_cosine_distance(feats), 4),\n             **{k: round(v, 4) for k, v in stats.items()},\n             \"duration_s\": round(duration, 2),\n         }\n         rows.append(\",\".join(str(v) for v in row.values()))\n         print(row)\n \n     out = Path(args.out)\n     out.parent.mkdir(parents=True, exist_ok=True)\n     provenance = (\n         f\"# PROTOCOL_10S arm metrics\\n\"\n         f\"# created_at: {datetime.now().isoformat(timespec='seconds')}\\n\"\n         f\"# git_commit: {_git_commit()}\\n\"\n         f\"# torch: {torch.__version__} device: {device}\\n\"\n         f\"# reference_n: {len(ref_waves)} \"\n         f\"(fad_vs_ref ref_stats: {ref_stats})\\n\"\n     )\n     out.write_text(provenance + \"\\n\".join(rows) + \"\\n\")\n     print(f\"wrote {out}\")\n \n \n if __name__ == \"__main__\":\n     main()\n",
               "additions": 36,
@@ -38931,19 +38945,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 283843,
+          "input": 1031,
+          "output": 188,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 282624
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787360407985
+          "created": 1787360407985,
+          "completed": 1787360438338
         },
+        "finish": "tool-calls",
         "id": "msg_026fb71b1002dayFtEXjyTHA5D",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -38960,20 +38977,1174 @@
           "tool": "bash",
           "callID": "call_60966e982fcb45868cb6199e",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add .gitignore baselines/v0.12-tracks/RELEASE.md src/ald_sc/config.py src/ald_sc/eval_stats.py scripts/eval_track_metrics.py tests/test_inference.py && git commit -q -m \"chore(v0.12): lint clean-up + frame-contraction diagnosis\n\n- ruff check/format clean across src/scripts/tests (unused imports,\n  Tensor import in eval_stats, E741)\n- frame_excess across generators: ref_bank 0.0107, confirm_a 0.0099,\n  confirm_b 0.0097 — statistically indistinguishable: contraction is\n  architectural (capacity/corpus scale), not a sampler artifact\n- RELEASE.md documents the finding; #60 checkboxes synced\" && git log --oneline -1 && git push 2>&1 | tail -1"
             },
+            "output": "f3f967c chore(v0.12): lint clean-up + frame-contraction diagnosis\n   1c16309..f3f967c  v0.12-tentative -> v0.12-tentative\n",
+            "metadata": {
+              "output": "f3f967c chore(v0.12): lint clean-up + frame-contraction diagnosis\n   1c16309..f3f967c  v0.12-tentative -> v0.12-tentative\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add .gitignore baselines/v0.12-tracks/RELEASE.md src/ald_sc/config.py src/ald_sc/eval_stats.py scripts/eval_track_metrics.py tests/test_inference.py && git commit -q -m \"chore(v0.12): lint clean-up + frame-contraction diagnosis\n\n- ruff check/format clean across src/scripts/tests (unused imports,\n  Tensor import in eval_stats, E741)\n- frame_excess across generators: ref_bank 0.0107, confirm_a 0.0099,\n  confirm_b 0.0097 — statistically indistinguishable: contraction is\n  architectural (capacity/corpus scale), not a sampler artifact\n- RELEASE.md documents the finding; #60 checkboxes synced\" && git log --oneline -1 && git push 2>&1 | tail -1",
             "time": {
-              "start": 1787360416461
+              "start": 1787360438248,
+              "end": 1787360438251
             }
           },
           "id": "prt_026fb92cc001u64OaPWKFfgPCb",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_026fb71b1002dayFtEXjyTHA5D"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "type": "step-finish",
+          "tokens": {
+            "total": 283843,
+            "input": 1031,
+            "output": 188,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 282624
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fbe81e001mu95BYT7qFO1LE",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fb71b1002dayFtEXjyTHA5D"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 284203,
+          "input": 59,
+          "output": 238,
+          "reasoning": 66,
+          "cache": {
+            "write": 0,
+            "read": 283840
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360438348,
+          "completed": 1787360456577
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fbe84c002blk3WxPZCNXQnY",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "type": "step-start",
+          "id": "prt_026fbf8560012poOaR1Lx9JcmO",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        },
+        {
+          "snapshot": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "type": "step-start",
+          "id": "prt_026fc141e001ejrhJdObJnjycA",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        },
+        {
+          "type": "reasoning",
+          "text": "Pushed. What remains in-repo (excluding LSD-studio):\n\n1. **Notebooks 02/04 fade bugs** (DSP finding) — fixable now that stitching module exists: patch their overlap_add cells to use `equal_power_overlap_add`. Worth doing since docs/03.md §1.2 cites notebooks 02/04 as the documented long-form path.\n2. Optionally update notebooks to reference v0.12 changes? Scope creep; just the fade fix.\n3. Update todos.\n\nLet me fix nb02/nb04 overlap_add cells via JSON surgery: load notebook, find cells containing \"def overlap_add\", replace source with corrected implementation using ald_sc.stitching import. Check cell content first.",
+          "time": {
+            "start": 1787360449568,
+            "end": 1787360453822
+          },
+          "id": "prt_026fc14200016gap7d6E41M95q",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        },
+        {
+          "type": "text",
+          "text": "Pushed (`f3f967c`). Last in-repo item: the notebook 02/04 `overlap_add` fade bug — now fixable by delegating to the verified stitcher:",
+          "time": {
+            "start": 1787360453823,
+            "end": 1787360456465
+          },
+          "id": "prt_026fc24bf001zyTtRs4TqNQhHF",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_2618f08dfc0c430b88c88a93",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python - << 'EOF'\nimport json\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    for i, cell in enumerate(nb[\"cells\"]):\n        src = \"\".join(cell.get(\"source\", []))\n        if \"def overlap_add\" in src:\n            print(f\"{nb_path} cell {i}:\")\n            print(src[:400])\n            print(\"---\")\nEOF"
+            },
+            "output": "notebooks/02_long_form_generation.ipynb cell 6:\ndef generate_segment(seed_val, steps, temperature, use_cspec):\n    \"\"\"Generate a single 1-second audio segment.\"\"\"\n    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\n    z = z * temperature\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        if use_cspec:\n            audio = graph_decoder(z, c_spec)\n        els\n---\nnotebooks/04_latent_concatenation.ipynb cell 6:\ndef generate_segment(seed_val):\n    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\n    z = z * TEMPERATURE\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)\n\ndef overlap_add(segments, overlap_fr\n---\n",
+            "metadata": {
+              "output": "notebooks/02_long_form_generation.ipynb cell 6:\ndef generate_segment(seed_val, steps, temperature, use_cspec):\n    \"\"\"Generate a single 1-second audio segment.\"\"\"\n    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\n    z = z * temperature\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        if use_cspec:\n            audio = graph_decoder(z, c_spec)\n        els\n---\nnotebooks/04_latent_concatenation.ipynb cell 6:\ndef generate_segment(seed_val):\n    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\n    z = z * TEMPERATURE\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)\n\ndef overlap_add(segments, overlap_fr\n---\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python - << 'EOF'\nimport json\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    for i, cell in enumerate(nb[\"cells\"]):\n        src = \"\".join(cell.get(\"source\", []))\n        if \"def overlap_add\" in src:\n            print(f\"{nb_path} cell {i}:\")\n            print(src[:400])\n            print(\"---\")\nEOF",
+            "time": {
+              "start": 1787360456507,
+              "end": 1787360456508
+            }
+          },
+          "id": "prt_026fc2f0c001BKZgn9YRtLgGN5",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "type": "step-finish",
+          "tokens": {
+            "total": 284203,
+            "input": 59,
+            "output": 238,
+            "reasoning": 66,
+            "cache": {
+              "write": 0,
+              "read": 283840
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fc2f60001aZvYHs6D4GWI2b",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fbe84c002blk3WxPZCNXQnY"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 284894,
+          "input": 611,
+          "output": 443,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 283840
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360456587,
+          "completed": 1787360469319
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fc2f8b002F9EmfI5J9E6CUi",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "type": "step-start",
+          "id": "prt_026fc6099001HQ5QPMQybMOjub",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc2f8b002F9EmfI5J9E6CUi"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_7520172e43374914bf03b123",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python - << 'EOF'\nimport json\n\nNEW_SRC = [\n    \"def overlap_add(segments, overlap_samples):\\n\",\n    \"    \\\"\\\"\\\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\\n\",\n    \"    keep constant power through every seam. Delegates to the verified\\n\",\n    \"    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\\n\",\n    \"    faded the previous segment's exclusive tail, producing periodic\\n\",\n    \"    dropouts and double-energy seams).\\\"\\\"\\\"\\n\",\n    \"    from ald_sc.stitching import equal_power_overlap_add\\n\",\n    \"\\n\",\n    \"    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\\n\",\n    \"               for s in segments]\\n\",\n    \"    return equal_power_overlap_add(tensors, overlap=overlap_samples)\\n\",\n]\n\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    patched = 0\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        if \"def overlap_add\" in src:\n            lines = src.splitlines(keepends=True)\n            out, skip = [], False\n            for line in lines:\n                if line.startswith(\"def overlap_add\"):\n                    skip = True\n                    out.extend(NEW_SRC)\n                elif skip:\n                    # skip old body: indented lines or blank lines directly after\n                    if line.strip() == \"\" and not out[-1].strip():\n                        continue\n                    if line.startswith((\" \", \"\\t\", \")\")):\n                        continue\n                    skip = False\n                    out.append(line)\n                else:\n                    out.append(line)\n            cell[\"source\"] = \"\".join(out)\n            patched += 1\n    json.dump(nb, open(nb_path, \"w\"), indent=1)\n    print(f\"{nb_path}: {patched} cell(s) patched\")\nEOF"
+            },
+            "output": "notebooks/02_long_form_generation.ipynb: 1 cell(s) patched\nnotebooks/04_latent_concatenation.ipynb: 1 cell(s) patched\n",
+            "metadata": {
+              "output": "notebooks/02_long_form_generation.ipynb: 1 cell(s) patched\nnotebooks/04_latent_concatenation.ipynb: 1 cell(s) patched\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python - << 'EOF'\nimport json\n\nNEW_SRC = [\n    \"def overlap_add(segments, overlap_samples):\\n\",\n    \"    \\\"\\\"\\\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\\n\",\n    \"    keep constant power through every seam. Delegates to the verified\\n\",\n    \"    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\\n\",\n    \"    faded the previous segment's exclusive tail, producing periodic\\n\",\n    \"    dropouts and double-energy seams).\\\"\\\"\\\"\\n\",\n    \"    from ald_sc.stitching import equal_power_overlap_add\\n\",\n    \"\\n\",\n    \"    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\\n\",\n    \"               for s in segments]\\n\",\n    \"    return equal_power_overlap_add(tensors, overlap=overlap_samples)\\n\",\n]\n\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    patched = 0\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        if \"def overlap_add\" in src:\n            lines = src.splitlines(keepends=True)\n            out, skip = [], False\n            for line in lines:\n                if line.startswith(\"def overlap_add\"):\n                    skip = True\n                    out.extend(NEW_SRC)\n                elif skip:\n                    # skip old body: indented lines or blank lines directly after\n                    if line.strip() == \"\" and not out[-1].strip():\n                        continue\n                    if line.startswith((\" \", \"\\t\", \")\")):\n                        continue\n                    skip = False\n                    out.append(line)\n                else:\n                    out.append(line)\n            cell[\"source\"] = \"\".join(out)\n            patched += 1\n    json.dump(nb, open(nb_path, \"w\"), indent=1)\n    print(f\"{nb_path}: {patched} cell(s) patched\")\nEOF",
+            "time": {
+              "start": 1787360469189,
+              "end": 1787360469194
+            }
+          },
+          "id": "prt_026fc609b001tMV57Fm5crVwUb",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc2f8b002F9EmfI5J9E6CUi"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-finish",
+          "tokens": {
+            "total": 284894,
+            "input": 611,
+            "output": 443,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 283840
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fc6117001GO6at8ZRhNdRfw",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc2f8b002F9EmfI5J9E6CUi"
+        },
+        {
+          "type": "patch",
+          "hash": "d80d7cd21c578f4313f9cc744b32984602451655",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/notebooks/02_long_form_generation.ipynb",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/notebooks/04_latent_concatenation.ipynb"
+          ],
+          "id": "prt_026fc6146001IvcgcF0Boh5zHt",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc2f8b002F9EmfI5J9E6CUi"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 285054,
+          "input": 8,
+          "output": 118,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 284928
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360469330,
+          "completed": 1787360481700
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fc61520027b2rxZvZL6Q2is",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-start",
+          "id": "prt_026fc725f001JDkcS0mMLm37mJ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc61520027b2rxZvZL6Q2is"
+        },
+        {
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-start",
+          "id": "prt_026fc910c001oVH7fl05AktFBv",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc61520027b2rxZvZL6Q2is"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_b5316a28782044de95e62f65",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python - << 'EOF'\nimport json\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        if \"equal_power_overlap_add\" in src and \"def overlap_add\" in src:\n            print(f\"=== {nb_path} ===\")\n            print(src)\n            break\nEOF"
+            },
+            "output": "=== notebooks/02_long_form_generation.ipynb ===\ndef generate_segment(seed_val, steps, temperature, use_cspec):\n    \"\"\"Generate a single 1-second audio segment.\"\"\"\n    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\n    z = z * temperature\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        if use_cspec:\n            audio = graph_decoder(z, c_spec)\n        else:\n            audio = graph_decoder(z, torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)  # (T,)\n\ndef overlap_add(segments, overlap_samples):\n    \"\"\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\n    keep constant power through every seam. Delegates to the verified\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\n    faded the previous segment's exclusive tail, producing periodic\n    dropouts and double-energy seams).\"\"\"\n    from ald_sc.stitching import equal_power_overlap_add\n\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\n               for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\n# Determine how many segments we need\nclip_samples = CLIP_LENGTH\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\nprint(f'Generating {num_segments} segments (hop={hop_samples} samples, overlap={int(clip_samples * OVERLAP_FRAC)} samples)')\n\n# Generate segments with different seeds for variety\nsegments = []\nfor i in range(num_segments):\n    seg_seed = SEED + i * 1000\n    seg = generate_segment(seg_seed, STEPS, TEMPERATURE, USE_C_SPEC)\n    segments.append(seg)\n    print(f'  Segment {i+1}/{num_segments} (seed={seg_seed}): {seg.shape[-1]} samples')\n\n# Stitch\nraw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)\n# Crop to target length\nif raw_audio.shape[-1] > TOTAL_LENGTH:\n    raw_audio = raw_audio[:TOTAL_LENGTH]\nelif raw_audio.shape[-1] < TOTAL_LENGTH:\n    raw_audio = torch.nn.functional.pad(raw_audio, (0, TOTAL_LENGTH - raw_audio.shape[-1]))\n\n# Normalize\nraw_audio = raw_audio - raw_audio.mean()  # DC-block: decoder emits large DC (PR #59)\npeak = raw_audio.abs().max()\nif peak > 0:\n    raw_audio = raw_audio / peak\n\nprint(f'Stitched audio: {raw_audio.shape[-1]} samples ({raw_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\n=== notebooks/04_latent_concatenation.ipynb ===\ndef generate_segment(seed_val):\n    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\n    z = z * TEMPERATURE\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)\n\ndef overlap_add(segments, overlap_samples):\n    \"\"\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\n    keep constant power through every seam. Delegates to the verified\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\n    faded the previous segment's exclusive tail, producing periodic\n    dropouts and double-energy seams).\"\"\"\n    from ald_sc.stitching import equal_power_overlap_add\n\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\n               for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\nclip_samples = CLIP_LENGTH\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\n\n# Generate raw audio for each variation\nraw_audios = []\nfor i, (label, seed, *_) in enumerate(VARIATIONS):\n    segs = [generate_segment(seed + j * 1000) for j in range(num_segments)]\n    audio = overlap_add(segs, OVERLAP_FRAC)\n    if audio.shape[-1] > TOTAL_LENGTH:\n        audio = audio[:TOTAL_LENGTH]\n    elif audio.shape[-1] < TOTAL_LENGTH:\n        audio = torch.nn.functional.pad(audio, (0, TOTAL_LENGTH - audio.shape[-1]))\n    audio = audio - audio.mean()  # DC-block: decoder emits large DC (PR #59)\n    peak = audio.abs().max()\n    if peak > 0:\n        audio = audio / peak\n    raw_audios.append(audio)\n    print(f'  {label}: {audio.shape[-1]} samples ({audio.shape[-1]/SAMPLE_RATE:.1f}s)')\n\nprint(f'\\nGenerated {len(raw_audios)} variations, each ~{SEGMENT_SECONDS}s')\nprint(f'Total if concatenated: ~{len(raw_audios) * SEGMENT_SECONDS}s')\n",
+            "metadata": {
+              "output": "=== notebooks/02_long_form_generation.ipynb ===\ndef generate_segment(seed_val, steps, temperature, use_cspec):\n    \"\"\"Generate a single 1-second audio segment.\"\"\"\n    z = sample_ddim(dit, sched, batch_size=1, steps=steps, seed=seed_val, device=device)\n    z = z * temperature\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        if use_cspec:\n            audio = graph_decoder(z, c_spec)\n        else:\n            audio = graph_decoder(z, torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)  # (T,)\n\ndef overlap_add(segments, overlap_samples):\n    \"\"\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\n    keep constant power through every seam. Delegates to the verified\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\n    faded the previous segment's exclusive tail, producing periodic\n    dropouts and double-energy seams).\"\"\"\n    from ald_sc.stitching import equal_power_overlap_add\n\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\n               for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\n# Determine how many segments we need\nclip_samples = CLIP_LENGTH\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\nprint(f'Generating {num_segments} segments (hop={hop_samples} samples, overlap={int(clip_samples * OVERLAP_FRAC)} samples)')\n\n# Generate segments with different seeds for variety\nsegments = []\nfor i in range(num_segments):\n    seg_seed = SEED + i * 1000\n    seg = generate_segment(seg_seed, STEPS, TEMPERATURE, USE_C_SPEC)\n    segments.append(seg)\n    print(f'  Segment {i+1}/{num_segments} (seed={seg_seed}): {seg.shape[-1]} samples')\n\n# Stitch\nraw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)\n# Crop to target length\nif raw_audio.shape[-1] > TOTAL_LENGTH:\n    raw_audio = raw_audio[:TOTAL_LENGTH]\nelif raw_audio.shape[-1] < TOTAL_LENGTH:\n    raw_audio = torch.nn.functional.pad(raw_audio, (0, TOTAL_LENGTH - raw_audio.shape[-1]))\n\n# Normalize\nraw_audio = raw_audio - raw_audio.mean()  # DC-block: decoder emits large DC (PR #59)\npeak = raw_audio.abs().max()\nif peak > 0:\n    raw_audio = raw_audio / peak\n\nprint(f'Stitched audio: {raw_audio.shape[-1]} samples ({raw_audio.shape[-1]/SAMPLE_RATE:.2f}s)')\n=== notebooks/04_latent_concatenation.ipynb ===\ndef generate_segment(seed_val):\n    z = sample_ddim(dit, sched, batch_size=1, steps=STEPS, seed=seed_val, device=device)\n    z = z * TEMPERATURE\n    a = z.mean(dim=2)\n    c_spec = prior.chart_energy_descriptor(a)\n    with torch.no_grad():\n        audio = graph_decoder(z, c_spec if USE_C_SPEC else torch.zeros_like(c_spec))\n    return audio.squeeze(0).squeeze(0)\n\ndef overlap_add(segments, overlap_samples):\n    \"\"\"Equal-power overlap-add (v0.12): complementary sqrt-Hann halves\n    keep constant power through every seam. Delegates to the verified\n    implementation in ald_sc.stitching (fixes the v0.11 off-by-one that\n    faded the previous segment's exclusive tail, producing periodic\n    dropouts and double-energy seams).\"\"\"\n    from ald_sc.stitching import equal_power_overlap_add\n\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s)\n               for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\nclip_samples = CLIP_LENGTH\nhop_samples = int(clip_samples * (1 - OVERLAP_FRAC))\nnum_segments = max(2, math.ceil((TOTAL_LENGTH - clip_samples) / hop_samples) + 1)\n\n# Generate raw audio for each variation\nraw_audios = []\nfor i, (label, seed, *_) in enumerate(VARIATIONS):\n    segs = [generate_segment(seed + j * 1000) for j in range(num_segments)]\n    audio = overlap_add(segs, OVERLAP_FRAC)\n    if audio.shape[-1] > TOTAL_LENGTH:\n        audio = audio[:TOTAL_LENGTH]\n    elif audio.shape[-1] < TOTAL_LENGTH:\n        audio = torch.nn.functional.pad(audio, (0, TOTAL_LENGTH - audio.shape[-1]))\n    audio = audio - audio.mean()  # DC-block: decoder emits large DC (PR #59)\n    peak = audio.abs().max()\n    if peak > 0:\n        audio = audio / peak\n    raw_audios.append(audio)\n    print(f'  {label}: {audio.shape[-1]} samples ({audio.shape[-1]/SAMPLE_RATE:.1f}s)')\n\nprint(f'\\nGenerated {len(raw_audios)} variations, each ~{SEGMENT_SECONDS}s')\nprint(f'Total if concatenated: ~{len(raw_audios) * SEGMENT_SECONDS}s')\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python - << 'EOF'\nimport json\nfor nb_path in (\"notebooks/02_long_form_generation.ipynb\", \"notebooks/04_latent_concatenation.ipynb\"):\n    nb = json.load(open(nb_path))\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        if \"equal_power_overlap_add\" in src and \"def overlap_add\" in src:\n            print(f\"=== {nb_path} ===\")\n            print(src)\n            break\nEOF",
+            "time": {
+              "start": 1787360481603,
+              "end": 1787360481608
+            }
+          },
+          "id": "prt_026fc910f001xFtJHBdsrDm9fn",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc61520027b2rxZvZL6Q2is"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-finish",
+          "tokens": {
+            "total": 285054,
+            "input": 8,
+            "output": 118,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 284928
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fc917600157OlhTLQS4Kh7Z",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc61520027b2rxZvZL6Q2is"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 286826,
+          "input": 57,
+          "output": 499,
+          "reasoning": 126,
+          "cache": {
+            "write": 0,
+            "read": 286144
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360481712,
+          "completed": 1787360507024
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fc91b0002Cv0slzxFoNNCTD",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-start",
+          "id": "prt_026fca03f001ywagHB1qIPtOCh",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "snapshot": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "type": "step-start",
+          "id": "prt_026fcc39c001cFTJrEWcxTqq1j",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "type": "reasoning",
+          "text": "Problem: the CALL SITES still pass the OLD signature:\n- nb02: `overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)` — 3 args (segments, overlap_FRAC, sr) — old function took fractional overlap + sr and converted internally. My new function takes integer `overlap_samples`. The call would break: overlap=OVERLAP_FRAC (e.g., 0.25) → my stitcher raises ValueError(\"overlap must be smaller than shortest segment\")? 0.25 < shortest ✓ but overlap=0.25 samples → max(1,int(...))? My equal_power_overlap_add doesn't convert fractions — overlap=0.25 → treated as int? `if overlap < 0` ok; `_fade(0.25...)` linspace with num=0.25 → TypeError.\n- nb04: `overlap_add(segs, OVERLAP_FRAC)` → same issue.\n\nFix call sites to compute samples: `int(OVERLAP_FRAC * clip_samples)` and drop extra arg in nb02. Patch those lines via json again.\n\nnb02 line: `raw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)` → \n```\nraw_audio = overlap_add(segments, int(OVERLAP_FRAC * clip_samples))\n```\nnb04: `audio = overlap_add(segs, OVERLAP_FRAC)` → `audio = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))`\n\nAlso segments are (T,) 1-D from generate_segment (squeeze squeeze) → stitcher handles 1-D ✓ output 1-D; downstream raw_audio[:TOTAL_LENGTH] etc fine.",
+          "time": {
+            "start": 1787360494493,
+            "end": 1787360502906
+          },
+          "id": "prt_026fcc39d001AwdstxY1426Xam",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "type": "text",
+          "text": "Call sites still use the old fractional signature — patching them to pass sample counts:",
+          "time": {
+            "start": 1787360502907,
+            "end": 1787360506869
+          },
+          "id": "prt_026fce47b001H3vLyBycn3R429",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_6c02c405d7ad4572bba8e3a0",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python - << 'EOF'\nimport json\nfixes = {\n    \"notebooks/02_long_form_generation.ipynb\": [\n        (\"raw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)\",\n         \"raw_audio = overlap_add(segments, int(OVERLAP_FRAC * clip_samples))\"),\n    ],\n    \"notebooks/04_latent_concatenation.ipynb\": [\n        (\"audio = overlap_add(segs, OVERLAP_FRAC)\",\n         \"audio = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))\"),\n    ],\n}\nfor path, subs in fixes.items():\n    nb = json.load(open(path))\n    hits = 0\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        new = src\n        for old, new_line in subs:\n            if old in new:\n                new = new.replace(old, new_line)\n                hits += 1\n        if new != src:\n            cell[\"source\"] = new\n    json.dump(nb, open(path, \"w\"), indent=1)\n    print(f\"{path}: {hits} call site(s) updated\")\nEOF"
+            },
+            "output": "notebooks/02_long_form_generation.ipynb: 1 call site(s) updated\nnotebooks/04_latent_concatenation.ipynb: 1 call site(s) updated\n",
+            "metadata": {
+              "output": "notebooks/02_long_form_generation.ipynb: 1 call site(s) updated\nnotebooks/04_latent_concatenation.ipynb: 1 call site(s) updated\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python - << 'EOF'\nimport json\nfixes = {\n    \"notebooks/02_long_form_generation.ipynb\": [\n        (\"raw_audio = overlap_add(segments, OVERLAP_FRAC, SAMPLE_RATE)\",\n         \"raw_audio = overlap_add(segments, int(OVERLAP_FRAC * clip_samples))\"),\n    ],\n    \"notebooks/04_latent_concatenation.ipynb\": [\n        (\"audio = overlap_add(segs, OVERLAP_FRAC)\",\n         \"audio = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))\"),\n    ],\n}\nfor path, subs in fixes.items():\n    nb = json.load(open(path))\n    hits = 0\n    for cell in nb[\"cells\"]:\n        src = \"\".join(cell.get(\"source\", []))\n        new = src\n        for old, new_line in subs:\n            if old in new:\n                new = new.replace(old, new_line)\n                hits += 1\n        if new != src:\n            cell[\"source\"] = new\n    json.dump(nb, open(path, \"w\"), indent=1)\n    print(f\"{path}: {hits} call site(s) updated\")\nEOF",
+            "time": {
+              "start": 1787360506889,
+              "end": 1787360506890
+            }
+          },
+          "id": "prt_026fcf3d9001xAE1LpBirXc7mo",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 286826,
+            "input": 57,
+            "output": 499,
+            "reasoning": 126,
+            "cache": {
+              "write": 0,
+              "read": 286144
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fcf456001VhEDl4t0FL4ORR",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        },
+        {
+          "type": "patch",
+          "hash": "c1ec90bff8d35242638aec8842f02ef18d7fd963",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/notebooks/02_long_form_generation.ipynb",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/notebooks/04_latent_concatenation.ipynb"
+          ],
+          "id": "prt_026fcf48f001QBZs1MDVssRXiS",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fc91b0002Cv0slzxFoNNCTD"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 287086,
+          "input": 726,
+          "output": 216,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 286144
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360507035,
+          "completed": 1787360515920
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fcf49b002JDSMxtmenuO1QD",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_026fd14e3001Il5HykDFmXUeNH",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fcf49b002JDSMxtmenuO1QD"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_2e34a8634b404740b62209b0",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python - << 'EOF'\n# Execute just the patched overlap_add logic in isolation to verify signature compatibility\nimport torch\nfrom ald_sc.stitching import equal_power_overlap_add\n\ndef overlap_add(segments, overlap_samples):\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s) for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\nCLIP_LENGTH, OVERLAP_FRAC = 24000, 0.25\nclip_samples = CLIP_LENGTH\nsegs = [torch.randn(CLIP_LENGTH) for _ in range(4)]\nout = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))\nexpected = 4 * CLIP_LENGTH - 3 * int(OVERLAP_FRAC * CLIP_LENGTH)\nassert out.shape[-1] == expected, (out.shape, expected)\nprint(f\"nb-style call OK: {out.shape[-1]} samples (expected {expected})\")\nEOF"
+            },
+            "output": "nb-style call OK: 78000 samples (expected 78000)\n",
+            "metadata": {
+              "output": "nb-style call OK: 78000 samples (expected 78000)\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python - << 'EOF'\n# Execute just the patched overlap_add logic in isolation to verify signature compatibility\nimport torch\nfrom ald_sc.stitching import equal_power_overlap_add\n\ndef overlap_add(segments, overlap_samples):\n    tensors = [s if isinstance(s, torch.Tensor) else torch.from_numpy(s) for s in segments]\n    return equal_power_overlap_add(tensors, overlap=overlap_samples)\n\nCLIP_LENGTH, OVERLAP_FRAC = 24000, 0.25\nclip_samples = CLIP_LENGTH\nsegs = [torch.randn(CLIP_LENGTH) for _ in range(4)]\nout = overlap_add(segs, int(OVERLAP_FRAC * clip_samples))\nexpected = 4 * CLIP_LENGTH - 3 * int(OVERLAP_FRAC * CLIP_LENGTH)\nassert out.shape[-1] == expected, (out.shape, expected)\nprint(f\"nb-style call OK: {out.shape[-1]} samples (expected {expected})\")\nEOF",
+            "time": {
+              "start": 1787360515734,
+              "end": 1787360515845
+            }
+          },
+          "id": "prt_026fd14e4001LVEpyqz6y7IVSn",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fcf49b002JDSMxtmenuO1QD"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 287086,
+            "input": 726,
+            "output": 216,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 286144
+            }
+          },
+          "cost": 0,
+          "id": "prt_026fd172b001CQN6Yq1H4HFdIr",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fcf49b002JDSMxtmenuO1QD"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 287238,
+          "input": 259,
+          "output": 131,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 286848
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360515931,
+          "completed": 1787360646363
+        },
+        "finish": "tool-calls",
+        "id": "msg_026fd175b0028BSEisEh61zjyQ",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_026fd33a5001UXxNUZW60COQ7e",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fd175b0028BSEisEh61zjyQ"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_3e3f5327d4ea41deb90ea4b3",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git add notebooks/02_long_form_generation.ipynb notebooks/04_latent_concatenation.ipynb && git commit -q -m \"fix(v0.12): notebooks 02/04 delegate overlap_add to ald_sc.stitching\n\nReplaces the v0.11 cell-local implementation whose fade windows were\nplaced one segment early (periodic dropouts + double-energy seams per\nthe predict DSP persona). Call sites now pass integer overlap samples;\nthe verified equal-power sqrt-Hann operator keeps constant power\nthrough every seam.\" && git push 2>&1 | tail -1"
+            },
+            "output": "(no output)\n\n<shell_metadata>\nshell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.\n</shell_metadata>",
+            "metadata": {
+              "output": "(no output)\n\n<shell_metadata>\nshell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.\n</shell_metadata>",
+              "exit": null,
+              "truncated": false
+            },
+            "title": "git add notebooks/02_long_form_generation.ipynb notebooks/04_latent_concatenation.ipynb && git commit -q -m \"fix(v0.12): notebooks 02/04 delegate overlap_add to ald_sc.stitching\n\nReplaces the v0.11 cell-local implementation whose fade windows were\nplaced one segment early (periodic dropouts + double-energy seams per\nthe predict DSP persona). Call sites now pass integer overlap samples;\nthe verified equal-power sqrt-Hann operator keeps constant power\nthrough every seam.\" && git push 2>&1 | tail -1",
+            "time": {
+              "start": 1787360523175,
+              "end": 1787360646284
+            }
+          },
+          "id": "prt_026fd33a6001HNOAF0QInU0Q5J",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fd175b0028BSEisEh61zjyQ"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 287238,
+            "input": 259,
+            "output": 131,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 286848
+            }
+          },
+          "cost": 0,
+          "id": "prt_026ff14b5001hT4B9Ui7CEKfwc",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026fd175b0028BSEisEh61zjyQ"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 287323,
+          "input": 186,
+          "output": 33,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 287104
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360646374,
+          "completed": 1787360650935
+        },
+        "finish": "tool-calls",
+        "id": "msg_026ff14e6002n2t5AlatJWyxDI",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_026ff2640001ozbaci0SpOmPDG",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff14e6002n2t5AlatJWyxDI"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_4f340eaf14f5433fbbf67e56",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git log --oneline -2 && git status -s | head -3",
+              "timeout": 30000
+            },
+            "output": "b14e67f fix(v0.12): notebooks 02/04 delegate overlap_add to ald_sc.stitching\nf3f967c chore(v0.12): lint clean-up + frame-contraction diagnosis\n M tests/test_eval_stats.py\n",
+            "metadata": {
+              "output": "b14e67f fix(v0.12): notebooks 02/04 delegate overlap_add to ald_sc.stitching\nf3f967c chore(v0.12): lint clean-up + frame-contraction diagnosis\n M tests/test_eval_stats.py\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git log --oneline -2 && git status -s | head -3",
+            "time": {
+              "start": 1787360650849,
+              "end": 1787360650851
+            }
+          },
+          "id": "prt_026ff2641001C6cFORnFFikpsg",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff14e6002n2t5AlatJWyxDI"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 287323,
+            "input": 186,
+            "output": 33,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 287104
+            }
+          },
+          "cost": 0,
+          "id": "prt_026ff268c001Wgb22nkDxldqj1",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff14e6002n2t5AlatJWyxDI"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 287473,
+          "input": 150,
+          "output": 57,
+          "reasoning": 34,
+          "cache": {
+            "write": 0,
+            "read": 287232
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360650946,
+          "completed": 1787360657999
+        },
+        "finish": "tool-calls",
+        "id": "msg_026ff26c2002rszK3C3k0ZwVQU",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_026ff370d001bBnyjeUEzu6uEg",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff26c2002rszK3C3k0ZwVQU"
+        },
+        {
+          "type": "reasoning",
+          "text": "The commit landed (`b14e67f`) — the push likely hung on a network hook or ssh prompt; the earlier push worked fine, so retry with longer timeout. Also `tests/test_eval_stats.py` shows modified — probably ruff format touched it earlier and I committed only some files? Check diff.",
+          "time": {
+            "start": 1787360655118,
+            "end": 1787360657864
+          },
+          "id": "prt_026ff370e0019twCrggPC2CC8U",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff26c2002rszK3C3k0ZwVQU"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_dceac990bc4242368cf47b53",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git diff tests/test_eval_stats.py | head -12",
+              "timeout": 15000
+            },
+            "output": "diff --git a/tests/test_eval_stats.py b/tests/test_eval_stats.py\nindex a52ed68..d29baa1 100644\n--- a/tests/test_eval_stats.py\n+++ b/tests/test_eval_stats.py\n@@ -13,11 +13,15 @@ from ald_sc.eval_stats import (\n \n \n class TestCrossClipFrameExcess:\n-    def _clouds(self, *centers: torch.Tensor, k: int = 16, dim: int = 8) -> list[torch.Tensor]:\n+    def _clouds(\n+        self, *centers: torch.Tensor, k: int = 16, dim: int = 8\n+    ) -> list[torch.Tensor]:\n",
+            "metadata": {
+              "output": "diff --git a/tests/test_eval_stats.py b/tests/test_eval_stats.py\nindex a52ed68..d29baa1 100644\n--- a/tests/test_eval_stats.py\n+++ b/tests/test_eval_stats.py\n@@ -13,11 +13,15 @@ from ald_sc.eval_stats import (\n \n \n class TestCrossClipFrameExcess:\n-    def _clouds(self, *centers: torch.Tensor, k: int = 16, dim: int = 8) -> list[torch.Tensor]:\n+    def _clouds(\n+        self, *centers: torch.Tensor, k: int = 16, dim: int = 8\n+    ) -> list[torch.Tensor]:\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git diff tests/test_eval_stats.py | head -12",
+            "time": {
+              "start": 1787360657885,
+              "end": 1787360657887
+            }
+          },
+          "id": "prt_026ff41c9001L4mDX4ma5cJvA7",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff26c2002rszK3C3k0ZwVQU"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 287473,
+            "input": 150,
+            "output": 57,
+            "reasoning": 34,
+            "cache": {
+              "write": 0,
+              "read": 287232
+            }
+          },
+          "cost": 0,
+          "id": "prt_026ff4222001RHfxTZTAvbrVv3",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff26c2002rszK3C3k0ZwVQU"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 287685,
+          "input": 265,
+          "output": 60,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 287360
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360658011,
+          "completed": 1787360680699
+        },
+        "finish": "tool-calls",
+        "id": "msg_026ff425b002tk4OzVvSmnutJh",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_026ff5579001oGq1F37uaXS33m",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff425b002tk4OzVvSmnutJh"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_bd6cbfea0d0544f4b87d4825",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "git add tests/test_eval_stats.py && git commit -q -m \"style: ruff format test_eval_stats\" && git push origin v0.12-tentative 2>&1 | tail -2",
+              "timeout": 180000
+            },
+            "output": "To github.com:tuned-org-uk/latent-sound-diffusion.git\n   f3f967c..fdb9c94  v0.12-tentative -> v0.12-tentative\n",
+            "metadata": {
+              "output": "To github.com:tuned-org-uk/latent-sound-diffusion.git\n   f3f967c..fdb9c94  v0.12-tentative -> v0.12-tentative\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add tests/test_eval_stats.py && git commit -q -m \"style: ruff format test_eval_stats\" && git push origin v0.12-tentative 2>&1 | tail -2",
+            "time": {
+              "start": 1787360680617,
+              "end": 1787360680618
+            }
+          },
+          "id": "prt_026ff557a001asBfyV6hJsVWBR",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff425b002tk4OzVvSmnutJh"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 287685,
+            "input": 265,
+            "output": 60,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 287360
+            }
+          },
+          "cost": 0,
+          "id": "prt_026ff9ad2001atiTthdwsLvss7",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff425b002tk4OzVvSmnutJh"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 288084,
+          "input": 119,
+          "output": 349,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 287616
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360680712,
+          "completed": 1787360708283
+        },
+        "finish": "tool-calls",
+        "id": "msg_026ff9b08002Jp9OygHr8Lrd2I",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_027000640001dNkqGMtIlGEH4X",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff9b08002Jp9OygHr8Lrd2I"
+        },
+        {
+          "type": "tool",
+          "tool": "todowrite",
+          "callID": "call_41026b2e0bf64dd1af639d2e",
+          "state": {
+            "status": "completed",
+            "input": {
+              "todos": [
+                {
+                  "content": "v0.12 fixes + Track-A/B stack + statistics — PR #61, 13 commits pushed (fdb9c94)",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "synthesize_midi correctness — daf4457",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Artefact hardening (safe loads, state-dict prior, digests) — daf4457",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "TOST CIs + per-frame diversity + null-band margin — 037c355",
+                  "priority": "high",
+                  "status": "completed"
+                },
+                {
+                  "content": "Frame-contraction diagnosis: architectural, not sampler-induced — f3f967c",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Notebooks 02/04 overlap_add delegated to verified stitcher — b14e67f",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Lint/format clean across src/scripts/tests; 324 tests green",
+                  "priority": "medium",
+                  "status": "completed"
+                },
+                {
+                  "content": "Listening pass on baselines/v0.12-tracks/confirm_a (human task)",
+                  "priority": "medium",
+                  "status": "pending"
+                },
+                {
+                  "content": "Merge PR #61 after human review",
+                  "priority": "medium",
+                  "status": "pending"
+                },
+                {
+                  "content": "LSD-studio coordination (#65) — ON HOLD per user",
+                  "priority": "low",
+                  "status": "cancelled"
+                }
+              ]
+            },
+            "output": "[\n  {\n    \"content\": \"v0.12 fixes + Track-A/B stack + statistics — PR #61, 13 commits pushed (fdb9c94)\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"synthesize_midi correctness — daf4457\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Artefact hardening (safe loads, state-dict prior, digests) — daf4457\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"TOST CIs + per-frame diversity + null-band margin — 037c355\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  },\n  {\n    \"content\": \"Frame-contraction diagnosis: architectural, not sampler-induced — f3f967c\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Notebooks 02/04 overlap_add delegated to verified stitcher — b14e67f\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Lint/format clean across src/scripts/tests; 324 tests green\",\n    \"status\": \"completed\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Listening pass on baselines/v0.12-tracks/confirm_a (human task)\",\n    \"status\": \"pending\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"Merge PR #61 after human review\",\n    \"status\": \"pending\",\n    \"priority\": \"medium\"\n  },\n  {\n    \"content\": \"LSD-studio coordination (#65) — ON HOLD per user\",\n    \"status\": \"cancelled\",\n    \"priority\": \"low\"\n  }\n]",
+            "metadata": {
+              "todos": [
+                {
+                  "content": "v0.12 fixes + Track-A/B stack + statistics — PR #61, 13 commits pushed (fdb9c94)",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "synthesize_midi correctness — daf4457",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Artefact hardening (safe loads, state-dict prior, digests) — daf4457",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "TOST CIs + per-frame diversity + null-band margin — 037c355",
+                  "status": "completed",
+                  "priority": "high"
+                },
+                {
+                  "content": "Frame-contraction diagnosis: architectural, not sampler-induced — f3f967c",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Notebooks 02/04 overlap_add delegated to verified stitcher — b14e67f",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Lint/format clean across src/scripts/tests; 324 tests green",
+                  "status": "completed",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Listening pass on baselines/v0.12-tracks/confirm_a (human task)",
+                  "status": "pending",
+                  "priority": "medium"
+                },
+                {
+                  "content": "Merge PR #61 after human review",
+                  "status": "pending",
+                  "priority": "medium"
+                },
+                {
+                  "content": "LSD-studio coordination (#65) — ON HOLD per user",
+                  "status": "cancelled",
+                  "priority": "low"
+                }
+              ],
+              "truncated": false
+            },
+            "title": "3 todos",
+            "time": {
+              "start": 1787360708165,
+              "end": 1787360708166
+            }
+          },
+          "id": "prt_027000642001K2TwD3IdRJ0E8u",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff9b08002Jp9OygHr8Lrd2I"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 288084,
+            "input": 119,
+            "output": 349,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 287616
+            }
+          },
+          "cost": 0,
+          "id": "prt_027000692001HkHFUXzOHQqcli",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026ff9b08002Jp9OygHr8Lrd2I"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f9bb6d001eBA2wAwlncQEXy",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 288759,
+          "input": 47,
+          "output": 264,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 288448
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360708294,
+          "completed": 1787360724915
+        },
+        "finish": "stop",
+        "id": "msg_0270006c6002f96DBMtebSAxjD",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_0270015da0010i0gm4z5xSR9GU",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0270006c6002f96DBMtebSAxjD"
+        },
+        {
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-start",
+          "id": "prt_027002d77001jE6G8u1R8zWyQz",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0270006c6002f96DBMtebSAxjD"
+        },
+        {
+          "type": "text",
+          "text": "All in-repo work is complete and pushed (`fdb9c94`, 324 tests green, ruff clean). LSD-studio untouched as instructed.\n\n## This round\n- **Lint/format**: 9 findings fixed across `eval_stats`/`config`/scripts/tests — all checks pass\n- **Frame-contraction closed with evidence**: ref_bank 0.0107 · confirm_a 0.0099 · control 0.0097 → statistically identical pre/post-fix; contraction is architectural (capacity/corpus scale), documented in RELEASE.md\n- **Notebooks 02/04**: cell-local `overlap_add` (the early-fade bug) now delegates to the verified `equal_power_overlap_add`; call sites updated to integer sample overlaps, signature verified by execution\n- **#60 checkboxes** synced to reality; everything pushed to the PR #61 branch\n\n## What's left needs a human\n1. **Listening pass** on `baselines/v0.12-tracks/confirm_a/*.wav` (64 × 10 s stems) — numbers say it's good; ears decide\n2. **Review + merge PR #61**\n3. When you're ready: LSD-studio#65 bump + re-bake (on hold)",
+          "time": {
+            "start": 1787360718200,
+            "end": 1787360724836
+          },
+          "id": "prt_027002d78001XyRq7HcMTSZIM8",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0270006c6002f96DBMtebSAxjD"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "6eb058e33529b46367655ea2ae063ee1de95b179",
+          "type": "step-finish",
+          "tokens": {
+            "total": 288759,
+            "input": 47,
+            "output": 264,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 288448
+            }
+          },
+          "cost": 0,
+          "id": "prt_02700478c001ah0yMfFVoHhhdC",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0270006c6002f96DBMtebSAxjD"
         }
       ]
     }
