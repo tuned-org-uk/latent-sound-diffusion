@@ -66,6 +66,8 @@ def main() -> None:
                         help="Pair consecutive clips into 2x segments "
                         "(equal-power crossfade) for long-form supply")
     parser.add_argument("--crossfade-ms", type=float, default=20.0)
+    parser.add_argument("--clips-per-segment", type=int, default=2,
+                        help="Base clips chained per training segment when --pair")
     parser.add_argument("--min-latent", type=int, default=None,
                         help="Min latent frames per batch crop (default 300)")
     parser.add_argument("--max-latent", type=int, default=None,
@@ -138,11 +140,20 @@ def main() -> None:
         base = Esc50Dataset(args.esc50, audio_length=clip_samples)
 
     crossfade = int(args.crossfade_ms / 1000 * sample_rate)
-    dataset = PairedSegmentDataset(base, crossfade_samples=crossfade) if args.pair else base
+    dataset = (
+        PairedSegmentDataset(
+            base, crossfade_samples=crossfade, clips_per_segment=args.clips_per_segment
+        )
+        if args.pair
+        else base
+    )
     if len(dataset) == 0:
         raise SystemExit("dataset resolved to 0 segments; check --data-root/--esc50/--pair")
+    k = args.clips_per_segment
     segment_samples = (
-        2 * clip_samples - min(crossfade, clip_samples - 1) if args.pair else clip_samples
+        k * clip_samples - (k - 1) * min(crossfade, clip_samples - 1)
+        if args.pair
+        else clip_samples
     )
 
     # Crop window: default 300..750 clamped by what the segments can supply

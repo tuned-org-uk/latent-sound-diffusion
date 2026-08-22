@@ -220,3 +220,35 @@ class TestPairedSegmentDataset:
         item = ds[0]
         assert torch.allclose(item[:, :1000], base[0])
         assert torch.allclose(item[:, 1000:], base[1])
+
+    def test_clips_per_segment_chains_beyond_pairs(self) -> None:
+        """clips_per_segment=k joins k consecutive clips (issue #60: 10 s
+        segments from ~2 s archive one-shots)."""
+        from ald_sc.data import PairedSegmentDataset
+
+        torch.manual_seed(3407)
+        base = ToyAudioDataset(num_samples=9, audio_length=8000)
+        ds = PairedSegmentDataset(
+            base, crossfade_samples=480, clips_per_segment=3
+        )
+        assert len(ds) == 3
+        item = ds[0]
+        expected = 3 * 8000 - 2 * 480
+        assert item.shape == (1, expected)
+
+    def test_clips_per_segment_content_order_preserved(self) -> None:
+        from ald_sc.data import PairedSegmentDataset
+
+        base = ToyAudioDataset(num_samples=6, audio_length=2000)
+        ds = PairedSegmentDataset(base, crossfade_samples=0, clips_per_segment=3)
+        item = ds[1]  # base items 3,4,5
+        assert torch.allclose(item[:, 0:2000], base[3])
+        assert torch.allclose(item[:, 2000:4000], base[4])
+        assert torch.allclose(item[:, 4000:], base[5])
+
+    def test_default_stays_paired(self) -> None:
+        from ald_sc.data import PairedSegmentDataset
+
+        base = ToyAudioDataset(num_samples=4, audio_length=1000)
+        ds = PairedSegmentDataset(base, crossfade_samples=0)
+        assert len(ds) == 2

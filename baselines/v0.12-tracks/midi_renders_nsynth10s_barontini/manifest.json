@@ -1,11 +1,11 @@
 {
   "arm": "midi_materialised",
-  "created_at": "2026-08-22T02:46:45",
-  "git_commit": "b1862a2",
+  "created_at": "2026-08-22T03:05:24",
+  "git_commit": "e419589",
   "torch_version": "2.13.0",
   "device": "mps",
-  "source_bank": "baselines/v0.12-tracks/confirm_a",
-  "checkpoint": null,
+  "source_bank": "/tmp/_nsynth_bank",
+  "checkpoint": "dit_v0.12_nsynth10s.pt",
   "patterns": [
     "arpeggio",
     "chords",

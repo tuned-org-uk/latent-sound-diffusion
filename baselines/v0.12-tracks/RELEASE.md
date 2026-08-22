@@ -76,3 +76,21 @@ tonal sources. Perceptual judgement = listening pass.
 ## Integrity
 
     shasum -a 256 -c SHA256SUMS
+
+## Studio-archive model + Barontini A/B (post-review additions)
+
+- `dit_v0.12_nsynth10s.pt` — v0.12 trained on the **producer archive**
+  (LSD-studio NSynth bundle at ~/code/LSD-studio/sound-archive, 38
+  chained 9.9 s segments via clips_per_segment=5, crops 300–744, 200
+  epochs on MPS, loss 26.0 → 2.7). Same timbre family as the studio's
+  in-app training; v0.12 length and precision.
+- `midi_renders_barontini/` — ESC-50 checkpoint bank regenerated under
+  the Barontini heat-death clock (eps=1e-2 normalized), then
+  materialised: compare directly against `midi_renders/` (same
+  patterns/seeds, fixed-step bank).
+- `midi_renders_nsynth10s/` and `midi_renders_nsynth10s_barontini/` —
+  the same four patterns from the studio-archive checkpoint,
+  fixed-step vs clock-on banks.
+
+Parity caveat: decoder + prior remain ESC-50-trained; full studio-parity
+timbre additionally wants an archive-matched decoder retrain (#60).

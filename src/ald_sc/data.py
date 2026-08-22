@@ -348,42 +348,56 @@ class Esc50Dataset(Dataset):
 
 
 class PairedSegmentDataset(Dataset):
-    """Virtual double-length segments from a base dataset of short clips.
+    """Virtual k-times-longer segments from a base dataset of short clips.
 
-    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power
-    crossfade in the waveform domain (see ``ald_sc.stitching``), so an
+    Item ``i`` joins base items ``[k·i, k·(i+1))`` with equal-power
+    crossfades in the waveform domain (see ``ald_sc.stitching``), so an
     archive of short clips can feed long-form training without zero
-    padding. The last clip is dropped when the base length is odd.
+    padding. Trailing clips are dropped when they do not fill a segment.
 
     Parameters
     ----------
     base : Dataset
         Dataset yielding (1, T) waveforms.
     crossfade_samples : int
-        Overlap between the two joined clips, clamped to fit.
+        Overlap between consecutive joined clips, clamped to fit.
+    clips_per_segment : int
+        Number of base clips chained into one segment (2 = the original
+        pairing; 5 × 2 s one-shots ≈ a 10 s stem).
     """
 
-    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:
+    def __init__(
+        self,
+        base: Dataset,
+        crossfade_samples: int = 480,
+        clips_per_segment: int = 2,
+    ) -> None:
         if crossfade_samples < 0:
             raise ValueError(
                 f"crossfade_samples must be >= 0; got {crossfade_samples}"
             )
+        if clips_per_segment < 2:
+            raise ValueError(
+                f"clips_per_segment must be >= 2; got {clips_per_segment}"
+            )
         self.base = base
         self.crossfade_samples = int(crossfade_samples)
+        self.clips_per_segment = int(clips_per_segment)
 
     def __len__(self) -> int:
-        return len(self.base) // 2
+        return len(self.base) // self.clips_per_segment
 
     def __getitem__(self, index: int) -> Tensor:
-        first = self.base[2 * index]
-        second = self.base[2 * index + 1]
+        start = index * self.clips_per_segment
+        group = [
+            self.base[start + i] for i in range(self.clips_per_segment)
+        ]
         overlap = min(
-            self.crossfade_samples,
-            int(first.shape[-1]) - 1,
-            int(second.shape[-1]) - 1,
+            [self.crossfade_samples]
+            + [int(g.shape[-1]) - 1 for g in group]
         )
         overlap = max(overlap, 0)
-        return equal_power_overlap_add([first, second], overlap=overlap)
+        return equal_power_overlap_add(group, overlap=overlap)
 
 
 def build_audio_dataloader(
