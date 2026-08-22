@@ -20,17 +20,17 @@
     },
     "cost": 1.2550746,
     "tokens": {
-      "input": 4987805,
-      "output": 159593,
+      "input": 4988592,
+      "output": 160350,
       "reasoning": 32056,
       "cache": {
-        "read": 87550818,
+        "read": 88236066,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787364549376
+      "updated": 1787364591854
     }
   },
   "messages": [
@@ -51098,19 +51098,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 343141,
+          "input": 383,
+          "output": 294,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 342464
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787364549375
+          "created": 1787364549375,
+          "completed": 1787364591839
         },
+        "finish": "tool-calls",
         "id": "msg_0273aa2ff002TBxlUAX0ZbRgcb",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -51127,21 +51130,116 @@
           "tool": "bash",
           "callID": "call_874846844c6c41b987528521",
           "state": {
-            "metadata": {
-              "output": "334 passed, 1 warning in 4.53s\n"
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "uv run pytest tests/ -q 2>&1 | tail -1 && git add baselines/v0.12-tracks scripts/materialise_midi.py scripts/train_audio_longform.py src/ald_sc/data.py tests/test_audio_data.py && git commit -q -m \"feat(v0.12): studio-archive training + Barontini A/B bundle\n\n- PairedSegmentDataset generalized to clips_per_segment=k (5 x 2 s\n  one-shots -> ~9.9 s segments); --clips-per-segment wired into the\n  longform trainer\n- trained dit_v0.12_nsynth10s on the LSD-studio producer archive\n  (~/code/LSD-studio sound-archive NSynth bundle): 38 chained 9.9 s\n  segments, crops 300-744, 200 epochs MPS, loss 26.0 -> 2.7\n- materialise_midi: --barontini regenerates the bank under the clock;\n  A/B bundles midi_renders_barontini (ESC-50 ckpt), midi_renders_\n  nsynth10s{,_barontini} (studio-archive ckpt) + digests\n\nTests: 334 passing.\" && git push origin v0.12-tentative 2>&1 | tail -1",
               "timeout": 180000
             },
+            "output": "334 passed, 1 warning in 4.53s\n   b1862a2..a6e9afc  v0.12-tentative -> v0.12-tentative\n",
+            "metadata": {
+              "output": "334 passed, 1 warning in 4.53s\n   b1862a2..a6e9afc  v0.12-tentative -> v0.12-tentative\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run pytest tests/ -q 2>&1 | tail -1 && git add baselines/v0.12-tracks scripts/materialise_midi.py scripts/train_audio_longform.py src/ald_sc/data.py tests/test_audio_data.py && git commit -q -m \"feat(v0.12): studio-archive training + Barontini A/B bundle\n\n- PairedSegmentDataset generalized to clips_per_segment=k (5 x 2 s\n  one-shots -> ~9.9 s segments); --clips-per-segment wired into the\n  longform trainer\n- trained dit_v0.12_nsynth10s on the LSD-studio producer archive\n  (~/code/LSD-studio sound-archive NSynth bundle): 38 chained 9.9 s\n  segments, crops 300-744, 200 epochs MPS, loss 26.0 -> 2.7\n- materialise_midi: --barontini regenerates the bank under the clock;\n  A/B bundles midi_renders_barontini (ESC-50 ckpt), midi_renders_\n  nsynth10s{,_barontini} (studio-archive ckpt) + digests\n\nTests: 334 passing.\" && git push origin v0.12-tentative 2>&1 | tail -1",
             "time": {
-              "start": 1787364574690
+              "start": 1787364591721,
+              "end": 1787364591723
             }
           },
           "id": "prt_0273af212001YgTqLmQFvIEKO5",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_0273aa2ff002TBxlUAX0ZbRgcb"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "86e5f7aa49bda693b8db8e6875c24848c1827775",
+          "type": "step-finish",
+          "tokens": {
+            "total": 343141,
+            "input": 383,
+            "output": 294,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 342464
+            }
+          },
+          "cost": 0,
+          "id": "prt_0273b48a7001f3ZDcgL0c1ziCM",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0273aa2ff002TBxlUAX0ZbRgcb"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02739551a001zGPYfV2usTTE3p",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 343651,
+          "input": 404,
+          "output": 463,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 342784
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787364591854,
+          "completed": 1787364608265
+        },
+        "finish": "stop",
+        "id": "msg_0273b48ee002TPJ6jx5I6Z16tb",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "86e5f7aa49bda693b8db8e6875c24848c1827775",
+          "type": "step-start",
+          "id": "prt_0273b62760018Tr8Wh4ezTfVfe",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0273b48ee002TPJ6jx5I6Z16tb"
+        },
+        {
+          "type": "text",
+          "text": "**Pushed (`a6e9afc`).** Your wish — v0.11 sound with v0.12 length/precision — now has a concrete artifact to judge:\n\n## The listening matrix (all in `baselines/v0.12-tracks/`)\n\n| Directory | Model | Bank sampling | What it isolates |\n|---|---|---|---|\n| `midi_renders/` | ESC-50 v0.12 | fixed 50-step | baseline for comparison |\n| `midi_renders_barontini/` | ESC-50 v0.12 | **Barontini clock** (ε=1e-2) | clock effect alone — same patterns/seeds |\n| `midi_renders_nsynth10s/` | **studio-archive v0.12** | fixed 50-step | timbre family vs ESC-50 |\n| `midi_renders_nsynth10s_barontini/` | studio-archive v0.12 | Barontini clock | full combination |\n| `midi_renders/v0.11-baseline/` | studio v0.11 renders | — | your reference point |\n\nEach dir has the same four patterns (arpeggio/chords/scale/melody, root 60, 100 BPM).\n\n**What changed under the hood:** the new checkpoint trained on the **producer archive from `~/code/LSD-studio/sound-archive`** (196 NSynth one-shots chained ×5 into 38 segments of 9.9 s), crops 300–744 frames, loss 26→2.7 on MPS in ~6 minutes. Plus the Barontini clock is now genuinely threaded through `LSDModel` — every latent trajectory consults the normalized heat-death criterion, and `--barontini` regenerates banks under it.\n\n**Honest caveat:** decoder + prior are still ESC-50-trained, so some timbre ceiling remains; full parity wants an archive-matched decoder retrain (~hours, tracked on #60). Listen first to `midi_renders_nsynth10s/` vs the v0.11-baseline — that gap tells us whether a decoder retrain is worth launching.",
+          "time": {
+            "start": 1787364598392,
+            "end": 1787364608139
+          },
+          "id": "prt_0273b627800136atFyp7JJeBz7",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0273b48ee002TPJ6jx5I6Z16tb"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "86e5f7aa49bda693b8db8e6875c24848c1827775",
+          "type": "step-finish",
+          "tokens": {
+            "total": 343651,
+            "input": 404,
+            "output": 463,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 342784
+            }
+          },
+          "cost": 0,
+          "id": "prt_0273b88cd001cX8K66cz80qfHo",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0273b48ee002TPJ6jx5I6Z16tb"
         }
       ]
     }
