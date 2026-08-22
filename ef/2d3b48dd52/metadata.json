@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "ef2d3b48dd52",
+  "strategy": "manual-commit",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "baselines/v0.12-tracks/RELEASE.md",
+    "scripts/eval_track_metrics.py",
+    "src/ald_sc/config.py",
+    "src/ald_sc/eval_stats.py",
+    "tests/test_inference.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ef/2d3b48dd52/0/metadata.json",
+      "transcript": "/ef/2d3b48dd52/0/full.jsonl",
+      "compact_transcript": "/ef/2d3b48dd52/0/transcript.jsonl",
+      "content_hash": "/ef/2d3b48dd52/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
