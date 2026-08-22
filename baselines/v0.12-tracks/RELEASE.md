@@ -94,3 +94,12 @@ tonal sources. Perceptual judgement = listening pass.
 
 Parity caveat: decoder + prior remain ESC-50-trained; full studio-parity
 timbre additionally wants an archive-matched decoder retrain (#60).
+
+### Clock A/B perceptual result
+
+Listening verdict: no perceivable difference between fixed-step and
+clock-on renders. Consistent with the math — at eps=1e-2 normalized the
+criterion fires only when remaining dissipation < 1%, i.e. in the last
+~2% of the sigma ladder. The clock is architecturally engaged (spy
+tests) but perceptually inert at this threshold. Audible regimes to try
+next: eps in [0.05, 0.3] (early artistic stop) or short max-step budgets.
