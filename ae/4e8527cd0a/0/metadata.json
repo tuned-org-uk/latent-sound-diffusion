@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "ae4e8527cd0a",
+  "session_id": "ses_fda918e0bfferlKKhnjm13lC2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-22T00:25:44.35491Z",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "autoresearch/predict-260821-2359/debate.md",
+    "autoresearch/predict-260821-2359/handoff.json",
+    "autoresearch/predict-260821-2359/summary.md"
+  ],
+  "agent": "OpenCode",
+  "model": "x-preview-f-free",
+  "turn_id": "80cbce1f9bc8",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 2100816,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 30103104,
+    "output_tokens": 92271,
+    "api_call_count": 231
+  },
+  "session_metrics": {
+    "turn_count": 19
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-22T00:25:44.267201Z",
+    "agent_lines": 227,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 227,
+    "total_lines_changed": 227,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
