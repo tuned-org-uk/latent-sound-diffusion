@@ -3,7 +3,7 @@
   "checkpoint_id": "08665379f29a",
   "strategy": "manual-commit",
   "branch": "fix/stopvar-degenerate-issue-62",
-  "checkpoints_count": 18,
+  "checkpoints_count": 19,
   "files_touched": [
     "tests/test_eval.py"
   ],
@@ -21,6 +21,13 @@
       "compact_transcript": "/08/665379f29a/1/transcript.jsonl",
       "content_hash": "/08/665379f29a/1/content_hash.txt",
       "prompt": "/08/665379f29a/1/prompt.txt"
+    },
+    {
+      "metadata": "/08/665379f29a/2/metadata.json",
+      "transcript": "/08/665379f29a/2/full.jsonl",
+      "compact_transcript": "/08/665379f29a/2/transcript.jsonl",
+      "content_hash": "/08/665379f29a/2/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
