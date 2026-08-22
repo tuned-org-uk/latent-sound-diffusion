@@ -242,4 +242,3 @@ baselines/**/*.pt
 
 # release bundle: v0.12 track artifacts are canonical, keep them
 !baselines/v0.12-tracks/**
-baselines/**/.DS_Store
