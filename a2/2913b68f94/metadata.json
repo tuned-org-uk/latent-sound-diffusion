@@ -3,7 +3,7 @@
   "checkpoint_id": "a22913b68f94",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 6,
+  "checkpoints_count": 7,
   "files_touched": [
     "scripts/generate_longform.py",
     "src/ald_sc/inference.py"
@@ -49,6 +49,13 @@
       "transcript": "/a2/2913b68f94/5/full.jsonl",
       "compact_transcript": "/a2/2913b68f94/5/transcript.jsonl",
       "content_hash": "/a2/2913b68f94/5/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/a2/2913b68f94/6/metadata.json",
+      "transcript": "/a2/2913b68f94/6/full.jsonl",
+      "compact_transcript": "/a2/2913b68f94/6/transcript.jsonl",
+      "content_hash": "/a2/2913b68f94/6/content_hash.txt",
       "prompt": ""
     }
   ],
