@@ -13,11 +13,15 @@ from ald_sc.eval_stats import (
 
 
 class TestCrossClipFrameExcess:
-    def _clouds(self, *centers: torch.Tensor, k: int = 16, dim: int = 8) -> list[torch.Tensor]:
+    def _clouds(
+        self, *centers: torch.Tensor, k: int = 16, dim: int = 8
+    ) -> list[torch.Tensor]:
         clouds = []
         for c in centers:
             base = torch.nn.functional.normalize(c, dim=-1)
-            spread = 0.01 * torch.randn(k, dim, generator=torch.Generator().manual_seed(3407))
+            spread = 0.01 * torch.randn(
+                k, dim, generator=torch.Generator().manual_seed(3407)
+            )
             clouds.append(torch.nn.functional.normalize(base + spread, dim=-1))
         return clouds
 
@@ -40,7 +44,9 @@ class TestCrossClipFrameExcess:
 
 
 class TestBootstrapFadCi:
-    def _feats(self, n: int, dim: int = 16, shift: float = 0.0, seed: int = 7) -> torch.Tensor:
+    def _feats(
+        self, n: int, dim: int = 16, shift: float = 0.0, seed: int = 7
+    ) -> torch.Tensor:
         g = torch.Generator().manual_seed(seed)
         feats = torch.randn(n, dim, generator=g)
         return feats + shift
@@ -50,17 +56,18 @@ class TestBootstrapFadCi:
         # Resampling-with-replacement shrinks covariance slightly, so the
         # FAD-proxy of bootstrapped identical sets sits near (not exactly
         # at) zero; what matters is that the whole CI stays small.
-        low, high = bootstrap_fad_ci(ref.clone(), ref, n_boot=100,
-                                     alpha=0.05, seed=3407)
+        low, high = bootstrap_fad_ci(
+            ref.clone(), ref, n_boot=100, alpha=0.05, seed=3407
+        )
         assert 0.0 <= low <= high < 25.0
 
     def test_shifted_set_ci_sits_above_identical_set_ci(self) -> None:
         ref = self._feats(64)
-        low_same, _ = bootstrap_fad_ci(ref.clone(), ref, n_boot=100,
-                                       alpha=0.05, seed=3407)
+        low_same, _ = bootstrap_fad_ci(
+            ref.clone(), ref, n_boot=100, alpha=0.05, seed=3407
+        )
         arm = self._feats(64, shift=12.0, seed=99)
-        low_shift, _ = bootstrap_fad_ci(arm, ref, n_boot=100,
-                                        alpha=0.05, seed=3407)
+        low_shift, _ = bootstrap_fad_ci(arm, ref, n_boot=100, alpha=0.05, seed=3407)
         assert low_shift > low_same + 50
 
     def test_shifted_set_excludes_zero_above(self) -> None:
