@@ -3,7 +3,7 @@
   "checkpoint_id": "2b64fe84ed81",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "scripts/generate_longform.py"
   ],
@@ -20,6 +20,13 @@
       "transcript": "/2b/64fe84ed81/1/full.jsonl",
       "compact_transcript": "/2b/64fe84ed81/1/transcript.jsonl",
       "content_hash": "/2b/64fe84ed81/1/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/2b/64fe84ed81/2/metadata.json",
+      "transcript": "/2b/64fe84ed81/2/full.jsonl",
+      "compact_transcript": "/2b/64fe84ed81/2/transcript.jsonl",
+      "content_hash": "/2b/64fe84ed81/2/content_hash.txt",
       "prompt": ""
     }
   ],
