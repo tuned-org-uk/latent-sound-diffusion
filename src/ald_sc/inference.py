@@ -36,6 +36,7 @@ from ald_sc.arrow_prior import ArrowSpacePrior
 from ald_sc.audio_codec import BaselineAudioDecoder, EnCodecEncoder
 from ald_sc.schedule import CosineSchedule
 from ald_sc.sampling import sample_ddim
+from ald_sc.spectral_schedule import SpectralSchedule
 
 configure_logging()
 
@@ -225,6 +226,7 @@ class LSDModel:
         encoder: EnCodecEncoder,
         schedule: CosineSchedule,
         sample_rate: int = 24000,
+        spectral_schedule: SpectralSchedule | None = None,
     ) -> None:
         self.prior = prior
         self.dit = dit
@@ -232,6 +234,10 @@ class LSDModel:
         self.encoder = encoder
         self.schedule = schedule
         self.sample_rate = sample_rate
+        # Barontini heat-death clock (paper §5): when given, every latent
+        # trajectory this model samples terminates on the normalized
+        # remaining-dissipation criterion instead of a fixed step count.
+        self.spectral_schedule = spectral_schedule
         self._is_baseline = isinstance(decoder, BaselineAudioDecoder)
 
     def store(
@@ -296,6 +302,12 @@ class LSDModel:
         """Sample (or use a provided) latent and decode it to a waveform."""
         device = next(self.dit.parameters()).device
 
+        # Keep the prior on the working device: callers assemble the model
+        # from separately-loaded artefacts and may move some but not all.
+        prior_device = next(self.prior.buffers()).device
+        if prior_device != device:
+            self.prior = self.prior.to(device)
+
         if z_init is None:
             z = sample_ddim(
                 self.dit,
@@ -304,6 +316,7 @@ class LSDModel:
                 steps=steps,
                 seed=seed,
                 device=device,
+                spectral_schedule=self.spectral_schedule,
             )
         else:
             z = z_init.to(device)
@@ -346,6 +359,7 @@ class LSDModel:
                     steps=steps,
                     seed=seed + i,
                     device=device,
+                    spectral_schedule=self.spectral_schedule,
                 )
                 for i in range(n)
             ]
@@ -357,6 +371,7 @@ class LSDModel:
             steps=steps,
             seed=seed,
             device=device,
+            spectral_schedule=self.spectral_schedule,
         )
 
         if bank_mode == "jitter":
@@ -377,6 +392,7 @@ class LSDModel:
                     steps=steps,
                     seed=seed + i,
                     device=device,
+                    spectral_schedule=self.spectral_schedule,
                 )
                 for i in range(1, n)
             ]
@@ -409,6 +425,7 @@ class LSDModel:
                 steps=s,
                 seed=seed,
                 device=device,
+                spectral_schedule=self.spectral_schedule,
             )
             for s in grid
         ]

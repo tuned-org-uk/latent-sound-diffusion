@@ -44,7 +44,9 @@ def _git_commit() -> str:
         return "unknown"
 
 
-def pattern_arpeggio(root: int, bars: int, bpm: float) -> list[tuple[int, float, float]]:
+def pattern_arpeggio(
+    root: int, bars: int, bpm: float
+) -> list[tuple[int, float, float]]:
     """Eighth-note up-down arpeggio over the major triad + octave."""
     step = 60.0 / bpm / 2.0
     seq = [0, 4, 7, 12, 7, 4]
@@ -70,9 +72,7 @@ def pattern_scale(root: int, bars: int, bpm: float) -> list[tuple[int, float, fl
     """Quarter-note ascending major scale, two octaves."""
     step = 60.0 / bpm
     notes = [root + MAJOR[i % 7] + 12 * (i // 7) for i in range(14)]
-    return [
-        (n, i * step, step * 0.9) for i, n in enumerate(notes[: int(bars * 4)])
-    ]
+    return [(n, i * step, step * 0.9) for i, n in enumerate(notes[: int(bars * 4)])]
 
 
 def pattern_melody(root: int, bars: int, bpm: float) -> list[tuple[int, float, float]]:
@@ -100,29 +100,61 @@ PATTERNS = {
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="MIDI materialise a bank")
-    parser.add_argument("--bank", type=str, required=True,
-                        help="Directory of bank .wav clips")
+    parser.add_argument(
+        "--bank", type=str, required=True, help="Directory of bank .wav clips"
+    )
     parser.add_argument("--out-dir", type=str, required=True)
-    parser.add_argument("--dit", type=str, default=None,
-                        help="Checkpoint backing the bank (provenance only)")
+    parser.add_argument(
+        "--dit",
+        type=str,
+        default=None,
+        help="Checkpoint backing the bank (provenance only)",
+    )
     parser.add_argument("--prior", type=str, default="results/artifacts/esc50_prior.pt")
-    parser.add_argument("--graph-dec", type=str, default="results/artifacts/esc50_graph_dec.pt")
+    parser.add_argument(
+        "--graph-dec", type=str, default="results/artifacts/esc50_graph_dec.pt"
+    )
     parser.add_argument("--metadata", type=str, default=None)
-    parser.add_argument("--patterns", type=str, default="all",
-                        help="Comma list from: " + ", ".join(PATTERNS))
+    parser.add_argument(
+        "--patterns",
+        type=str,
+        default="all",
+        help="Comma list from: " + ", ".join(PATTERNS),
+    )
     parser.add_argument("--root", type=int, default=60)
     parser.add_argument("--bars", type=int, default=4)
     parser.add_argument("--bpm", type=float, default=100.0)
     parser.add_argument("--max-clips", type=int, default=8)
     parser.add_argument("--sample-rate", type=int, default=24000)
     parser.add_argument("--device", type=str, default="auto")
+    parser.add_argument(
+        "--barontini",
+        action="store_true",
+        help="Regenerate the bank with the Barontini "
+        "heat-death clock (SpectralSchedule) instead of "
+        "loading --bank wavs; requires --dit",
+    )
+    parser.add_argument(
+        "--clock-eps",
+        type=float,
+        default=1e-2,
+        help="Normalized remaining-dissipation threshold",
+    )
+    parser.add_argument("--clock-horizon", type=float, default=1.0)
+    parser.add_argument(
+        "--seed-start",
+        type=int,
+        default=901200,
+        help="Seed block for regenerated banks",
+    )
     args = parser.parse_args()
 
     device = (
         torch.device(args.device)
         if args.device != "auto"
         else torch.device(
-            "cuda" if torch.cuda.is_available()
+            "cuda"
+            if torch.cuda.is_available()
             else ("mps" if torch.backends.mps.is_available() else "cpu")
         )
     )
@@ -151,9 +183,11 @@ def main() -> None:
         if args.dit
         else "baselines/v0.12-tracks/dit_v0.12_10s_metadata.json"
     )
-    geo = json.loads(geo_path.read_text())["geometry"] if geo_path.exists() else {
-        "latent_channels": 128
-    }
+    geo = (
+        json.loads(geo_path.read_text())["geometry"]
+        if geo_path.exists()
+        else {"latent_channels": 128}
+    )
     prior = load_arrow_prior(args.prior).to(device)
     graph_dec = GraphDecoder(
         latent_channels=int(geo.get("latent_channels", 128)),
@@ -163,19 +197,79 @@ def main() -> None:
         prior=prior,
         upsample_strides=(2, 4, 5, 8),
     )
-    state_dict = torch.load(args.graph_dec, weights_only=True, map_location="cpu") if args.graph_dec else None
+    state_dict = (
+        torch.load(args.graph_dec, weights_only=True, map_location="cpu")
+        if args.graph_dec
+        else None
+    )
     if state_dict:
         graph_dec.load_state_dict(state_dict)
     graph_dec = graph_dec.to(device).eval()
 
+    if args.barontini:
+        if not args.dit:
+            raise SystemExit("--barontini requires --dit (bank is regenerated)")
+        meta_path = Path(args.dit).with_name(Path(args.dit).stem + "_metadata.json")
+        geo_dit = (
+            json.loads(meta_path.read_text())["geometry"]
+            if meta_path.exists()
+            else {
+                "latent_channels": 128,
+                "latent_length": 375,
+                "patch_size": 8,
+                "dim": 256,
+                "depth": 4,
+                "num_heads": 4,
+                "spec_dim": 24,
+            }
+        )
+        dit = MinimalDiT(
+            latent_channels=int(geo_dit["latent_channels"]),
+            latent_length=int(geo_dit["latent_length"]),
+            patch_size=int(geo_dit["patch_size"]),
+            dim=int(geo_dit["dim"]),
+            depth=int(geo_dit["depth"]),
+            num_heads=int(geo_dit["num_heads"]),
+            spec_dim=int(geo_dit["spec_dim"]),
+        )
+        from ald_sc.config import validate_dit_state_dict
+
+        state_dict = torch.load(args.dit, weights_only=True, map_location="cpu")
+        validate_dit_state_dict(
+            state_dict,
+            latent_channels=int(geo_dit["latent_channels"]),
+            latent_length=int(geo_dit["latent_length"]),
+            patch_size=int(geo_dit["patch_size"]),
+        )
+        dit.load_state_dict(state_dict)
+        dit = dit.to(device).eval()
+    else:
+        dit = MinimalDiT(latent_channels=128)  # unused: bank comes from wavs
+
     model = LSDModel(
         prior=prior,
-        dit=MinimalDiT(latent_channels=128),  # unused on this path
+        dit=dit,
         decoder=graph_dec,
         encoder=EnCodecEncoder(),
         schedule=CosineSchedule(num_steps=1000),
         sample_rate=args.sample_rate,
     )
+
+    if args.barontini:
+        from ald_sc.spectral_schedule import SpectralSchedule
+
+        model.spectral_schedule = SpectralSchedule(
+            prior, horizon=args.clock_horizon, eps=args.clock_eps
+        )
+        print(
+            f"Barontini clock engaged: eps={args.clock_eps}, "
+            f"horizon={args.clock_horizon}; regenerating bank from {args.dit}"
+        )
+        bank = model.generate_sound_bank(
+            n=max(1, args.max_clips),
+            steps=50,
+            seed=args.seed_start,
+        )
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -193,8 +287,12 @@ def main() -> None:
         )
         dur = render.shape[-1] / args.sample_rate
         entries.append(
-            {"file": fname, "pattern": name.strip(), "duration_s": round(dur, 2),
-             "events": len(events)}
+            {
+                "file": fname,
+                "pattern": name.strip(),
+                "duration_s": round(dur, 2),
+                "events": len(events),
+            }
         )
         print(f"{fname}: {len(events)} events, {dur:.2f}s")
 

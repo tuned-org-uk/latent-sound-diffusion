@@ -566,3 +566,61 @@ class TestResample1dAnchored:
         dt = time.monotonic() - t0
         assert out.shape[-1] == int(239040 * 2 ** (-1 / 12))
         assert dt < 5.0, f"transposing a 10 s clip took {dt:.1f}s"
+
+
+class TestBarontiniClockThreading:
+    """The spectral (heat-death) clock must engage during inference.
+
+    v0.11/v0.12-pre accepted spectral_schedule in the samplers but the
+    LSDModel contract never passed one, so every generated latent used
+    fixed-step stopping. Issue #60 deferred bundle: thread it through.
+    """
+
+    def test_bank_generation_consults_heat_death_criterion(self) -> None:
+        from ald_sc.spectral_schedule import SpectralSchedule
+
+        m = _make_model()
+        calls = {"n": 0}
+
+        class SpySchedule(SpectralSchedule):
+            def is_heat_death(self, t):
+                calls["n"] += 1
+                return False
+
+        spy = SpySchedule(m.prior, horizon=1.0, eps=1e-3)
+        m.spectral_schedule = spy
+
+        bank = m.generate_sound_bank(n=1, steps=6, seed=3407)
+        assert bank[0].shape[-1] > 0
+        assert calls["n"] >= 6, (
+            f"heat-death criterion consulted {calls['n']} times over a "
+            "6-step trajectory; clock is not threaded into sampling"
+        )
+
+    def test_heat_death_stop_produces_shorter_trajectory(self) -> None:
+        from ald_sc.spectral_schedule import SpectralSchedule
+
+        torch.manual_seed(3407)
+        m = _make_model()
+
+        class EarlyDeath(SpectralSchedule):
+            def __init__(self, *a, **kw):
+                super().__init__(*a, **kw)
+                self.calls = 0
+
+            def is_heat_death(self, t):
+                self.calls += 1
+                return self.calls > 2  # die right after the second step
+
+        clock = EarlyDeath(m.prior, horizon=1.0, eps=1e-3)
+        m.spectral_schedule = clock
+
+        bank = m.generate_sound_bank(n=1, steps=20, seed=3407)
+        assert clock.calls <= 4, "clock must terminate the trajectory early"
+        # Stopping is temporal, not spatial: decode still yields the full
+        # audio length (under-denoised content is a quality matter).
+        assert bank[0].shape[-1] == m.dit.latent_shape[-1] * 320
+
+    def test_default_model_has_no_clock(self) -> None:
+        m = _make_model()
+        assert m.spectral_schedule is None
