@@ -3,7 +3,7 @@
   "checkpoint_id": "3ec6ef21312f",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "baselines/v0.12-tracks/RELEASE.md",
     "baselines/v0.12-tracks/SHA256SUMS",
@@ -36,6 +36,13 @@
       "transcript": "/3e/c6ef21312f/2/full.jsonl",
       "compact_transcript": "/3e/c6ef21312f/2/transcript.jsonl",
       "content_hash": "/3e/c6ef21312f/2/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/3e/c6ef21312f/3/metadata.json",
+      "transcript": "/3e/c6ef21312f/3/full.jsonl",
+      "compact_transcript": "/3e/c6ef21312f/3/transcript.jsonl",
+      "content_hash": "/3e/c6ef21312f/3/content_hash.txt",
       "prompt": ""
     }
   ],
