@@ -3,7 +3,7 @@
   "checkpoint_id": "120c9966f423",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 7,
+  "checkpoints_count": 8,
   "files_touched": [
     "baselines/v0.12-tracks/.DS_Store",
     "baselines/v0.12-tracks/RELEASE.md",
@@ -224,13 +224,20 @@
       "compact_transcript": "/12/0c9966f423/6/transcript.jsonl",
       "content_hash": "/12/0c9966f423/6/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/12/0c9966f423/7/metadata.json",
+      "transcript": "/12/0c9966f423/7/full.jsonl",
+      "compact_transcript": "/12/0c9966f423/7/transcript.jsonl",
+      "content_hash": "/12/0c9966f423/7/content_hash.txt",
+      "prompt": "/12/0c9966f423/7/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
+    "input_tokens": 6133,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "cache_read_tokens": 2814400,
+    "output_tokens": 3213,
+    "api_call_count": 14
   }
 }
