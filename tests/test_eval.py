@@ -515,7 +515,10 @@ class TestRecursiveVariantDrift:
             assert r["rolloff_mean_hz"] > 0.0
             assert r["clap_distance_to_round0"] >= 0.0
         assert rows[0]["round"] == 0
-        assert rows[0]["clap_distance_to_round0"] == 0.0
+        # Round 0's CLAP-proxy distance to itself is zero up to float32
+        # round-off (1 - cos_sim of recomputed identical features); exact
+        # equality flakes across platforms (issue #62 CI run, ~6e-8).
+        assert rows[0]["clap_distance_to_round0"] < 1e-6
         assert [r["round"] for r in rows] == [0, 1, 2]
 
     def test_true_recursion_feeds_output_back(self) -> None:

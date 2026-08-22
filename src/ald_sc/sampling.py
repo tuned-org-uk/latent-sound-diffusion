@@ -177,6 +177,7 @@ def sample_ddim(
     device: torch.device = ...,
     spectral_schedule: SpectralSchedule | None = ...,
     return_steps: Literal[False] = ...,
+    stop_sigma: int | None = ...,
 ) -> Tensor: ...
 
 
@@ -191,6 +192,7 @@ def sample_ddim(
     device: torch.device = ...,
     spectral_schedule: SpectralSchedule | None = ...,
     return_steps: Literal[True] = ...,
+    stop_sigma: int | None = ...,
 ) -> tuple[Tensor, int]: ...
 
 
@@ -205,6 +207,7 @@ def sample_ddim(
     device: torch.device = torch.device("cpu"),
     spectral_schedule: SpectralSchedule | None = None,
     return_steps: bool = False,
+    stop_sigma: int | None = None,
 ) -> Tensor | tuple[Tensor, int]:
     """DDIM-style deterministic sampler for latent diffusion.
 
@@ -222,6 +225,13 @@ def sample_ddim(
     spectral_schedule : SpectralSchedule, optional
     return_steps : bool
         If True, return (z, steps_used).
+    stop_sigma : int, optional
+        Schedule timestep at which integration halts (issue #62). When
+        given, the sigma ladder is truncated so the final update lands on
+        that timestep (or the nearest ladder entry at or above it) and
+        the returned latent stays partially denoised, retaining
+        ``sqrt(1 - ab[t_stop])`` residual noise instead of ending at
+        ``ab == 1``. ``None`` runs the full ladder (default).
 
     Returns
     -------
@@ -234,6 +244,17 @@ def sample_ddim(
         c_spec = c_spec.to(device)
 
     sigmas = schedule.sample_sigmas(steps).to(device)
+
+    if stop_sigma is not None:
+        stop = int(stop_sigma)
+        if not 0 <= stop < schedule.num_steps:
+            raise ValueError(
+                f"stop_sigma must be in [0, {schedule.num_steps}); got {stop_sigma}"
+            )
+        # True early-stop semantics (issue #62): keep only the ladder
+        # entries at or above the stop index, so the final update lands
+        # on ``stop`` instead of running through to ab == 1.
+        sigmas = sigmas[sigmas >= stop]
 
     x = _init_noise(model, batch_size, device, gen)
 
