@@ -20,17 +20,17 @@
     },
     "cost": 1.2550746,
     "tokens": {
-      "input": 4637960,
-      "output": 154590,
-      "reasoning": 31656,
+      "input": 4645415,
+      "output": 158724,
+      "reasoning": 31882,
       "cache": {
-        "read": 83173730,
+        "read": 87208930,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787363586956
+      "updated": 1787364325391
     }
   },
   "messages": [
@@ -49246,7 +49246,155 @@
           "modelID": "x-preview-f-free"
         },
         "summary": {
-          "diffs": []
+          "diffs": [
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_barontini/manifest.json",
+              "patch": "Index: baselines/v0.12-tracks/midi_renders_barontini/manifest.json\n===================================================================\n--- baselines/v0.12-tracks/midi_renders_barontini/manifest.json\t\n+++ baselines/v0.12-tracks/midi_renders_barontini/manifest.json\t\n@@ -0,0 +1,45 @@\n+{\n+  \"arm\": \"midi_materialised\",\n+  \"created_at\": \"2026-08-22T02:58:15\",\n+  \"git_commit\": \"e419589\",\n+  \"torch_version\": \"2.13.0\",\n+  \"device\": \"mps\",\n+  \"source_bank\": \"baselines/v0.12-tracks/confirm_a\",\n+  \"checkpoint\": \"baselines/v0.12-tracks/dit_v0.12_10s.pt\",\n+  \"patterns\": [\n+    \"arpeggio\",\n+    \"chords\",\n+    \"melody\",\n+    \"scale\"\n+  ],\n+  \"root_midi\": 60,\n+  \"bars\": 4,\n+  \"bpm\": 100.0,\n+  \"renders\": [\n+    {\n+      \"file\": \"materialised_arpeggio.wav\",\n+      \"pattern\": \"arpeggio\",\n+      \"duration_s\": 9.59,\n+      \"events\": 32\n+    },\n+    {\n+      \"file\": \"materialised_chords.wav\",\n+      \"pattern\": \"chords\",\n+      \"duration_s\": 9.55,\n+      \"events\": 12\n+    },\n+    {\n+      \"file\": \"materialised_melody.wav\",\n+      \"pattern\": \"melody\",\n+      \"duration_s\": 9.59,\n+      \"events\": 24\n+    },\n+    {\n+      \"file\": \"materialised_scale.wav\",\n+      \"pattern\": \"scale\",\n+      \"duration_s\": 8.34,\n+      \"events\": 14\n+    }\n+  ],\n+  \"protocol\": \"PROTOCOL_10S.md\"\n+}\n\\ No newline at end of file\n",
+              "additions": 45,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_barontini/materialised_arpeggio.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_barontini/materialised_chords.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_barontini/materialised_melody.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_barontini/materialised_scale.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s/manifest.json",
+              "patch": "Index: baselines/v0.12-tracks/midi_renders_nsynth10s/manifest.json\n===================================================================\n--- baselines/v0.12-tracks/midi_renders_nsynth10s/manifest.json\t\n+++ baselines/v0.12-tracks/midi_renders_nsynth10s/manifest.json\t\n@@ -0,0 +1,45 @@\n+{\n+  \"arm\": \"midi_materialised\",\n+  \"created_at\": \"2026-08-22T03:05:22\",\n+  \"git_commit\": \"e419589\",\n+  \"torch_version\": \"2.13.0\",\n+  \"device\": \"mps\",\n+  \"source_bank\": \"/tmp/_nsynth_bank\",\n+  \"checkpoint\": \"dit_v0.12_nsynth10s.pt\",\n+  \"patterns\": [\n+    \"arpeggio\",\n+    \"chords\",\n+    \"melody\",\n+    \"scale\"\n+  ],\n+  \"root_midi\": 60,\n+  \"bars\": 4,\n+  \"bpm\": 100.0,\n+  \"renders\": [\n+    {\n+      \"file\": \"materialised_arpeggio.wav\",\n+      \"pattern\": \"arpeggio\",\n+      \"duration_s\": 9.59,\n+      \"events\": 32\n+    },\n+    {\n+      \"file\": \"materialised_chords.wav\",\n+      \"pattern\": \"chords\",\n+      \"duration_s\": 9.55,\n+      \"events\": 12\n+    },\n+    {\n+      \"file\": \"materialised_melody.wav\",\n+      \"pattern\": \"melody\",\n+      \"duration_s\": 9.59,\n+      \"events\": 24\n+    },\n+    {\n+      \"file\": \"materialised_scale.wav\",\n+      \"pattern\": \"scale\",\n+      \"duration_s\": 8.34,\n+      \"events\": 14\n+    }\n+  ],\n+  \"protocol\": \"PROTOCOL_10S.md\"\n+}\n\\ No newline at end of file\n",
+              "additions": 45,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_arpeggio.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_chords.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_melody.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_scale.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/manifest.json",
+              "patch": "Index: baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/manifest.json\n===================================================================\n--- baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/manifest.json\t\n+++ baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/manifest.json\t\n@@ -0,0 +1,45 @@\n+{\n+  \"arm\": \"midi_materialised\",\n+  \"created_at\": \"2026-08-22T03:05:24\",\n+  \"git_commit\": \"e419589\",\n+  \"torch_version\": \"2.13.0\",\n+  \"device\": \"mps\",\n+  \"source_bank\": \"/tmp/_nsynth_bank\",\n+  \"checkpoint\": \"dit_v0.12_nsynth10s.pt\",\n+  \"patterns\": [\n+    \"arpeggio\",\n+    \"chords\",\n+    \"melody\",\n+    \"scale\"\n+  ],\n+  \"root_midi\": 60,\n+  \"bars\": 4,\n+  \"bpm\": 100.0,\n+  \"renders\": [\n+    {\n+      \"file\": \"materialised_arpeggio.wav\",\n+      \"pattern\": \"arpeggio\",\n+      \"duration_s\": 9.59,\n+      \"events\": 32\n+    },\n+    {\n+      \"file\": \"materialised_chords.wav\",\n+      \"pattern\": \"chords\",\n+      \"duration_s\": 9.55,\n+      \"events\": 12\n+    },\n+    {\n+      \"file\": \"materialised_melody.wav\",\n+      \"pattern\": \"melody\",\n+      \"duration_s\": 9.59,\n+      \"events\": 24\n+    },\n+    {\n+      \"file\": \"materialised_scale.wav\",\n+      \"pattern\": \"scale\",\n+      \"duration_s\": 8.34,\n+      \"events\": 14\n+    }\n+  ],\n+  \"protocol\": \"PROTOCOL_10S.md\"\n+}\n\\ No newline at end of file\n",
+              "additions": 45,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_arpeggio.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_chords.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_melody.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_scale.wav",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "dit_v0.12_nsynth10s.pt",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "dit_v0.12_nsynth10s.safetensors",
+              "patch": "",
+              "additions": 0,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "dit_v0.12_nsynth10s_metadata.json",
+              "patch": "Index: dit_v0.12_nsynth10s_metadata.json\n===================================================================\n--- dit_v0.12_nsynth10s_metadata.json\t\n+++ dit_v0.12_nsynth10s_metadata.json\t\n@@ -0,0 +1,29 @@\n+{\n+  \"created_at\": \"2026-08-22T03:03:29\",\n+  \"script\": \"scripts/train_audio_longform.py\",\n+  \"git_commit\": \"e419589\",\n+  \"torch_version\": \"2.13.0\",\n+  \"device\": \"mps\",\n+  \"resolved_seed\": 3407,\n+  \"geometry\": {\n+    \"latent_channels\": 128,\n+    \"latent_length\": 744,\n+    \"patch_size\": 8,\n+    \"dim\": 64,\n+    \"depth\": 2,\n+    \"num_heads\": 4,\n+    \"num_patches\": 93,\n+    \"spec_dim\": 24\n+  },\n+  \"latent_crop_range\": [\n+    300,\n+    744\n+  ],\n+  \"paired_segments\": true,\n+  \"clip_seconds\": 2.0,\n+  \"crossfade_ms\": 20.0,\n+  \"num_steps_schedule\": 1000,\n+  \"loss_initial\": 25.997024536132812,\n+  \"loss_final\": 2.736126661300659,\n+  \"protocol\": \"PROTOCOL_10S.md\"\n+}\n\\ No newline at end of file\n",
+              "additions": 29,
+              "deletions": 0,
+              "status": "added"
+            },
+            {
+              "file": "scripts/train_audio_longform.py",
+              "patch": "Index: scripts/train_audio_longform.py\n===================================================================\n--- scripts/train_audio_longform.py\t\n+++ scripts/train_audio_longform.py\t\n@@ -1,266 +1,277 @@\n \"\"\"Track-A long-form DiT training (issue #60): variable-length latent crops.\n \n Trains MinimalDiT across a range of latent durations (default 300-750\n EnCodec frames = 4-10 s) using pos-embed interpolation, on segments built\n from short archive clips via equal-power pairing when needed.\n \n Usage:\n     uv run python scripts/train_audio_longform.py \\\n         --data-root sound-archive/ --pair --prior prior.pt \\\n         --min-latent 300 --max-latent 750 --epochs 50 --device auto\n \n Provenance (PROTOCOL_10S.md): resolved seed, git commit, torch version,\n device and full geometry are written next to the checkpoint.\n \"\"\"\n \n from __future__ import annotations\n \n import argparse\n import json\n import subprocess\n from datetime import datetime\n from pathlib import Path\n \n import torch\n \n from ald_sc.build_prior import build_arrow_prior, load_arrow_prior\n from ald_sc.config import load_config, resolve_geometry\n from ald_sc.data import (\n     AudioFolderDataset,\n     Esc50Dataset,\n     MusicSynthDataset,\n     PairedSegmentDataset,\n     build_audio_dataloader,\n )\n from ald_sc.dit import MinimalDiT\n from ald_sc.schedule import CosineSchedule\n from ald_sc.trainer import log_training, train_audio_diffusion\n \n \n def _git_commit() -> str:\n     try:\n         return subprocess.run(\n             [\"git\", \"rev-parse\", \"--short\", \"HEAD\"],\n             capture_output=True,\n             text=True,\n             check=True,\n             timeout=5,\n         ).stdout.strip()\n     except Exception:\n         return \"unknown\"\n \n \n def main() -> None:\n     parser = argparse.ArgumentParser(\n         description=\"Train 1-D DiT over variable-length latents (long-form)\"\n     )\n     parser.add_argument(\"--config\", type=str, default=None,\n                         help=\"YAML config; CLI flags override\")\n     source = parser.add_mutually_exclusive_group(required=True)\n     source.add_argument(\"--data-root\", type=str, default=None)\n     source.add_argument(\"--esc50\", type=str, default=None)\n     source.add_argument(\"--toy\", action=\"store_true\")\n     parser.add_argument(\"--clip-sec\", type=float, default=5.0,\n                         help=\"Base clip length in seconds (dataset level)\")\n     parser.add_argument(\"--pair\", action=\"store_true\",\n                         help=\"Pair consecutive clips into 2x segments \"\n                         \"(equal-power crossfade) for long-form supply\")\n     parser.add_argument(\"--crossfade-ms\", type=float, default=20.0)\n+    parser.add_argument(\"--clips-per-segment\", type=int, default=2,\n+                        help=\"Base clips chained per training segment when --pair\")\n     parser.add_argument(\"--min-latent\", type=int, default=None,\n                         help=\"Min latent frames per batch crop (default 300)\")\n     parser.add_argument(\"--max-latent\", type=int, default=None,\n                         help=\"Max latent frames; also sizes the pos table \"\n                         \"(default 750, clamped to available audio)\")\n     parser.add_argument(\"--prior\", type=str, default=None)\n     parser.add_argument(\"--latent-channels\", type=int, default=None)\n     parser.add_argument(\"--patch-size\", type=int, default=None)\n     parser.add_argument(\"--dim\", type=int, default=None)\n     parser.add_argument(\"--depth\", type=int, default=None)\n     parser.add_argument(\"--num-heads\", type=int, default=None)\n     parser.add_argument(\"--q\", type=int, default=8)\n     parser.add_argument(\"--batch-size\", type=int, default=2)\n     parser.add_argument(\"--steps\", type=int, default=1000)\n     parser.add_argument(\"--epochs\", type=int, default=50)\n     parser.add_argument(\"--lr\", type=float, default=1e-4)\n     parser.add_argument(\"--num-steps\", type=int, default=1000)\n     parser.add_argument(\"--seed\", type=int, default=3407)\n     parser.add_argument(\"--device\", type=str, default=\"auto\",\n                         help=\"auto | cpu | cuda | mps\")\n     parser.add_argument(\"--out\", type=str, default=\"dit_long.pt\")\n     args = parser.parse_args()\n \n     if args.device == \"auto\":\n         device = torch.device(\n             \"cuda\" if torch.cuda.is_available()\n             else (\"mps\" if torch.backends.mps.is_available() else \"cpu\")\n         )\n     else:\n         device = torch.device(args.device)\n     torch.manual_seed(args.seed)\n \n     raw_cfg = load_config(args.config)\n     geometry = resolve_geometry(\n         raw_cfg,\n         overrides={\n             \"latent_channels\": args.latent_channels,\n             \"patch_size\": args.patch_size,\n             \"dim\": args.dim,\n             \"depth\": args.depth,\n             \"num_heads\": args.num_heads,\n         },\n     )\n \n     sample_rate = 24000\n     clip_samples = int(args.clip_sec * sample_rate)\n \n     # Prior (required outside --toy; no silent random fallbacks)\n     if args.prior and Path(args.prior).exists():\n         prior = load_arrow_prior(args.prior)\n     elif args.toy:\n         gen = torch.Generator().manual_seed(args.seed)\n         embeddings = torch.randn(\n             64, int(geometry[\"latent_channels\"]), generator=gen\n         )\n         print(\"WARNING: seeded random fallback prior (--toy only)\")\n         prior = build_arrow_prior(embeddings, q=args.q, k=4)\n     else:\n         raise SystemExit(\n             \"--prior is required (seeded random prior only under --toy)\"\n         )\n     prior = prior.to(device)\n \n     # Dataset\n     if args.toy:\n         base = MusicSynthDataset(num_samples=16, audio_length=clip_samples, seed=args.seed)\n     elif args.data_root:\n         base = AudioFolderDataset(args.data_root, audio_length=clip_samples)\n     else:\n         base = Esc50Dataset(args.esc50, audio_length=clip_samples)\n \n     crossfade = int(args.crossfade_ms / 1000 * sample_rate)\n-    dataset = PairedSegmentDataset(base, crossfade_samples=crossfade) if args.pair else base\n+    dataset = (\n+        PairedSegmentDataset(\n+            base, crossfade_samples=crossfade, clips_per_segment=args.clips_per_segment\n+        )\n+        if args.pair\n+        else base\n+    )\n     if len(dataset) == 0:\n         raise SystemExit(\"dataset resolved to 0 segments; check --data-root/--esc50/--pair\")\n+    k = args.clips_per_segment\n     segment_samples = (\n-        2 * clip_samples - min(crossfade, clip_samples - 1) if args.pair else clip_samples\n+        k * clip_samples - (k - 1) * min(crossfade, clip_samples - 1)\n+        if args.pair\n+        else clip_samples\n     )\n \n     # Crop window: default 300..750 clamped by what the segments can supply\n     available_frames = segment_samples // 320\n     max_latent = args.max_latent or 750\n     min_latent = args.min_latent or 300\n     max_latent = max(1, min(max_latent, available_frames))\n     min_latent = max(1, min(min_latent, max_latent))\n     print(\n         f\"segments={len(dataset)} ({segment_samples / sample_rate:.2f}s each) \"\n         f\"crop range {min_latent}..{max_latent} latent frames\"\n     )\n \n     # Encoder (frozen); stub keeps --toy free of EnCodec downloads\n     if args.toy:\n         from torch import nn\n \n         class StubEncoder(nn.Module):\n             def __init__(self):\n                 super().__init__()\n                 self.proj = nn.Conv1d(1, geometry[\"latent_channels\"], 320, stride=320)\n \n             def encode(self, x, prior):\n                 z = self.proj(x).float()\n                 a = z.mean(dim=2)\n                 c_spec = prior.chart_energy_descriptor(a)\n                 return z, a, c_spec\n \n             def extract_features(self, x):\n                 return self.proj(x).float()\n \n         encoder = StubEncoder()\n     else:\n         from ald_sc.audio_codec import EnCodecEncoder\n \n         encoder = EnCodecEncoder()\n \n     class _EncoderOnly(torch.nn.Module):\n         \"\"\"Trainer contract needs only `.encoder`; no decoder is trained here.\"\"\"\n \n         def __init__(self, enc):\n             super().__init__()\n             self.encoder = enc\n \n     vae = _EncoderOnly(encoder)\n \n     dit = MinimalDiT(\n         latent_channels=geometry[\"latent_channels\"],\n         latent_length=max_latent,\n         patch_size=geometry[\"patch_size\"],\n         dim=geometry[\"dim\"],\n         depth=geometry[\"depth\"],\n         num_heads=geometry[\"num_heads\"],\n         spec_dim=3 * args.q,\n     )\n     sched = CosineSchedule(num_steps=args.num_steps)\n \n     loader = build_audio_dataloader(dataset, batch_size=args.batch_size, shuffle=True)\n     print(f\"training on {device} for {args.epochs} epochs ...\")\n \n     records = list(\n         log_training(\n             train_audio_diffusion(\n                 loader,\n                 vae,\n                 dit,\n                 prior,\n                 sched,\n                 epochs=args.epochs,\n                 lr=args.lr,\n                 device=device,\n                 latent_crop_range=(min_latent, max_latent),\n             ),\n             label=\"Long-form DiT\",\n         )\n     )\n     if not records:\n         raise SystemExit(\"no training steps ran; dataset/loader produced no batches\")\n \n     losses = [r[\"loss\"] for r in records]\n     lengths_seen = sorted({r[\"latent_len\"] for r in records})\n     print(f\"initial loss {losses[0]:.4f} -> final loss {losses[-1]:.4f}\")\n     print(f\"latent lengths exercised: {lengths_seen}\")\n \n     out_path = Path(args.out)\n     out_path.parent.mkdir(parents=True, exist_ok=True)\n     torch.save(dit.state_dict(), out_path)\n     from safetensors.torch import save_file\n \n     safe_path = str(out_path.with_suffix(\".safetensors\"))\n     save_file(dit.state_dict(), safe_path)\n \n     metadata = {\n         \"created_at\": datetime.now().isoformat(timespec=\"seconds\"),\n         \"script\": \"scripts/train_audio_longform.py\",\n         \"git_commit\": _git_commit(),\n         \"torch_version\": torch.__version__,\n         \"device\": str(device),\n         \"resolved_seed\": args.seed,\n         \"geometry\": {\n             **{k: int(v) for k, v in geometry.items()},\n             \"latent_length\": max_latent,\n             \"num_patches\": -(-max_latent // geometry[\"patch_size\"]),\n             \"spec_dim\": 3 * args.q,\n         },\n         \"latent_crop_range\": [min_latent, max_latent],\n         \"paired_segments\": bool(args.pair),\n         \"clip_seconds\": args.clip_sec,\n         \"crossfade_ms\": args.crossfade_ms,\n         \"num_steps_schedule\": args.num_steps,\n         \"loss_initial\": float(losses[0]),\n         \"loss_final\": float(losses[-1]),\n         \"protocol\": \"PROTOCOL_10S.md\",\n     }\n     meta_path = out_path.with_name(out_path.stem + \"_metadata.json\")\n     meta_path.write_text(json.dumps(metadata, indent=2))\n     print(f\"saved {out_path} (+ .safetensors) and {meta_path}\")\n \n \n if __name__ == \"__main__\":\n     main()\n",
+              "additions": 13,
+              "deletions": 2,
+              "status": "modified"
+            },
+            {
+              "file": "src/ald_sc/data.py",
+              "patch": "Index: src/ald_sc/data.py\n===================================================================\n--- src/ald_sc/data.py\t\n+++ src/ald_sc/data.py\t\n@@ -1,414 +1,428 @@\n \"\"\"Audio data loading for ALD-SC sound generation.\n \n Provides datasets for ESC-50 environmental sounds, generic audio folders,\n synthetic test waveforms, and synthetic music-like clips. All audio is\n loaded as 24 kHz mono and padded/cropped to a fixed length.\n \n This module must not add model logic (per AGENTS.md §11).\n \"\"\"\n \n from __future__ import annotations\n \n from pathlib import Path\n \n import soundfile\n import torch\n import torchaudio\n from torch import Tensor\n from torch.utils.data import DataLoader, Dataset\n \n from ald_sc.stitching import equal_power_overlap_add\n \n __all__ = [\n     \"ToyAudioDataset\",\n     \"AudioFolderDataset\",\n     \"Esc50Dataset\",\n     \"MusicSynthDataset\",\n     \"PairedSegmentDataset\",\n     \"build_audio_dataloader\",\n     \"load_audio_clip\",\n ]\n \n SAMPLE_RATE = 24000\n \n \n def load_audio_clip(\n     path: str | Path,\n     target_sr: int = SAMPLE_RATE,\n     target_length: int | None = None,\n ) -> Tensor:\n     \"\"\"Load an audio file, resample to target_sr, convert to mono, and\n     pad/crop to target_length.\n \n     Parameters\n     ----------\n     path : str or Path\n         Path to audio file.\n     target_sr : int\n         Target sample rate (default 24000 for EnCodec).\n     target_length : int, optional\n         Target length in samples. If None, return full clip.\n         If provided, pad with zeros or crop to exact length.\n \n     Returns\n     -------\n     Tensor (1, target_length) or (1, T)\n         Audio waveform in mono at target_sr.\n     \"\"\"\n     try:\n         waveform, sr = torchaudio.load(str(path))\n     except Exception:\n         # Fallback for environments without torchcodec / ffmpeg backend\n         data, sr = soundfile.read(str(path), dtype=\"float32\")\n         waveform = torch.from_numpy(data)\n         if waveform.ndim == 1:\n             waveform = waveform.unsqueeze(0)\n         else:\n             # soundfile returns (samples, channels); transpose to (channels, samples)\n             waveform = waveform.T\n \n     # Convert to mono if stereo\n     if waveform.shape[0] > 1:\n         waveform = waveform.mean(dim=0, keepdim=True)\n \n     # Resample if needed\n     if sr != target_sr:\n         resampler = torchaudio.transforms.Resample(sr, target_sr)\n         waveform = resampler(waveform)\n \n     # Pad or crop to target length\n     if target_length is not None:\n         if waveform.shape[1] < target_length:\n             padding = target_length - waveform.shape[1]\n             waveform = torch.nn.functional.pad(waveform, (0, padding))\n         elif waveform.shape[1] > target_length:\n             waveform = waveform[:, :target_length]\n \n     # Normalize to [-1, 1] (peak normalization)\n     peak = waveform.abs().max()\n     if peak > 0:\n         waveform = waveform / peak\n \n     return waveform\n \n \n class ToyAudioDataset(Dataset):\n     \"\"\"Synthetic audio dataset for testing and small experiments.\n \n     Generates random waveforms (sine waves, noise, or mixtures) with\n     optional structure. No external data required.\n \n     Parameters\n     ----------\n     num_samples : int\n         Number of clips to generate.\n     audio_length : int\n         Length of each clip in samples (default 24000 = 1s @ 24kHz).\n     sample_rate : int\n         Sample rate (default 24000).\n     \"\"\"\n \n     def __init__(\n         self,\n         num_samples: int = 100,\n         audio_length: int = 24000,\n         sample_rate: int = SAMPLE_RATE,\n     ) -> None:\n         self.num_samples = num_samples\n         self.audio_length = audio_length\n         self.sample_rate = sample_rate\n \n     def __len__(self) -> int:\n         return self.num_samples\n \n     def __getitem__(self, index: int) -> Tensor:\n         torch.manual_seed(3407 + index)\n         t = torch.arange(self.audio_length, dtype=torch.float32) / self.sample_rate\n \n         # Random frequency sine wave + noise\n         freq = 100.0 + 400.0 * (index % 10) / 10.0\n         sine = torch.sin(2 * torch.pi * freq * t)\n         noise = 0.1 * torch.randn(self.audio_length)\n         waveform = sine + noise\n \n         # Normalize\n         peak = waveform.abs().max()\n         if peak > 0:\n             waveform = waveform / peak\n \n         return waveform.unsqueeze(0)  # (1, T)\n \n \n class MusicSynthDataset(Dataset):\n     \"\"\"Synthetic music-like dataset for training and demos.\n \n     Generates deterministic, harmonic clips that are richer than simple\n     sine waves: each clip combines a fundamental tone, several harmonics,\n     a simple amplitude envelope, rhythmic tremolo, and occasional noise\n     bursts. No external data is required.\n \n     This is intended as a drop-in replacement for real music corpora when\n     demonstrating the full ALD-SC pipeline with the real EnCodec encoder.\n \n     Parameters\n     ----------\n     num_samples : int\n         Number of clips to generate.\n     audio_length : int\n         Length of each clip in samples (default 120000 = 5s @ 24kHz).\n     sample_rate : int\n         Sample rate (default 24000).\n     seed : int\n         Random seed for reproducibility.\n     num_harmonics : int\n         Number of harmonics above the fundamental.\n     \"\"\"\n \n     def __init__(\n         self,\n         num_samples: int = 100,\n         audio_length: int = 120000,\n         sample_rate: int = SAMPLE_RATE,\n         seed: int = 3407,\n         num_harmonics: int = 4,\n     ) -> None:\n         self.num_samples = num_samples\n         self.audio_length = audio_length\n         self.sample_rate = sample_rate\n         self.seed = seed\n         self.num_harmonics = num_harmonics\n \n     def __len__(self) -> int:\n         return self.num_samples\n \n     def __getitem__(self, index: int) -> Tensor:\n         # Reproducible per-index generation\n         rng = torch.Generator()\n         rng.manual_seed(self.seed + index)\n         t = torch.arange(self.audio_length, dtype=torch.float32) / self.sample_rate\n \n         # Choose a base note from a pentatonic-ish scale (110-880 Hz)\n         base_freqs = torch.tensor(\n             [\n                 110.0,\n                 130.81,\n                 146.83,\n                 164.81,\n                 196.0,\n                 220.0,\n                 261.63,\n                 293.66,\n                 329.63,\n                 392.0,\n                 440.0,\n                 523.25,\n             ],\n         )\n         base_idx = torch.randint(0, len(base_freqs), (1,), generator=rng).item()\n         base_freq = base_freqs[int(base_idx)].item()\n \n         # Fundamental + harmonics with decaying amplitudes\n         waveform = torch.zeros(self.audio_length)\n         harmonic_amplitudes = [1.0]\n         for h in range(1, self.num_harmonics + 1):\n             harmonic_amplitudes.append(0.6**h)\n \n         for h, amp in enumerate(harmonic_amplitudes):\n             freq = base_freq * (h + 1)\n             phase = torch.rand(1, generator=rng).item() * 2 * torch.pi\n             waveform += amp * torch.sin(2 * torch.pi * freq * t + phase)\n \n         # Add a simple ADSR-like envelope (attack, decay, sustain, release)\n         attack_samples = min(int(0.05 * self.sample_rate), self.audio_length // 4)\n         release_samples = min(int(0.1 * self.sample_rate), self.audio_length // 4)\n         envelope = torch.ones(self.audio_length)\n         if attack_samples > 1:\n             envelope[:attack_samples] = torch.linspace(0, 1, attack_samples)\n         if release_samples > 1:\n             envelope[-release_samples:] = torch.linspace(1, 0, release_samples)\n \n         waveform = waveform * envelope\n \n         # Rhythmic tremolo synchronized to a beats-per-second rate\n         bps = 2.0 + 2.0 * torch.rand(1, generator=rng).item()  # 2-4 beats per second\n         tremolo = 0.85 + 0.15 * torch.sin(2 * torch.pi * bps * t)\n         waveform = waveform * tremolo\n \n         # Sparse noise bursts (percussive element)\n         num_bursts = int(1 + torch.rand(1, generator=rng).item() * 3)\n         for _ in range(num_bursts):\n             burst_center = int(torch.rand(1, generator=rng).item() * self.audio_length)\n             burst_width = int(0.02 * self.sample_rate)\n             start = max(0, burst_center - burst_width // 2)\n             end = min(self.audio_length, burst_center + burst_width // 2)\n             if end > start:\n                 noise = torch.randn(end - start, generator=rng)\n                 waveform[start:end] += 0.2 * noise\n \n         # Normalize to [-1, 1]\n         peak = waveform.abs().max()\n         if peak > 0:\n             waveform = waveform / peak\n \n         return waveform.unsqueeze(0)  # (1, T)\n \n \n class AudioFolderDataset(Dataset):\n     \"\"\"Generic audio folder dataset.\n \n     Loads all audio files from a directory (optionally filtered by\n     extension), resampling and normalizing each to a fixed length.\n \n     Parameters\n     ----------\n     root : str or Path\n         Directory containing audio files (searched recursively).\n     audio_length : int\n         Target length in samples (default 120000 = 5s @ 24kHz).\n     sample_rate : int\n         Target sample rate (default 24000).\n     extensions : tuple[str, ...]\n         Audio file extensions to include.\n     \"\"\"\n \n     def __init__(\n         self,\n         root: str | Path,\n         audio_length: int = 120000,\n         sample_rate: int = SAMPLE_RATE,\n         extensions: tuple[str, ...] = (\".wav\", \".flac\", \".mp3\", \".ogg\"),\n     ) -> None:\n         self.root = Path(root)\n         self.audio_length = audio_length\n         self.sample_rate = sample_rate\n \n         self.files: list[Path] = []\n         for ext in extensions:\n             self.files.extend(self.root.rglob(f\"*{ext}\"))\n         self.files.sort()\n \n     def __len__(self) -> int:\n         return len(self.files)\n \n     def __getitem__(self, index: int) -> Tensor:\n         return load_audio_clip(\n             self.files[index],\n             target_sr=self.sample_rate,\n             target_length=self.audio_length,\n         )\n \n \n class Esc50Dataset(Dataset):\n     \"\"\"ESC-50 environmental sound classification dataset.\n \n     ESC-50 is a collection of 2000 5-second environmental audio clips\n     (50 classes, 40 clips per class). This loader expects the standard\n     ESC-50 directory layout:\n \n         root/\n         ├── audio/\n         │   ├── 1-100032-A-0.wav\n         │   ├── 1-100038-A-14.wav\n         │   └── ...\n         └── meta/\n             └── esc50.csv\n \n     Parameters\n     ----------\n     root : str or Path\n         Root directory of ESC-50.\n     audio_length : int\n         Target length in samples (default 120000 = 5s @ 24kHz).\n     sample_rate : int\n         Target sample rate (default 24000; ESC-50 is 44.1 kHz).\n     \"\"\"\n \n     def __init__(\n         self,\n         root: str | Path,\n         audio_length: int = 120000,\n         sample_rate: int = SAMPLE_RATE,\n     ) -> None:\n         self.root = Path(root)\n         self.audio_length = audio_length\n         self.sample_rate = sample_rate\n \n         audio_dir = self.root / \"audio\"\n         self.files = sorted(audio_dir.glob(\"*.wav\"))\n \n     def __len__(self) -> int:\n         return len(self.files)\n \n     def __getitem__(self, index: int) -> Tensor:\n         return load_audio_clip(\n             self.files[index],\n             target_sr=self.sample_rate,\n             target_length=self.audio_length,\n         )\n \n \n class PairedSegmentDataset(Dataset):\n-    \"\"\"Virtual double-length segments from a base dataset of short clips.\n+    \"\"\"Virtual k-times-longer segments from a base dataset of short clips.\n \n-    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n-    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n+    Item ``i`` joins base items ``[k·i, k·(i+1))`` with equal-power\n+    crossfades in the waveform domain (see ``ald_sc.stitching``), so an\n     archive of short clips can feed long-form training without zero\n-    padding. The last clip is dropped when the base length is odd.\n+    padding. Trailing clips are dropped when they do not fill a segment.\n \n     Parameters\n     ----------\n     base : Dataset\n         Dataset yielding (1, T) waveforms.\n     crossfade_samples : int\n-        Overlap between the two joined clips, clamped to fit.\n+        Overlap between consecutive joined clips, clamped to fit.\n+    clips_per_segment : int\n+        Number of base clips chained into one segment (2 = the original\n+        pairing; 5 × 2 s one-shots ≈ a 10 s stem).\n     \"\"\"\n \n-    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n+    def __init__(\n+        self,\n+        base: Dataset,\n+        crossfade_samples: int = 480,\n+        clips_per_segment: int = 2,\n+    ) -> None:\n         if crossfade_samples < 0:\n             raise ValueError(\n                 f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n             )\n+        if clips_per_segment < 2:\n+            raise ValueError(\n+                f\"clips_per_segment must be >= 2; got {clips_per_segment}\"\n+            )\n         self.base = base\n         self.crossfade_samples = int(crossfade_samples)\n+        self.clips_per_segment = int(clips_per_segment)\n \n     def __len__(self) -> int:\n-        return len(self.base) // 2\n+        return len(self.base) // self.clips_per_segment\n \n     def __getitem__(self, index: int) -> Tensor:\n-        first = self.base[2 * index]\n-        second = self.base[2 * index + 1]\n+        start = index * self.clips_per_segment\n+        group = [\n+            self.base[start + i] for i in range(self.clips_per_segment)\n+        ]\n         overlap = min(\n-            self.crossfade_samples,\n-            int(first.shape[-1]) - 1,\n-            int(second.shape[-1]) - 1,\n+            [self.crossfade_samples]\n+            + [int(g.shape[-1]) - 1 for g in group]\n         )\n         overlap = max(overlap, 0)\n-        return equal_power_overlap_add([first, second], overlap=overlap)\n+        return equal_power_overlap_add(group, overlap=overlap)\n \n \n def build_audio_dataloader(\n     dataset: Dataset,\n     batch_size: int = 8,\n     shuffle: bool = True,\n     num_workers: int = 0,\n ) -> DataLoader:\n     \"\"\"Build a DataLoader from an audio dataset.\n \n     Parameters\n     ----------\n     dataset : Dataset\n     batch_size : int\n     shuffle : bool\n     num_workers : int\n \n     Returns\n     -------\n     DataLoader\n     \"\"\"\n     return DataLoader(\n         dataset,\n         batch_size=batch_size,\n         shuffle=shuffle,\n         num_workers=num_workers,\n         drop_last=True,\n     )\n",
+              "additions": 27,
+              "deletions": 13,
+              "status": "modified"
+            },
+            {
+              "file": "tests/test_audio_data.py",
+              "patch": "Index: tests/test_audio_data.py\n===================================================================\n--- tests/test_audio_data.py\t\n+++ tests/test_audio_data.py\t\n@@ -1,222 +1,254 @@\n \"\"\"Tests for audio data loading (no external data required).\"\"\"\n \n from __future__ import annotations\n \n import tempfile\n from pathlib import Path\n \n import soundfile\n import torch\n \n from ald_sc.data import (\n     AudioFolderDataset,\n     MusicSynthDataset,\n     ToyAudioDataset,\n     build_audio_dataloader,\n     load_audio_clip,\n )\n \n \n class TestToyAudioDataset:\n     def test_length(self) -> None:\n         ds = ToyAudioDataset(num_samples=16, audio_length=24000)\n         assert len(ds) == 16\n \n     def test_item_shape(self) -> None:\n         ds = ToyAudioDataset(num_samples=4, audio_length=48000)\n         item = ds[0]\n         assert item.shape == (1, 48000)\n \n     def test_normalized(self) -> None:\n         \"\"\"Waveforms should be normalized to [-1, 1].\"\"\"\n         ds = ToyAudioDataset(num_samples=4, audio_length=24000)\n         for i in range(4):\n             item = ds[i]\n             assert item.abs().max() <= 1.0 + 1e-6\n \n     def test_determinism(self) -> None:\n         \"\"\"Same index should produce the same waveform.\"\"\"\n         ds = ToyAudioDataset(num_samples=4, audio_length=24000)\n         assert torch.allclose(ds[0], ds[0])\n \n     def test_different_indices_different_audio(self) -> None:\n         ds = ToyAudioDataset(num_samples=4, audio_length=24000)\n         assert not torch.allclose(ds[0], ds[1])\n \n \n class TestMusicSynthDataset:\n     def test_length(self) -> None:\n         ds = MusicSynthDataset(num_samples=8, audio_length=24000)\n         assert len(ds) == 8\n \n     def test_item_shape(self) -> None:\n         ds = MusicSynthDataset(num_samples=2, audio_length=48000)\n         item = ds[0]\n         assert item.shape == (1, 48000)\n \n     def test_normalized(self) -> None:\n         ds = MusicSynthDataset(num_samples=2, audio_length=24000)\n         for i in range(2):\n             item = ds[i]\n             assert item.abs().max() <= 1.0 + 1e-6\n \n     def test_determinism(self) -> None:\n         \"\"\"Same index should produce the same waveform.\"\"\"\n         ds = MusicSynthDataset(num_samples=2, audio_length=24000)\n         assert torch.allclose(ds[0], ds[0])\n \n     def test_different_indices_different_audio(self) -> None:\n         ds = MusicSynthDataset(num_samples=4, audio_length=24000)\n         assert not torch.allclose(ds[0], ds[1])\n \n     def test_has_multiple_harmonics(self) -> None:\n         \"\"\"Music-like dataset should contain richer spectral content than a single sine.\"\"\"\n         ds = MusicSynthDataset(num_samples=2, audio_length=24000, sample_rate=24000)\n         item = ds[0].squeeze(0)\n         # Compute magnitude spectrum\n         spectrum = torch.fft.rfft(item).abs()\n         # Count distinct peaks above a threshold\n         threshold = spectrum.max() * 0.1\n         peaks = (spectrum > threshold).sum().item()\n         # A pure sine has ~1 peak; a musical tone should have several harmonics\n         assert peaks >= 3\n \n     def test_seed_reproducibility(self) -> None:\n         \"\"\"Two instances with the same seed should produce identical clips.\"\"\"\n         ds1 = MusicSynthDataset(num_samples=2, audio_length=24000, seed=123)\n         ds2 = MusicSynthDataset(num_samples=2, audio_length=24000, seed=123)\n         assert torch.allclose(ds1[0], ds2[0])\n         assert torch.allclose(ds1[1], ds2[1])\n \n \n class TestLoadAudioClip:\n     def _write_wav(self, path: Path, sr: int, length: int, channels: int = 1) -> None:\n         t = torch.arange(length, dtype=torch.float32) / sr\n         freq = 440.0\n         waveform = torch.sin(2 * torch.pi * freq * t)\n         if channels > 1:\n             waveform = waveform.unsqueeze(0).repeat(channels, 1)\n         else:\n             waveform = waveform.unsqueeze(0)\n         soundfile.write(str(path), waveform.T.numpy(), sr)\n \n     def test_load_mono_shape(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=16000, length=16000)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         assert clip.shape == (1, 24000)\n \n     def test_resample_to_target_sr(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=16000, length=16000)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         # 1s at 16kHz -> 24000 samples after resampling\n         assert clip.shape[1] == 24000\n \n     def test_crop_to_target_length(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=24000, length=48000)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         assert clip.shape == (1, 24000)\n \n     def test_pad_to_target_length(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=24000, length=12000)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         assert clip.shape == (1, 24000)\n \n     def test_stereo_converts_to_mono(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=24000, length=24000, channels=2)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         assert clip.shape == (1, 24000)\n \n     def test_normalization(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             path = Path(tmp) / \"test.wav\"\n             self._write_wav(path, sr=24000, length=24000)\n             clip = load_audio_clip(path, target_sr=24000, target_length=24000)\n         assert clip.abs().max() <= 1.0 + 1e-6\n \n \n class TestAudioFolderDataset:\n     def test_loads_wav_files(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             tmp_path = Path(tmp)\n             for i in range(3):\n                 t = torch.arange(24000, dtype=torch.float32) / 24000\n                 waveform = torch.sin(2 * torch.pi * 440.0 * t).unsqueeze(0)\n                 soundfile.write(\n                     str(tmp_path / f\"clip_{i}.wav\"), waveform.T.numpy(), 24000\n                 )\n             ds = AudioFolderDataset(tmp_path, audio_length=24000, sample_rate=24000)\n             assert len(ds) == 3\n             assert ds[0].shape == (1, 24000)\n \n     def test_ignores_non_audio_extensions(self) -> None:\n         with tempfile.TemporaryDirectory() as tmp:\n             tmp_path = Path(tmp)\n             t = torch.arange(24000, dtype=torch.float32) / 24000\n             waveform = torch.sin(2 * torch.pi * 440.0 * t).unsqueeze(0)\n             soundfile.write(str(tmp_path / \"clip.wav\"), waveform.T.numpy(), 24000)\n             (tmp_path / \"readme.txt\").write_text(\"not audio\")\n             ds = AudioFolderDataset(tmp_path, audio_length=24000, sample_rate=24000)\n             assert len(ds) == 1\n \n \n class TestBuildAudioDataloader:\n     def test_dataloader(self) -> None:\n         ds = ToyAudioDataset(num_samples=8, audio_length=24000)\n         loader = build_audio_dataloader(ds, batch_size=4, shuffle=False)\n         batch = next(iter(loader))\n         assert batch.shape == (4, 1, 24000)\n \n     def test_drop_last(self) -> None:\n         \"\"\"drop_last=True should drop incomplete final batch.\"\"\"\n         ds = ToyAudioDataset(num_samples=7, audio_length=24000)\n         loader = build_audio_dataloader(ds, batch_size=4, shuffle=False)\n         batches = list(loader)\n         assert len(batches) == 1  # only 1 full batch of 4\n         assert batches[0].shape == (4, 1, 24000)\n \n \n class TestPairedSegmentDataset:\n     def test_pairs_consecutive_clips(self) -> None:\n         \"\"\"len == base//2; item i joins base items 2i and 2i+1.\"\"\"\n         from ald_sc.data import PairedSegmentDataset\n \n         torch.manual_seed(3407)\n         base = ToyAudioDataset(num_samples=4, audio_length=8000)\n         ds = PairedSegmentDataset(base, crossfade_samples=480)\n \n         assert len(ds) == 2\n         item = ds[0]\n         assert item.shape == (1, 2 * 8000 - 480)\n \n         a = base[0]\n         b = base[1]\n         head_match = (item[:, :1000] - a[:, :1000]).abs().max().item()\n         tail_match = (item[:, -1000:] - b[:, -1000:]).abs().max().item()\n         assert head_match < 1e-5, \"segment head must be clip A's start\"\n         assert tail_match < 1e-5, \"segment tail must be clip B's end\"\n \n     def test_odd_count_drops_last_unpaired(self) -> None:\n         from ald_sc.data import PairedSegmentDataset\n \n         base = ToyAudioDataset(num_samples=5, audio_length=4000)\n         ds = PairedSegmentDataset(base, crossfade_samples=0)\n         assert len(ds) == 2\n \n     def test_zero_crossfade_is_pure_concat(self) -> None:\n         from ald_sc.data import PairedSegmentDataset\n \n         base = ToyAudioDataset(num_samples=2, audio_length=1000)\n         ds = PairedSegmentDataset(base, crossfade_samples=0)\n         item = ds[0]\n         assert torch.allclose(item[:, :1000], base[0])\n         assert torch.allclose(item[:, 1000:], base[1])\n+\n+    def test_clips_per_segment_chains_beyond_pairs(self) -> None:\n+        \"\"\"clips_per_segment=k joins k consecutive clips (issue #60: 10 s\n+        segments from ~2 s archive one-shots).\"\"\"\n+        from ald_sc.data import PairedSegmentDataset\n+\n+        torch.manual_seed(3407)\n+        base = ToyAudioDataset(num_samples=9, audio_length=8000)\n+        ds = PairedSegmentDataset(\n+            base, crossfade_samples=480, clips_per_segment=3\n+        )\n+        assert len(ds) == 3\n+        item = ds[0]\n+        expected = 3 * 8000 - 2 * 480\n+        assert item.shape == (1, expected)\n+\n+    def test_clips_per_segment_content_order_preserved(self) -> None:\n+        from ald_sc.data import PairedSegmentDataset\n+\n+        base = ToyAudioDataset(num_samples=6, audio_length=2000)\n+        ds = PairedSegmentDataset(base, crossfade_samples=0, clips_per_segment=3)\n+        item = ds[1]  # base items 3,4,5\n+        assert torch.allclose(item[:, 0:2000], base[3])\n+        assert torch.allclose(item[:, 2000:4000], base[4])\n+        assert torch.allclose(item[:, 4000:], base[5])\n+\n+    def test_default_stays_paired(self) -> None:\n+        from ald_sc.data import PairedSegmentDataset\n+\n+        base = ToyAudioDataset(num_samples=4, audio_length=1000)\n+        ds = PairedSegmentDataset(base, crossfade_samples=0)\n+        assert len(ds) == 2\n",
+              "additions": 32,
+              "deletions": 0,
+              "status": "modified"
+            }
+          ]
         },
         "id": "msg_02728ff73001jFwp4aWp1rtKg6",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
@@ -49450,19 +49598,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 334017,
+          "input": 58,
+          "output": 199,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 333760
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787363586955
+          "created": 1787363586955,
+          "completed": 1787363664205
         },
+        "finish": "tool-calls",
         "id": "msg_0272bf38b002oT3F3qVJC9MiTF",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -49486,20 +49637,1153 @@
           "tool": "bash",
           "callID": "call_0e4c0cbf84c24f5899fc5fc5",
           "state": {
-            "metadata": {
-              "output": ""
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "git add src/ald_sc/inference.py tests/test_inference.py scripts/materialise_midi.py && git commit -q -m \"feat(v0.12): Barontini clock threaded through LSDModel + prior device sync\n\n- LSDModel accepts spectral_schedule; every internal sample_ddim call\n  (canonical/jitter/residual/stopvar banks, _sample_and_decode) now\n  consults the normalized heat-death criterion instead of fixed-step\n  stopping only\n- _sample_and_decode syncs the prior to the working device (callers\n  assembling the model from separately-loaded artefacts may move some\n  but not all)\n- materialise_midi: --barontini regenerates the bank under the clock\n  (validated --dit geometry) for A/B audition against fixed-step banks\n\nTests: 331 passing (3 new clock-threading tests).\" && git log --oneline -1"
             },
+            "output": "e419589 feat(v0.12): Barontini clock threaded through LSDModel + prior device sync\n",
+            "metadata": {
+              "output": "e419589 feat(v0.12): Barontini clock threaded through LSDModel + prior device sync\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "git add src/ald_sc/inference.py tests/test_inference.py scripts/materialise_midi.py && git commit -q -m \"feat(v0.12): Barontini clock threaded through LSDModel + prior device sync\n\n- LSDModel accepts spectral_schedule; every internal sample_ddim call\n  (canonical/jitter/residual/stopvar banks, _sample_and_decode) now\n  consults the normalized heat-death criterion instead of fixed-step\n  stopping only\n- _sample_and_decode syncs the prior to the working device (callers\n  assembling the model from separately-loaded artefacts may move some\n  but not all)\n- materialise_midi: --barontini regenerates the bank under the clock\n  (validated --dit geometry) for A/B audition against fixed-step banks\n\nTests: 331 passing (3 new clock-threading tests).\" && git log --oneline -1",
             "time": {
-              "start": 1787363651498
+              "start": 1787363664106,
+              "end": 1787363664108
             }
           },
           "id": "prt_0272cefa1001MrjlBVdioGw3Vf",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_0272bf38b002oT3F3qVJC9MiTF"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "478f25d5590495e45d7f8c7d7a24bc190ede6968",
+          "type": "step-finish",
+          "tokens": {
+            "total": 334017,
+            "input": 58,
+            "output": 199,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 333760
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272d2117001ZalokbsmZDn7S7",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272bf38b002oT3F3qVJC9MiTF"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 334459,
+          "input": 285,
+          "output": 414,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 333760
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363664219,
+          "completed": 1787363678660
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272d215b002xerjUutTb1Lh3W",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "478f25d5590495e45d7f8c7d7a24bc190ede6968",
+          "type": "step-start",
+          "id": "prt_0272d3cd1001WLKSmDcBxwWsmJ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d215b002xerjUutTb1Lh3W"
+        },
+        {
+          "type": "text",
+          "text": "Now the multi-clip segment feature — **RED**:",
+          "time": {
+            "start": 1787363671251,
+            "end": 1787363678028
+          },
+          "id": "prt_0272d3cd3001SvoPPdaR0g8Pfi",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d215b002xerjUutTb1Lh3W"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_8d3fadff63254b86ba3c1c7f",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "cat >> tests/test_audio_data.py << 'EOF'\n\n    def test_clips_per_segment_chains_beyond_pairs(self) -> None:\n        \"\"\"clips_per_segment=k joins k consecutive clips (issue #60: 10 s\n        segments from ~2 s archive one-shots).\"\"\"\n        from ald_sc.data import PairedSegmentDataset\n\n        torch.manual_seed(3407)\n        base = ToyAudioDataset(num_samples=9, audio_length=8000)\n        ds = PairedSegmentDataset(\n            base, crossfade_samples=480, clips_per_segment=3\n        )\n        assert len(ds) == 3\n        item = ds[0]\n        expected = 3 * 8000 - 2 * 480\n        assert item.shape == (1, expected)\n\n    def test_clips_per_segment_content_order_preserved(self) -> None:\n        from ald_sc.data import PairedSegmentDataset\n\n        base = ToyAudioDataset(num_samples=6, audio_length=2000)\n        ds = PairedSegmentDataset(base, crossfade_samples=0, clips_per_segment=3)\n        item = ds[1]  # base items 3,4,5\n        assert torch.allclose(item[:, 0:2000], base[3])\n        assert torch.allclose(item[:, 2000:4000], base[4])\n        assert torch.allclose(item[:, 4000:], base[5])\n\n    def test_default_stays_paired(self) -> None:\n        from ald_sc.data import PairedSegmentDataset\n\n        base = ToyAudioDataset(num_samples=4, audio_length=1000)\n        ds = PairedSegmentDataset(base, crossfade_samples=0)\n        assert len(ds) == 2\nEOF\nuv run pytest tests/test_audio_data.py -k \"clips_per_segment or default_stays\" -q 2>&1 | tail -3"
+            },
+            "output": "FAILED tests/test_audio_data.py::TestPairedSegmentDataset::test_clips_per_segment_chains_beyond_pairs\nFAILED tests/test_audio_data.py::TestPairedSegmentDataset::test_clips_per_segment_content_order_preserved\n2 failed, 1 passed, 25 deselected in 0.44s\n",
+            "metadata": {
+              "output": "FAILED tests/test_audio_data.py::TestPairedSegmentDataset::test_clips_per_segment_chains_beyond_pairs\nFAILED tests/test_audio_data.py::TestPairedSegmentDataset::test_clips_per_segment_content_order_preserved\n2 failed, 1 passed, 25 deselected in 0.44s\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "cat >> tests/test_audio_data.py << 'EOF'\n\n    def test_clips_per_segment_chains_beyond_pairs(self) -> None:\n        \"\"\"clips_per_segment=k joins k consecutive clips (issue #60: 10 s\n        segments from ~2 s archive one-shots).\"\"\"\n        from ald_sc.data import PairedSegmentDataset\n\n        torch.manual_seed(3407)\n        base = ToyAudioDataset(num_samples=9, audio_length=8000)\n        ds = PairedSegmentDataset(\n            base, crossfade_samples=480, clips_per_segment=3\n        )\n        assert len(ds) == 3\n        item = ds[0]\n        expected = 3 * 8000 - 2 * 480\n        assert item.shape == (1, expected)\n\n    def test_clips_per_segment_content_order_preserved(self) -> None:\n        from ald_sc.data import PairedSegmentDataset\n\n        base = ToyAudioDataset(num_samples=6, audio_length=2000)\n        ds = PairedSegmentDataset(base, crossfade_samples=0, clips_per_segment=3)\n        item = ds[1]  # base items 3,4,5\n        assert torch.allclose(item[:, 0:2000], base[3])\n        assert torch.allclose(item[:, 2000:4000], base[4])\n        assert torch.allclose(item[:, 4000:], base[5])\n\n    def test_default_stays_paired(self) -> None:\n        from ald_sc.data import PairedSegmentDataset\n\n        base = ToyAudioDataset(num_samples=4, audio_length=1000)\n        ds = PairedSegmentDataset(base, crossfade_samples=0)\n        assert len(ds) == 2\nEOF\nuv run pytest tests/test_audio_data.py -k \"clips_per_segment or default_stays\" -q 2>&1 | tail -3",
+            "time": {
+              "start": 1787363678470,
+              "end": 1787363678471
+            }
+          },
+          "id": "prt_0272d561f001TC50mnamCZ2ASp",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d215b002xerjUutTb1Lh3W"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-finish",
+          "tokens": {
+            "total": 334459,
+            "input": 285,
+            "output": 414,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 333760
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272d5975001MoCnMid6Giawml",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d215b002xerjUutTb1Lh3W"
+        },
+        {
+          "type": "patch",
+          "hash": "478f25d5590495e45d7f8c7d7a24bc190ede6968",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/tests/test_audio_data.py"
+          ],
+          "id": "prt_0272d59c3001gGCu0zRRhOhV1d",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d215b002xerjUutTb1Lh3W"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 335042,
+          "input": 512,
+          "output": 514,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 334016
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363678673,
+          "completed": 1787363704825
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272d59d1002jiaJkyrgI6Z5CH",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-start",
+          "id": "prt_0272da438001JKH36QW4pkHHl3",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d59d1002jiaJkyrgI6Z5CH"
+        },
+        {
+          "type": "text",
+          "text": "**GREEN** — generalizing `PairedSegmentDataset` to k-clip segments:",
+          "time": {
+            "start": 1787363697722,
+            "end": 1787363704700
+          },
+          "id": "prt_0272da43a001ghKCtWYl9XMkL3",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d59d1002jiaJkyrgI6Z5CH"
+        },
+        {
+          "type": "tool",
+          "tool": "edit",
+          "callID": "call_77c108837e3141d695aae5a1",
+          "state": {
+            "status": "error",
+            "input": {
+              "filePath": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py",
+              "newString": "    def __init__(\n        self,\n        base: Dataset,\n        crossfade_samples: int = 480,\n        clips_per_segment: int = 2,\n    ) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        if clips_per_segment < 2:\n            raise ValueError(\n                f\"clips_per_segment must be >= 2; got {clips_per_segment}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n        self.clips_per_segment = int(clips_per_segment)\n\n    def __len__(self) -> int:\n        return len(self.base) // self.clips_per_segment\n\n    def __getitem__(self, index: int) -> Tensor:\n        start = index * self.clips_per_segment\n        group = [\n            self.base[start + i] for i in range(self.clips_per_segment)\n        ]\n        overlap = min(\n            [self.crossfade_samples]\n            + [int(g.shape[-1]) - 1 for g in group]\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add(group, overlap=overlap)",
+              "oldString": "    def __init__(\n        self,\n        base: Dataset,\n        crossfade_samples: int = 480,\n    ) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n\n    def __len__(self) -> int:\n        return len(self.base) // 2\n\n    def __getitem__(self, index: int) -> Tensor:\n        first = self.base[2 * index]\n        second = self.base[2 * index + 1]\n        overlap = min(\n            self.crossfade_samples,\n            int(first.shape[-1]) - 1,\n            int(second.shape[-1]) - 1,\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add([first, second], overlap=overlap)"
+            },
+            "error": "Could not find oldString in the file. It must match exactly, including whitespace, indentation, and line endings.",
+            "time": {
+              "start": 1787363704663,
+              "end": 1787363704671
+            }
+          },
+          "id": "prt_0272dbf54001SVimZ1OLiXOL4H",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d59d1002jiaJkyrgI6Z5CH"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-finish",
+          "tokens": {
+            "total": 335042,
+            "input": 512,
+            "output": 514,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 334016
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272dbfbb001isV3OlKi0eZH8y",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272d59d1002jiaJkyrgI6Z5CH"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 335118,
+          "input": 541,
+          "output": 49,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 334528
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363704838,
+          "completed": 1787363724462
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272dc006002FAi5XXTAg5G4Go",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-start",
+          "id": "prt_0272e0a05001oarxsXfoz1f57V",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272dc006002FAi5XXTAg5G4Go"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_de816920b01044d2b1862de7",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "sed -n \"$(grep -n 'class PairedSegmentDataset' src/ald_sc/data.py | cut -d: -f1),+45p\" src/ald_sc/data.py"
+            },
+            "output": "class PairedSegmentDataset(Dataset):\n    \"\"\"Virtual double-length segments from a base dataset of short clips.\n\n    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n    archive of short clips can feed long-form training without zero\n    padding. The last clip is dropped when the base length is odd.\n\n    Parameters\n    ----------\n    base : Dataset\n        Dataset yielding (1, T) waveforms.\n    crossfade_samples : int\n        Overlap between the two joined clips, clamped to fit.\n    \"\"\"\n\n    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n\n    def __len__(self) -> int:\n        return len(self.base) // 2\n\n    def __getitem__(self, index: int) -> Tensor:\n        first = self.base[2 * index]\n        second = self.base[2 * index + 1]\n        overlap = min(\n            self.crossfade_samples,\n            int(first.shape[-1]) - 1,\n            int(second.shape[-1]) - 1,\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add([first, second], overlap=overlap)\n\n\ndef build_audio_dataloader(\n    dataset: Dataset,\n    batch_size: int = 8,\n    shuffle: bool = True,\n    num_workers: int = 0,\n) -> DataLoader:\n    \"\"\"Build a DataLoader from an audio dataset.\n",
+            "metadata": {
+              "output": "class PairedSegmentDataset(Dataset):\n    \"\"\"Virtual double-length segments from a base dataset of short clips.\n\n    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n    archive of short clips can feed long-form training without zero\n    padding. The last clip is dropped when the base length is odd.\n\n    Parameters\n    ----------\n    base : Dataset\n        Dataset yielding (1, T) waveforms.\n    crossfade_samples : int\n        Overlap between the two joined clips, clamped to fit.\n    \"\"\"\n\n    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n\n    def __len__(self) -> int:\n        return len(self.base) // 2\n\n    def __getitem__(self, index: int) -> Tensor:\n        first = self.base[2 * index]\n        second = self.base[2 * index + 1]\n        overlap = min(\n            self.crossfade_samples,\n            int(first.shape[-1]) - 1,\n            int(second.shape[-1]) - 1,\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add([first, second], overlap=overlap)\n\n\ndef build_audio_dataloader(\n    dataset: Dataset,\n    batch_size: int = 8,\n    shuffle: bool = True,\n    num_workers: int = 0,\n) -> DataLoader:\n    \"\"\"Build a DataLoader from an audio dataset.\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "sed -n \"$(grep -n 'class PairedSegmentDataset' src/ald_sc/data.py | cut -d: -f1),+45p\" src/ald_sc/data.py",
+            "time": {
+              "start": 1787363723798,
+              "end": 1787363723799
+            }
+          },
+          "id": "prt_0272e0a06001ykOdGoLhduKe2j",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272dc006002FAi5XXTAg5G4Go"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-finish",
+          "tokens": {
+            "total": 335118,
+            "input": 541,
+            "output": 49,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 334528
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272e0c76001X90ch6frpoHys4",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272dc006002FAi5XXTAg5G4Go"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 336317,
+          "input": 14,
+          "output": 815,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 335488
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363724475,
+          "completed": 1787363749196
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272e0cbb00230J02NBe7B1Qne",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-start",
+          "id": "prt_0272e206e001dV1VaU2GHn22cK",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e0cbb00230J02NBe7B1Qne"
+        },
+        {
+          "snapshot": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "type": "step-start",
+          "id": "prt_0272e6c6e001TY5WbzpcB408xt",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e0cbb00230J02NBe7B1Qne"
+        },
+        {
+          "type": "tool",
+          "tool": "edit",
+          "callID": "call_194299f546e34cbc848a3315",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py",
+              "newString": "class PairedSegmentDataset(Dataset):\n    \"\"\"Virtual k-times-longer segments from a base dataset of short clips.\n\n    Item ``i`` joins base items ``[k·i, k·(i+1))`` with equal-power\n    crossfades in the waveform domain (see ``ald_sc.stitching``), so an\n    archive of short clips can feed long-form training without zero\n    padding. Trailing clips are dropped when they do not fill a segment.\n\n    Parameters\n    ----------\n    base : Dataset\n        Dataset yielding (1, T) waveforms.\n    crossfade_samples : int\n        Overlap between consecutive joined clips, clamped to fit.\n    clips_per_segment : int\n        Number of base clips chained into one segment (2 = the original\n        pairing; 5 × 2 s one-shots ≈ a 10 s stem).\n    \"\"\"\n\n    def __init__(\n        self,\n        base: Dataset,\n        crossfade_samples: int = 480,\n        clips_per_segment: int = 2,\n    ) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        if clips_per_segment < 2:\n            raise ValueError(\n                f\"clips_per_segment must be >= 2; got {clips_per_segment}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n        self.clips_per_segment = int(clips_per_segment)\n\n    def __len__(self) -> int:\n        return len(self.base) // self.clips_per_segment\n\n    def __getitem__(self, index: int) -> Tensor:\n        start = index * self.clips_per_segment\n        group = [\n            self.base[start + i] for i in range(self.clips_per_segment)\n        ]\n        overlap = min(\n            [self.crossfade_samples]\n            + [int(g.shape[-1]) - 1 for g in group]\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add(group, overlap=overlap)",
+              "oldString": "class PairedSegmentDataset(Dataset):\n    \"\"\"Virtual double-length segments from a base dataset of short clips.\n\n    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n    archive of short clips can feed long-form training without zero\n    padding. The last clip is dropped when the base length is odd.\n\n    Parameters\n    ----------\n    base : Dataset\n        Dataset yielding (1, T) waveforms.\n    crossfade_samples : int\n        Overlap between the two joined clips, clamped to fit.\n    \"\"\"\n\n    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n        if crossfade_samples < 0:\n            raise ValueError(\n                f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n            )\n        self.base = base\n        self.crossfade_samples = int(crossfade_samples)\n\n    def __len__(self) -> int:\n        return len(self.base) // 2\n\n    def __getitem__(self, index: int) -> Tensor:\n        first = self.base[2 * index]\n        second = self.base[2 * index + 1]\n        overlap = min(\n            self.crossfade_samples,\n            int(first.shape[-1]) - 1,\n            int(second.shape[-1]) - 1,\n        )\n        overlap = max(overlap, 0)\n        return equal_power_overlap_add([first, second], overlap=overlap)"
+            },
+            "output": "Edit applied successfully.",
+            "metadata": {
+              "diagnostics": {},
+              "diff": "Index: /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n===================================================================\n--- /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n+++ /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n@@ -347,44 +347,58 @@\n         )\n \n \n class PairedSegmentDataset(Dataset):\n-    \"\"\"Virtual double-length segments from a base dataset of short clips.\n+    \"\"\"Virtual k-times-longer segments from a base dataset of short clips.\n \n-    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n-    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n+    Item ``i`` joins base items ``[k·i, k·(i+1))`` with equal-power\n+    crossfades in the waveform domain (see ``ald_sc.stitching``), so an\n     archive of short clips can feed long-form training without zero\n-    padding. The last clip is dropped when the base length is odd.\n+    padding. Trailing clips are dropped when they do not fill a segment.\n \n     Parameters\n     ----------\n     base : Dataset\n         Dataset yielding (1, T) waveforms.\n     crossfade_samples : int\n-        Overlap between the two joined clips, clamped to fit.\n+        Overlap between consecutive joined clips, clamped to fit.\n+    clips_per_segment : int\n+        Number of base clips chained into one segment (2 = the original\n+        pairing; 5 × 2 s one-shots ≈ a 10 s stem).\n     \"\"\"\n \n-    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n+    def __init__(\n+        self,\n+        base: Dataset,\n+        crossfade_samples: int = 480,\n+        clips_per_segment: int = 2,\n+    ) -> None:\n         if crossfade_samples < 0:\n             raise ValueError(\n                 f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n             )\n+        if clips_per_segment < 2:\n+            raise ValueError(\n+                f\"clips_per_segment must be >= 2; got {clips_per_segment}\"\n+            )\n         self.base = base\n         self.crossfade_samples = int(crossfade_samples)\n+        self.clips_per_segment = int(clips_per_segment)\n \n     def __len__(self) -> int:\n-        return len(self.base) // 2\n+        return len(self.base) // self.clips_per_segment\n \n     def __getitem__(self, index: int) -> Tensor:\n-        first = self.base[2 * index]\n-        second = self.base[2 * index + 1]\n+        start = index * self.clips_per_segment\n+        group = [\n+            self.base[start + i] for i in range(self.clips_per_segment)\n+        ]\n         overlap = min(\n-            self.crossfade_samples,\n-            int(first.shape[-1]) - 1,\n-            int(second.shape[-1]) - 1,\n+            [self.crossfade_samples]\n+            + [int(g.shape[-1]) - 1 for g in group]\n         )\n         overlap = max(overlap, 0)\n-        return equal_power_overlap_add([first, second], overlap=overlap)\n+        return equal_power_overlap_add(group, overlap=overlap)\n \n \n def build_audio_dataloader(\n     dataset: Dataset,\n",
+              "filediff": {
+                "file": "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py",
+                "patch": "Index: /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n===================================================================\n--- /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n+++ /Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py\n@@ -347,44 +347,58 @@\n         )\n \n \n class PairedSegmentDataset(Dataset):\n-    \"\"\"Virtual double-length segments from a base dataset of short clips.\n+    \"\"\"Virtual k-times-longer segments from a base dataset of short clips.\n \n-    Item ``i`` joins base items ``2i`` and ``2i + 1`` with an equal-power\n-    crossfade in the waveform domain (see ``ald_sc.stitching``), so an\n+    Item ``i`` joins base items ``[k·i, k·(i+1))`` with equal-power\n+    crossfades in the waveform domain (see ``ald_sc.stitching``), so an\n     archive of short clips can feed long-form training without zero\n-    padding. The last clip is dropped when the base length is odd.\n+    padding. Trailing clips are dropped when they do not fill a segment.\n \n     Parameters\n     ----------\n     base : Dataset\n         Dataset yielding (1, T) waveforms.\n     crossfade_samples : int\n-        Overlap between the two joined clips, clamped to fit.\n+        Overlap between consecutive joined clips, clamped to fit.\n+    clips_per_segment : int\n+        Number of base clips chained into one segment (2 = the original\n+        pairing; 5 × 2 s one-shots ≈ a 10 s stem).\n     \"\"\"\n \n-    def __init__(self, base: Dataset, crossfade_samples: int = 480) -> None:\n+    def __init__(\n+        self,\n+        base: Dataset,\n+        crossfade_samples: int = 480,\n+        clips_per_segment: int = 2,\n+    ) -> None:\n         if crossfade_samples < 0:\n             raise ValueError(\n                 f\"crossfade_samples must be >= 0; got {crossfade_samples}\"\n             )\n+        if clips_per_segment < 2:\n+            raise ValueError(\n+                f\"clips_per_segment must be >= 2; got {clips_per_segment}\"\n+            )\n         self.base = base\n         self.crossfade_samples = int(crossfade_samples)\n+        self.clips_per_segment = int(clips_per_segment)\n \n     def __len__(self) -> int:\n-        return len(self.base) // 2\n+        return len(self.base) // self.clips_per_segment\n \n     def __getitem__(self, index: int) -> Tensor:\n-        first = self.base[2 * index]\n-        second = self.base[2 * index + 1]\n+        start = index * self.clips_per_segment\n+        group = [\n+            self.base[start + i] for i in range(self.clips_per_segment)\n+        ]\n         overlap = min(\n-            self.crossfade_samples,\n-            int(first.shape[-1]) - 1,\n-            int(second.shape[-1]) - 1,\n+            [self.crossfade_samples]\n+            + [int(g.shape[-1]) - 1 for g in group]\n         )\n         overlap = max(overlap, 0)\n-        return equal_power_overlap_add([first, second], overlap=overlap)\n+        return equal_power_overlap_add(group, overlap=overlap)\n \n \n def build_audio_dataloader(\n     dataset: Dataset,\n",
+                "additions": 27,
+                "deletions": 13
+              },
+              "truncated": false
+            },
+            "title": "src/ald_sc/data.py",
+            "time": {
+              "start": 1787363748981,
+              "end": 1787363748983
+            }
+          },
+          "id": "prt_0272e6c6f001Ncf6mjyEIOmgxZ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e0cbb00230J02NBe7B1Qne"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "847fc21d5bf9c4e5e9d723eb5cb3ff3f45acb098",
+          "type": "step-finish",
+          "tokens": {
+            "total": 336317,
+            "input": 14,
+            "output": 815,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 335488
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272e6d06001DJLSZRDiwFxZpH",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e0cbb00230J02NBe7B1Qne"
+        },
+        {
+          "type": "patch",
+          "hash": "751f34ac3b9463491820a5efc816c476c900fe07",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/src/ald_sc/data.py"
+          ],
+          "id": "prt_0272e6d4b0019naBC5o6nyPRvL",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e0cbb00230J02NBe7B1Qne"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 336827,
+          "input": 837,
+          "output": 502,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 335488
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363749208,
+          "completed": 1787363797839
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272e6d58002rLY6lcsmnCbKy7",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "847fc21d5bf9c4e5e9d723eb5cb3ff3f45acb098",
+          "type": "step-start",
+          "id": "prt_0272f14bb001tgFcjDyFaPjJY8",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e6d58002rLY6lcsmnCbKy7"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_231f6953668c473fb8792528",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run pytest tests/test_audio_data.py -q 2>&1 | tail -1 && uv run python - << 'PYEOF'\n# wire --clips-per-segment into train_audio_longform.py\np = \"scripts/train_audio_longform.py\"\ns = open(p).read()\ns = s.replace(\n    '    parser.add_argument(\"--pair\", action=\"store_true\",\\n        help=\"Pair consecutive clips into 2x segments \"\\n        \"(equal-power crossfade) for long-form supply\")',\n    '    parser.add_argument(\"--pair\", action=\"store_true\",\\n        help=\"Chain consecutive clips into k-times segments \"\\n        \"(equal-power crossfades) for long-form supply; k via \"\\n        \"--clips-per-segment\")',\n)\ns = s.replace(\n    '    parser.add_argument(\"--crossfade-ms\", type=float, default=20.0)',\n    '    parser.add_argument(\"--crossfade-ms\", type=float, default=20.0)\\n'\n    '    parser.add_argument(\"--clips-per-segment\", type=int, default=2,\\n'\n    '                        help=\"Base clips chained per training segment when --pair\")',\n)\ns = s.replace(\n    \"dataset = PairedSegmentDataset(base, crossfade_samples=crossfade) if args.pair else base\",\n    \"dataset = (\\n\"\n    \"        PairedSegmentDataset(\\n\"\n    \"            base, crossfade_samples=crossfade, clips_per_segment=args.clips_per_segment\\n\"\n    \"        )\\n\"\n    \"        if args.pair\\n\"\n    \"        else base\\n\"\n    \"    )\",\n)\ns = s.replace(\n    \"    segment_samples = (\\n        2 * clip_samples - min(crossfade, clip_samples - 1) if args.pair else clip_samples\\n    )\",\n    \"    k = args.clips_per_segment\\n\"\n    \"    segment_samples = (\\n\"\n    \"        k * clip_samples - (k - 1) * min(crossfade, clip_samples - 1)\\n\"\n    \"        if args.pair\\n\"\n    \"        else clip_samples\\n\"\n    \"    )\",\n)\nopen(p, \"w\").write(s)\nprint(\"script wired\")\nPYEOF\nuv run pytest tests/ -q 2>&1 | tail -1",
+              "timeout": 180000
+            },
+            "output": "28 passed in 0.46s\nscript wired\n334 passed, 1 warning in 4.30s\n",
+            "metadata": {
+              "output": "28 passed in 0.46s\nscript wired\n334 passed, 1 warning in 4.30s\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run pytest tests/test_audio_data.py -q 2>&1 | tail -1 && uv run python - << 'PYEOF'\n# wire --clips-per-segment into train_audio_longform.py\np = \"scripts/train_audio_longform.py\"\ns = open(p).read()\ns = s.replace(\n    '    parser.add_argument(\"--pair\", action=\"store_true\",\\n        help=\"Pair consecutive clips into 2x segments \"\\n        \"(equal-power crossfade) for long-form supply\")',\n    '    parser.add_argument(\"--pair\", action=\"store_true\",\\n        help=\"Chain consecutive clips into k-times segments \"\\n        \"(equal-power crossfades) for long-form supply; k via \"\\n        \"--clips-per-segment\")',\n)\ns = s.replace(\n    '    parser.add_argument(\"--crossfade-ms\", type=float, default=20.0)',\n    '    parser.add_argument(\"--crossfade-ms\", type=float, default=20.0)\\n'\n    '    parser.add_argument(\"--clips-per-segment\", type=int, default=2,\\n'\n    '                        help=\"Base clips chained per training segment when --pair\")',\n)\ns = s.replace(\n    \"dataset = PairedSegmentDataset(base, crossfade_samples=crossfade) if args.pair else base\",\n    \"dataset = (\\n\"\n    \"        PairedSegmentDataset(\\n\"\n    \"            base, crossfade_samples=crossfade, clips_per_segment=args.clips_per_segment\\n\"\n    \"        )\\n\"\n    \"        if args.pair\\n\"\n    \"        else base\\n\"\n    \"    )\",\n)\ns = s.replace(\n    \"    segment_samples = (\\n        2 * clip_samples - min(crossfade, clip_samples - 1) if args.pair else clip_samples\\n    )\",\n    \"    k = args.clips_per_segment\\n\"\n    \"    segment_samples = (\\n\"\n    \"        k * clip_samples - (k - 1) * min(crossfade, clip_samples - 1)\\n\"\n    \"        if args.pair\\n\"\n    \"        else clip_samples\\n\"\n    \"    )\",\n)\nopen(p, \"w\").write(s)\nprint(\"script wired\")\nPYEOF\nuv run pytest tests/ -q 2>&1 | tail -1",
+            "time": {
+              "start": 1787363797661,
+              "end": 1787363797662
+            }
+          },
+          "id": "prt_0272f14bd00197mEOTb87t1IA4",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e6d58002rLY6lcsmnCbKy7"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "48402359f0bd88530c7cf2429e461bc7baa7a205",
+          "type": "step-finish",
+          "tokens": {
+            "total": 336827,
+            "input": 837,
+            "output": 502,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 335488
+            }
+          },
+          "cost": 0,
+          "id": "prt_0272f2b040018U1A8K6UT6nmV7",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e6d58002rLY6lcsmnCbKy7"
+        },
+        {
+          "type": "patch",
+          "hash": "847fc21d5bf9c4e5e9d723eb5cb3ff3f45acb098",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/scripts/train_audio_longform.py"
+          ],
+          "id": "prt_0272f2b4e001r8Ljfp57TBwP08",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272e6d58002rLY6lcsmnCbKy7"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 337490,
+          "input": 537,
+          "output": 466,
+          "reasoning": 167,
+          "cache": {
+            "write": 0,
+            "read": 336320
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363797852,
+          "completed": 1787363880074
+        },
+        "finish": "tool-calls",
+        "id": "msg_0272f2b5c002ojcqpkQL0oqNL2",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "48402359f0bd88530c7cf2429e461bc7baa7a205",
+          "type": "step-start",
+          "id": "prt_0272f8006001lSZPa2GdwlPunV",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272f2b5c002ojcqpkQL0oqNL2"
+        },
+        {
+          "type": "reasoning",
+          "text": "334 green. Now launch the NSynth-archive training in the background:\n\n- Archive: /Users/tuned-silicon/code/LSD-studio/sound-archive/bundled/tiny-196/nsynth-valid-partial/audio (196 NSynth one-shots, ~2-4s)\n- clip-sec 2.0, pair, clips-per-segment 5 → ~9.84s segments → max-latent ≈ floor((5×48000−4×960)/320)=floor(240000−3840=236160/320)=738 ✓ near-750\n- prior: reuse esc50_prior? Chart U_q is (128,8) — functional for any corpus; spectrum mismatch acknowledged (decoder too). For audition purposes OK; note that full parity wants archive-matched prior+decoder retrain.\n- epochs: dataset = 196//5 = 39 segments → batches/epoch = 19 (batch2) → need many epochs: 150 → 2850 steps ≈ 4-6 min MPS. Go epochs=200 (~4000 steps).\n- out: dit_v012_nsynth_10s.pt at repo root? Keep results-local then bundle: --out baselines/v0.12-tracks/dit_v0.12_nsynch... name: dit_v0.12_nsynth10s.pt + metadata auto.\n\nRun in background with nohup & log file so I can poll. Then while it trains: commit feature + generate barontini A/B renders on confirm_a (quick) — actually those were requested implicitly earlier (\"Barontini clock should be involved\"); do both banks after training completes to keep focus: first commit, launch training bg, then run barontini renders on confirm_a now (fast), then poll training, materialise nsynth renders (fixed-step + clock), bundle everything, final summary.",
+          "time": {
+            "start": 1787363819527,
+            "end": 1787363831144
+          },
+          "id": "prt_0272f8007001RJd1mWOlW1Ttul",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272f2b5c002ojcqpkQL0oqNL2"
+        },
+        {
+          "type": "text",
+          "text": "**334 green.** Launching the studio-archive training in the background (NSynth one-shots chained ×5 ≈ 9.8 s segments):",
+          "time": {
+            "start": 1787363831146,
+            "end": 1787363834893
+          },
+          "id": "prt_0272fad6a001NttXp4wRVTISkk",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272f2b5c002ojcqpkQL0oqNL2"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_7fd0c61d77904c1692ff816e",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "nohup uv run python scripts/train_audio_longform.py \\\n  --data-root \"/Users/tuned-silicon/code/LSD-studio/sound-archive/bundled/tiny-196/nsynth-valid-partial/audio\" \\\n  --pair --clips-per-segment 5 --clip-sec 2.0 \\\n  --prior results/artifacts/esc50_prior.pt \\\n  --min-latent 300 --max-latent 750 \\\n  --dim 64 --depth 2 --latent-channels 128 --q 8 \\\n  --batch-size 2 --epochs 200 --device auto --seed 3407 \\\n  --out dit_v0.12_nsynth10s.pt > /tmp/train_nsynth.log 2>&1 &\necho \"launched pid $!\"; sleep 45 && grep -E \"segments=|epoch \" /tmp/train_nsynth.log | head -3",
+              "timeout": 120000
+            },
+            "output": "launched pid 86321\nsegments=38 (9.92s each) crop range 300..744 latent frames\n\u001b[2m2026-08-22T01:57:18.459677Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m19.378885419745195\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\n\u001b[2m2026-08-22T01:57:20.919142Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m1\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m17.596302609694632\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\n",
+            "metadata": {
+              "output": "launched pid 86321\nsegments=38 (9.92s each) crop range 300..744 latent frames\n\u001b[2m2026-08-22T01:57:18.459677Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m19.378885419745195\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\n\u001b[2m2026-08-22T01:57:20.919142Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m1\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m17.596302609694632\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "nohup uv run python scripts/train_audio_longform.py \\\n  --data-root \"/Users/tuned-silicon/code/LSD-studio/sound-archive/bundled/tiny-196/nsynth-valid-partial/audio\" \\\n  --pair --clips-per-segment 5 --clip-sec 2.0 \\\n  --prior results/artifacts/esc50_prior.pt \\\n  --min-latent 300 --max-latent 750 \\\n  --dim 64 --depth 2 --latent-channels 128 --q 8 \\\n  --batch-size 2 --epochs 200 --device auto --seed 3407 \\\n  --out dit_v0.12_nsynth10s.pt > /tmp/train_nsynth.log 2>&1 &\necho \"launched pid $!\"; sleep 45 && grep -E \"segments=|epoch \" /tmp/train_nsynth.log | head -3",
+            "time": {
+              "start": 1787363879923,
+              "end": 1787363879927
+            }
+          },
+          "id": "prt_0272fbc080017t4Nzy3rUdw2O5",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272f2b5c002ojcqpkQL0oqNL2"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "48402359f0bd88530c7cf2429e461bc7baa7a205",
+          "type": "step-finish",
+          "tokens": {
+            "total": 337490,
+            "input": 537,
+            "output": 466,
+            "reasoning": 167,
+            "cache": {
+              "write": 0,
+              "read": 336320
+            }
+          },
+          "cost": 0,
+          "id": "prt_027306c45001i8bh3Oh1xOm468",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_0272f2b5c002ojcqpkQL0oqNL2"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 338071,
+          "input": 948,
+          "output": 252,
+          "reasoning": 39,
+          "cache": {
+            "write": 0,
+            "read": 336832
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363880154,
+          "completed": 1787363895880
+        },
+        "finish": "tool-calls",
+        "id": "msg_027306cda002Dvv6OfvesRwRIe",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "48402359f0bd88530c7cf2429e461bc7baa7a205",
+          "type": "step-start",
+          "id": "prt_0273082af00173BnQ47HnIVDn4",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        },
+        {
+          "type": "reasoning",
+          "text": "Training launched: 38 segments of 9.92s, crop range 300–744 frames, 19 steps/epoch, ~2.5s/epoch on MPS → 200 epochs ≈ 8 minutes.\n\nWhile it trains: generate the Barontini A/B renders on the confirm_a bank (fixed-step vs clock) — that's quick. Then when training finishes, materialise NSynth-checkpoint renders (fixed + clock), bundle everything.\n\nRun barontini renders now on confirm_a bank.",
+          "time": {
+            "start": 1787363885745,
+            "end": 1787363888733
+          },
+          "id": "prt_0273082b10018lD1n3Umvkq4Dd",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        },
+        {
+          "type": "text",
+          "text": "Training live (38 × 9.92 s segments, crops 300–744, ~2.5 s/epoch — done in ~8 min). Meanwhile, generating the Barontini A/B set on the ESC-50 bank:",
+          "time": {
+            "start": 1787363888735,
+            "end": 1787363891265
+          },
+          "id": "prt_027308e5f001fkFHZlU2TMmxBC",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_43419ce68aec445cbdbcfacb",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python scripts/materialise_midi.py \\\n  --bank baselines/v0.12-tracks/confirm_a \\\n  --out-dir baselines/v0.12-tracks/midi_renders_barontini \\\n  --barontini --dit baselines/v0.12-tracks/dit_v0.12_10s.pt \\\n  --clock-eps 1e-2 --max-clips 8 --seed-start 901200 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -6",
+              "timeout": 900000
+            },
+            "output": "materialised_chords.wav: 12 events, 9.55s\n\u001b[2m2026-08-22T01:58:15.205723Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m24\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_melody.wav: 24 events, 9.59s\n\u001b[2m2026-08-22T01:58:15.372104Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m14\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_barontini\n",
+            "metadata": {
+              "output": "materialised_chords.wav: 12 events, 9.55s\n\u001b[2m2026-08-22T01:58:15.205723Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m24\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_melody.wav: 24 events, 9.59s\n\u001b[2m2026-08-22T01:58:15.372104Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m14\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_barontini\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python scripts/materialise_midi.py \\\n  --bank baselines/v0.12-tracks/confirm_a \\\n  --out-dir baselines/v0.12-tracks/midi_renders_barontini \\\n  --barontini --dit baselines/v0.12-tracks/dit_v0.12_10s.pt \\\n  --clock-eps 1e-2 --max-clips 8 --seed-start 901200 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -6",
+            "time": {
+              "start": 1787363895632,
+              "end": 1787363895635
+            }
+          },
+          "id": "prt_027309805001DL3hWL1Nb3uA4A",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c1c4a4d2eec92a063fca548d70348aee0e2b983b",
+          "type": "step-finish",
+          "tokens": {
+            "total": 338071,
+            "input": 948,
+            "output": 252,
+            "reasoning": 39,
+            "cache": {
+              "write": 0,
+              "read": 336832
+            }
+          },
+          "cost": 0,
+          "id": "prt_02730a9f2001UWQuzF2Ia7ZFZw",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        },
+        {
+          "type": "patch",
+          "hash": "48402359f0bd88530c7cf2429e461bc7baa7a205",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_barontini/manifest.json",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_barontini/materialised_arpeggio.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_barontini/materialised_chords.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_barontini/materialised_melody.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_barontini/materialised_scale.wav"
+          ],
+          "id": "prt_02730aa460012Qkua1Vx0Vj6GU",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_027306cda002Dvv6OfvesRwRIe"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 338475,
+          "input": 689,
+          "output": 58,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 337728
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787363895946,
+          "completed": 1787364168594
+        },
+        "finish": "tool-calls",
+        "id": "msg_02730aa8a002FfEsvkrsDxS5y5",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "c1c4a4d2eec92a063fca548d70348aee0e2b983b",
+          "type": "step-start",
+          "id": "prt_02731293b001S2vVY7BC81WuS6",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02730aa8a002FfEsvkrsDxS5y5"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_ee38a0c5382341dfad723faa",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "sleep 240; grep -E \"initial loss|latent lengths|saved\" /tmp/train_nsynth.log | tail -3; grep -c \"epoch \" /tmp/train_nsynth.log",
+              "timeout": 600000
+            },
+            "output": "163\n",
+            "metadata": {
+              "output": "163\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "sleep 240; grep -E \"initial loss|latent lengths|saved\" /tmp/train_nsynth.log | tail -3; grep -c \"epoch \" /tmp/train_nsynth.log",
+            "time": {
+              "start": 1787364168422,
+              "end": 1787364168430
+            }
+          },
+          "id": "prt_02731293f001EB9qYOPPU77kC8",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02730aa8a002FfEsvkrsDxS5y5"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "c1c4a4d2eec92a063fca548d70348aee0e2b983b",
+          "type": "step-finish",
+          "tokens": {
+            "total": 338475,
+            "input": 689,
+            "output": 58,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 337728
+            }
+          },
+          "cost": 0,
+          "id": "prt_02734d350001iZhLBy2aI9xnG4",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02730aa8a002FfEsvkrsDxS5y5"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 338544,
+          "input": 113,
+          "output": 63,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 338368
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787364168699,
+          "completed": 1787364295729
+        },
+        "finish": "tool-calls",
+        "id": "msg_02734d3fb0024TJsrqcDkx6aCJ",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "c1c4a4d2eec92a063fca548d70348aee0e2b983b",
+          "type": "step-start",
+          "id": "prt_02734ee4300120rqM8HPFhL4gV",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02734d3fb0024TJsrqcDkx6aCJ"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_278ef525c45f4626925330ac",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "sleep 120; tail -4 /tmp/train_nsynth.log | grep -viE \"^202[0-9-]+T\" ; grep -E \"initial loss|saved\" /tmp/train_nsynth.log",
+              "timeout": 300000
+            },
+            "output": "\u001b[2m2026-08-22T02:03:29.112351Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m199\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m2.2726463895095024\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\ninitial loss 25.9970 -> final loss 2.7361\nlatent lengths exercised: [300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744]\nsaved dit_v0.12_nsynth10s.pt (+ .safetensors) and dit_v0.12_nsynth10s_metadata.json\ninitial loss 25.9970 -> final loss 2.7361\nsaved dit_v0.12_nsynth10s.pt (+ .safetensors) and dit_v0.12_nsynth10s_metadata.json\n",
+            "metadata": {
+              "output": "\u001b[2m2026-08-22T02:03:29.112351Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mepoch                         \u001b[0m \u001b[36mepoch\u001b[0m=\u001b[35m199\u001b[0m \u001b[36mlabel\u001b[0m=\u001b[35m'Long-form DiT'\u001b[0m \u001b[36mmean_loss\u001b[0m=\u001b[35m2.2726463895095024\u001b[0m \u001b[36msteps\u001b[0m=\u001b[35m19\u001b[0m\ninitial loss 25.9970 -> final loss 2.7361\nlatent lengths exercised: [300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744]\nsaved dit_v0.12_nsynth10s.pt (+ .safetensors) and dit_v0.12_nsynth10s_metadata.json\ninitial loss 25.9970 -> final loss 2.7361\nsaved dit_v0.12_nsynth10s.pt (+ .safetensors) and dit_v0.12_nsynth10s_metadata.json\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "sleep 120; tail -4 /tmp/train_nsynth.log | grep -viE \"^202[0-9-]+T\" ; grep -E \"initial loss|saved\" /tmp/train_nsynth.log",
+            "time": {
+              "start": 1787364295467,
+              "end": 1787364295470
+            }
+          },
+          "id": "prt_02734ee45001U6H8s9HCnOHP03",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02734d3fb0024TJsrqcDkx6aCJ"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "914db6f94b55735ac3632ebd24169bf4fb5561b1",
+          "type": "step-finish",
+          "tokens": {
+            "total": 338544,
+            "input": 113,
+            "output": 63,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 338368
+            }
+          },
+          "cost": 0,
+          "id": "prt_02736c3e1001SoH5PsMdKhbyDF",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02734d3fb0024TJsrqcDkx6aCJ"
+        },
+        {
+          "type": "patch",
+          "hash": "c1c4a4d2eec92a063fca548d70348aee0e2b983b",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/dit_v0.12_nsynth10s.pt",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/dit_v0.12_nsynth10s.safetensors",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/dit_v0.12_nsynth10s_metadata.json"
+          ],
+          "id": "prt_02736c430001YAgPNHQ4cg21T5",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02734d3fb0024TJsrqcDkx6aCJ"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 340907,
+          "input": 2100,
+          "output": 355,
+          "reasoning": 20,
+          "cache": {
+            "write": 0,
+            "read": 338432
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787364295786,
+          "completed": 1787364325377
+        },
+        "finish": "tool-calls",
+        "id": "msg_02736c46a002HUH3wGNq0FYCbq",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "914db6f94b55735ac3632ebd24169bf4fb5561b1",
+          "type": "step-start",
+          "id": "prt_0273708d9001yyPWyXSaWtm9vX",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        },
+        {
+          "type": "reasoning",
+          "text": "NSynth-archive training complete: 26.0 → 2.74 loss, full 300–744 crop range, checkpoint saved. Now materialise MIDI renders from the NSynth-trained model (both fixed-step and Barontini-clock banks), bundle everything, commit, push, and give the user the listening matrix.",
+          "time": {
+            "start": 1787364313306,
+            "end": 1787364315005
+          },
+          "id": "prt_0273708da0017SYRCVQnrh19r2",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        },
+        {
+          "type": "text",
+          "text": "Archive training done (26.0 → 2.74). Materialising the NSynth-checkpoint renders — fixed-step and clock-on banks:",
+          "time": {
+            "start": 1787364315007,
+            "end": 1787364319300
+          },
+          "id": "prt_027370f7f0014ecjwkVKDXX1gJ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_ddeab096204444268199a931",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "uv run python scripts/generate_longform.py \\\n  --dit dit_v0.12_nsynth10s.pt \\\n  --prior results/artifacts/esc50_prior.pt \\\n  --graph-dec results/artifacts/esc50_graph_dec.pt \\\n  --n 8 --seed-start 901300 --out-dir /tmp/_nsynth_bank 2>&1 | tail -1\nuv run python scripts/materialise_midi.py \\\n  --bank /tmp/_nsynth_bank --out-dir baselines/v0.12-tracks/midi_renders_nsynth10s \\\n  --dit dit_v0.12_nsynth10s.pt 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -5\nuv run python scripts/materialise_midi.py \\\n  --bank /tmp/_nsynth_bank --out-dir baselines/v0.12-tracks/midi_renders_nsynth10s_barontini \\\n  --barontini --dit dit_v0.12_nsynth10s.pt --clock-eps 1e-2 --seed-start 901400 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -2",
+              "timeout": 1200000
+            },
+            "output": "wrote 8 clips + manifest.json to /tmp/_nsynth_bank\n\u001b[2m2026-08-22T02:05:22.007499Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m24\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_melody.wav: 24 events, 9.59s\n\u001b[2m2026-08-22T02:05:22.148970Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m14\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_nsynth10s\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_nsynth10s_barontini\n",
+            "metadata": {
+              "output": "wrote 8 clips + manifest.json to /tmp/_nsynth_bank\n\u001b[2m2026-08-22T02:05:22.007499Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m24\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_melody.wav: 24 events, 9.59s\n\u001b[2m2026-08-22T02:05:22.148970Z\u001b[0m [\u001b[32m\u001b[1minfo     \u001b[0m] \u001b[1mmidi_render                   \u001b[0m \u001b[36mbank_size\u001b[0m=\u001b[35m8\u001b[0m \u001b[36mn_events\u001b[0m=\u001b[35m14\u001b[0m \u001b[36mn_skipped\u001b[0m=\u001b[35m0\u001b[0m \u001b[36mpitch_bank_root\u001b[0m=\u001b[35m60\u001b[0m \u001b[36mseed\u001b[0m=\u001b[35m3407\u001b[0m\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_nsynth10s\nmaterialised_scale.wav: 14 events, 8.34s\nwrote 4 renders + manifest.json to baselines/v0.12-tracks/midi_renders_nsynth10s_barontini\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run python scripts/generate_longform.py \\\n  --dit dit_v0.12_nsynth10s.pt \\\n  --prior results/artifacts/esc50_prior.pt \\\n  --graph-dec results/artifacts/esc50_graph_dec.pt \\\n  --n 8 --seed-start 901300 --out-dir /tmp/_nsynth_bank 2>&1 | tail -1\nuv run python scripts/materialise_midi.py \\\n  --bank /tmp/_nsynth_bank --out-dir baselines/v0.12-tracks/midi_renders_nsynth10s \\\n  --dit dit_v0.12_nsynth10s.pt 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -5\nuv run python scripts/materialise_midi.py \\\n  --bank /tmp/_nsynth_bank --out-dir baselines/v0.12-tracks/midi_renders_nsynth10s_barontini \\\n  --barontini --dit dit_v0.12_nsynth10s.pt --clock-eps 1e-2 --seed-start 901400 2>&1 | grep -viE \"^202[0-9-]+T\" | tail -2",
+            "time": {
+              "start": 1787364325109,
+              "end": 1787364325111
+            }
+          },
+          "id": "prt_02737200d001R0tXStaRPlL1d1",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "cfb42d1cf89bed8ad25c6132685de7a56eb07530",
+          "type": "step-finish",
+          "tokens": {
+            "total": 340907,
+            "input": 2100,
+            "output": 355,
+            "reasoning": 20,
+            "cache": {
+              "write": 0,
+              "read": 338432
+            }
+          },
+          "cost": 0,
+          "id": "prt_0273737b1001GNCA6t5jtQFBUJ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        },
+        {
+          "type": "patch",
+          "hash": "914db6f94b55735ac3632ebd24169bf4fb5561b1",
+          "files": [
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s/manifest.json",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_arpeggio.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_chords.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_melody.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s/materialised_scale.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/manifest.json",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_arpeggio.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_chords.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_melody.wav",
+            "/Users/tuned-silicon/papers/latent-sound-diffusion/baselines/v0.12-tracks/midi_renders_nsynth10s_barontini/materialised_scale.wav"
+          ],
+          "id": "prt_0273737ff001bd0zmSPakFK54p",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02736c46a002HUH3wGNq0FYCbq"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_02728ff73001jFwp4aWp1rtKg6",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 341748,
+          "input": 821,
+          "output": 447,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 340480
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787364325390,
+          "completed": 1787364451615
+        },
+        "finish": "tool-calls",
+        "id": "msg_02737380e002z5EB1yf662CHMA",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "cfb42d1cf89bed8ad25c6132685de7a56eb07530",
+          "type": "step-start",
+          "id": "prt_027377512001iMfvh43BsY2ui1",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02737380e002z5EB1yf662CHMA"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_7ad1f02a712e4a2eb8753f5f",
+          "state": {
+            "status": "error",
+            "input": {
+              "command": "mv dit_v0.12_nsynth10s.pt dit_v0.12_nsynth10s.safetensors dit_v0.12_nsynth10s_metadata.json baselines/v0.12-tracks/ && rm -rf /tmp/_nsynth_bank\ncd baselines/v0.12-tracks && shasum -a 256 midi_renders_barontini/* midi_renders_nsynth10s/* midi_renders_nsynth10s_barontini/* dit_v0.12_nsynth10s* >> SHA256SUMS && cd ../..\npython3 - << 'PYEOF'\np = \"baselines/v0.12-tracks/RELEASE.md\"\ns = open(p).read()\ns += \"\"\"\n## Studio-archive model + Barontini A/B (post-review additions)\n\n- `dit_v0.12_nsynth10s.pt` — v0.12 trained on the **producer archive**\n  (LSD-studio NSynth bundle, 38 chained 9.9 s segments, crops 300–744,\n  200 epochs, loss 26.0 → 2.7). Same timbre family as the studio's\n  in-app training; length + precision from v0.12.\n- `midi_renders_barontini/` — ESC-50 checkpoint bank regenerated under\n  the Barontini heat-death clock (eps=1e-2 normalized), then\n  materialised: compare directly against `midi_renders/` (same\n  patterns/seeds, fixed-step bank).\n- `midi_renders_nsynth10s/` and `midi_renders_nsynth10s_barontini/` —\n  same four patterns from the studio-archive checkpoint, fixed-step vs\n  clock-on banks.\n\nCaveat for parity: decoder + prior remain ESC-50-trained; full\nstudio-parity timbre additionally wants an archive-matched decoder\nretrain (tracked on #60).\n\"\"\"\nopen(p, \"w\").write(s)\nprint(\"RELEASE.md updated\")\nPYEOF"
+            },
+            "error": "The user rejected permission to use this specific tool call.",
+            "time": {
+              "start": 1787364341015,
+              "end": 1787364451495
+            }
+          },
+          "id": "prt_027377514001820Dy92XF6acie",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02737380e002z5EB1yf662CHMA"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "cfb42d1cf89bed8ad25c6132685de7a56eb07530",
+          "type": "step-finish",
+          "tokens": {
+            "total": 341748,
+            "input": 821,
+            "output": 447,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 340480
+            }
+          },
+          "cost": 0,
+          "id": "prt_0273924e700123Z0QvqAi0Bm0c",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_02737380e002z5EB1yf662CHMA"
         }
       ]
     }
