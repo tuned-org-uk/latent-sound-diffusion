@@ -227,9 +227,10 @@ def sample_ddim(
         If True, return (z, steps_used).
     stop_sigma : int, optional
         Schedule timestep at which integration halts (issue #62). When
-        given, the sigma ladder is truncated at that index so the
-        returned latent is only partially denoised: it retains
-        ``sqrt(1 - ab[stop_sigma])`` residual noise instead of ending at
+        given, the sigma ladder is truncated so the final update lands on
+        that timestep (or the nearest ladder entry at or above it) and
+        the returned latent stays partially denoised, retaining
+        ``sqrt(1 - ab[t_stop])`` residual noise instead of ending at
         ``ab == 1``. ``None`` runs the full ladder (default).
 
     Returns

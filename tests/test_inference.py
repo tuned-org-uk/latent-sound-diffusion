@@ -139,11 +139,11 @@ class TestBankModes:
         ]
         assert sum(l1) / len(l1) > 0.01
 
-    def test_jitter_first_clip_is_canonical(self) -> None:
-        """variety=0 must reduce every mode to the canonical draw."""
+    def test_zero_variety_reduces_to_canonical(self) -> None:
+        """variety=0 must reduce every varying mode to the canonical draw."""
         m = _make_model()
         canon = m.generate_sound_bank(n=2, steps=3, seed=5, bank_mode="canonical")[0]
-        for mode in ("jitter", "residual"):
+        for mode in ("jitter", "residual", "stopvar"):
             bank = m.generate_sound_bank(
                 n=2, steps=3, seed=5, bank_mode=mode, bank_variety=0.0
             )

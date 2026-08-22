@@ -432,6 +432,10 @@ class LSDModel:
         # fraction of `steps` (default 0.5): lower floors retain more
         # noise (more spread, less playability on v0.11-era feedback,
         # PR #59).
+        if bank_variety == 0:
+            # Documented contract shared with jitter/residual: zero
+            # variety is the canonical output.
+            return [z_bar] * n
         lo = max(1, int(round(steps * bank_variety)))
         hi = min(steps, max(lo + 1, int(round(steps * 0.98))))
         if hi - lo + 1 < n:
