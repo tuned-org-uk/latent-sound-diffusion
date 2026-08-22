@@ -14,7 +14,7 @@ from pathlib import Path
 import torch
 
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
 from ald_sc.config import load_config, resolve_geometry
 from ald_sc.dit import MinimalDiT
 from ald_sc.data import ToyAudioDataset, build_audio_dataloader
@@ -77,7 +77,7 @@ def main() -> None:
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
+        prior = load_arrow_prior(args.prior)
     elif args.toy:
         gen = torch.Generator().manual_seed(args.seed)
         embeddings = torch.randn(64, 128, generator=gen)
@@ -130,7 +130,7 @@ def main() -> None:
         base_channels=64,
     )
     if args.decoder and Path(args.decoder).exists():
-        decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
+        decoder.load_state_dict(torch.load(args.decoder, weights_only=True))
 
     vae = AudioVAE(encoder=encoder, decoder=decoder)
     for p in vae.parameters():

@@ -25,6 +25,7 @@ import torch
 from ald_sc.audio_codec import EnCodecEncoder
 from ald_sc.config import validate_dit_state_dict
 from ald_sc.dit import MinimalDiT
+from ald_sc.build_prior import load_arrow_prior
 from ald_sc.graph_decoder import GraphDecoder
 from ald_sc.inference import BANK_MODES, LSDModel
 from ald_sc.schedule import CosineSchedule
@@ -115,7 +116,7 @@ def main() -> None:
         num_heads=int(geo["num_heads"]),
         spec_dim=int(geo["spec_dim"]),
     )
-    state_dict = torch.load(dit_path, weights_only=False)
+    state_dict = torch.load(dit_path, weights_only=True)
     validate_dit_state_dict(
         state_dict,
         latent_channels=int(geo["latent_channels"]),
@@ -125,7 +126,7 @@ def main() -> None:
     dit.load_state_dict(state_dict)
     dit = dit.to(device).eval()
 
-    prior = torch.load(args.prior, weights_only=False)
+    prior = load_arrow_prior(args.prior)
     prior = prior.to(device)
 
     graph_dec = GraphDecoder(
@@ -136,7 +137,7 @@ def main() -> None:
         prior=prior,
         upsample_strides=(2, 4, 5, 8),
     )
-    graph_dec.load_state_dict(torch.load(args.graph_dec, weights_only=False))
+    graph_dec.load_state_dict(torch.load(args.graph_dec, weights_only=True))
     graph_dec = graph_dec.to(device).eval()
 
     encoder = EnCodecEncoder(sample_rate=args.sample_rate, bandwidth=24)

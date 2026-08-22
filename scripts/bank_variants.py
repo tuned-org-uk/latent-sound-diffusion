@@ -80,7 +80,7 @@ def main() -> None:
     random.seed(SEED)
     torch.manual_seed(SEED)
 
-    embeddings = torch.load(ARTIFACTS / "embeddings.pt", weights_only=False)
+    embeddings = torch.load(ARTIFACTS / "embeddings.pt", weights_only=True)
     prior = build_arrow_prior(embeddings, q=8, k=4).to(device)
     dec = (
         GraphDecoder(
@@ -95,7 +95,7 @@ def main() -> None:
         .eval()
     )
     dec.load_state_dict(
-        torch.load(ARTIFACTS / "graph_dec.pt", weights_only=False, map_location="cpu")
+        torch.load(ARTIFACTS / "graph_dec.pt", weights_only=True, map_location="cpu")
     )
     dit = (
         MinimalDiT(
@@ -111,7 +111,7 @@ def main() -> None:
         .eval()
     )
     dit.load_state_dict(
-        torch.load(ARTIFACTS / "dit.pt", weights_only=False, map_location="cpu")
+        torch.load(ARTIFACTS / "dit.pt", weights_only=True, map_location="cpu")
     )
     sched = CosineSchedule(num_steps=1000)
     encoder = EnCodecEncoder().to(device).eval()

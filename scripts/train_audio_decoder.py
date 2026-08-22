@@ -15,7 +15,7 @@ from pathlib import Path
 import torch
 
 from ald_sc.audio_codec import AudioVAE, BaselineAudioDecoder, EnCodecEncoder
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
 from ald_sc.data import (
     AudioFolderDataset,
     Esc50Dataset,
@@ -49,7 +49,7 @@ def main() -> None:
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
+        prior = load_arrow_prior(args.prior)
     else:
         print("Building toy prior (no prior file found)")
         embeddings = torch.randn(64, args.feature_dim)

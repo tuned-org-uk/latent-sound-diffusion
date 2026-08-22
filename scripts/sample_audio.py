@@ -14,7 +14,7 @@ import torch
 import soundfile
 
 from ald_sc.audio_codec import BaselineAudioDecoder
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
 from ald_sc.config import load_config, resolve_geometry, validate_dit_state_dict
 from ald_sc.dit import MinimalDiT
 from ald_sc.graph_decoder import GraphDecoder
@@ -61,7 +61,7 @@ def main() -> None:
 
     # Build or load prior
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
+        prior = load_arrow_prior(args.prior)
     elif args.toy:
         gen = torch.Generator().manual_seed(args.seed)
         embeddings = torch.randn(64, 128, generator=gen)
@@ -89,7 +89,7 @@ def main() -> None:
         spec_dim=3 * args.q,
     )
     if args.dit and Path(args.dit).exists():
-        state_dict = torch.load(args.dit, weights_only=False)
+        state_dict = torch.load(args.dit, weights_only=True)
         validate_dit_state_dict(
             state_dict,
             latent_channels=geometry["latent_channels"],
@@ -129,7 +129,7 @@ def main() -> None:
         )
 
     if args.decoder and Path(args.decoder).exists():
-        decoder.load_state_dict(torch.load(args.decoder, weights_only=False))
+        decoder.load_state_dict(torch.load(args.decoder, weights_only=True))
     decoder = decoder.to(device).eval()
 
     with torch.no_grad():

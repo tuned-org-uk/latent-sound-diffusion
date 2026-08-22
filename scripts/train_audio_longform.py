@@ -23,7 +23,7 @@ from pathlib import Path
 
 import torch
 
-from ald_sc.build_prior import build_arrow_prior
+from ald_sc.build_prior import build_arrow_prior, load_arrow_prior
 from ald_sc.config import load_config, resolve_geometry
 from ald_sc.data import (
     AudioFolderDataset,
@@ -115,7 +115,7 @@ def main() -> None:
 
     # Prior (required outside --toy; no silent random fallbacks)
     if args.prior and Path(args.prior).exists():
-        prior = torch.load(args.prior, weights_only=False)
+        prior = load_arrow_prior(args.prior)
     elif args.toy:
         gen = torch.Generator().manual_seed(args.seed)
         embeddings = torch.randn(

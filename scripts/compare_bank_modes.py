@@ -61,7 +61,7 @@ ARMS: list[tuple[str, str, float | None]] = [
 
 
 def _load_model(device: torch.device) -> tuple[LSDModel, EnCodecEncoder]:
-    embeddings = torch.load(ARTIFACTS / "embeddings.pt", weights_only=False)
+    embeddings = torch.load(ARTIFACTS / "embeddings.pt", weights_only=True)
     prior = build_arrow_prior(embeddings, q=8, k=4).to(device)
     decoder = (
         GraphDecoder(
@@ -76,7 +76,7 @@ def _load_model(device: torch.device) -> tuple[LSDModel, EnCodecEncoder]:
         .eval()
     )
     decoder.load_state_dict(
-        torch.load(ARTIFACTS / "graph_dec.pt", weights_only=False, map_location="cpu")
+        torch.load(ARTIFACTS / "graph_dec.pt", weights_only=True, map_location="cpu")
     )
     dit = (
         MinimalDiT(
@@ -92,7 +92,7 @@ def _load_model(device: torch.device) -> tuple[LSDModel, EnCodecEncoder]:
         .eval()
     )
     dit.load_state_dict(
-        torch.load(ARTIFACTS / "dit.pt", weights_only=False, map_location="cpu")
+        torch.load(ARTIFACTS / "dit.pt", weights_only=True, map_location="cpu")
     )
     encoder = EnCodecEncoder().to(device).eval()
     model = LSDModel(
