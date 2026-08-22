@@ -3,7 +3,7 @@
   "checkpoint_id": "9043f3e230a0",
   "strategy": "manual-commit",
   "branch": "v0.12-tentative",
-  "checkpoints_count": 8,
+  "checkpoints_count": 9,
   "files_touched": [
     "scripts/materialise_midi.py",
     "src/ald_sc/inference.py",
@@ -65,13 +65,20 @@
       "compact_transcript": "/90/43f3e230a0/7/transcript.jsonl",
       "content_hash": "/90/43f3e230a0/7/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/90/43f3e230a0/8/metadata.json",
+      "transcript": "/90/43f3e230a0/8/full.jsonl",
+      "compact_transcript": "/90/43f3e230a0/8/transcript.jsonl",
+      "content_hash": "/90/43f3e230a0/8/content_hash.txt",
+      "prompt": "/90/43f3e230a0/8/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 102744,
+    "input_tokens": 1086881,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 1686788,
-    "output_tokens": 6368,
-    "api_call_count": 27
+    "cache_read_tokens": 10414660,
+    "output_tokens": 16591,
+    "api_call_count": 59
   }
 }

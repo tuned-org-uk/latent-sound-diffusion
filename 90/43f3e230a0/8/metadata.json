@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "9043f3e230a0",
+  "session_id": "ses_fda918e0bfferlKKhnjm13lC2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-22T01:54:22.004835Z",
+  "branch": "v0.12-tentative",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "OpenCode",
+  "model": "x-preview-f-free",
+  "turn_id": "9a835cb362c8",
+  "checkpoint_transcript_start": 438,
+  "transcript_lines_at_start": 438,
+  "compact_transcript_start": 438,
+  "token_usage": {
+    "input_tokens": 984137,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 8727872,
+    "output_tokens": 10223,
+    "api_call_count": 32
+  },
+  "session_metrics": {
+    "turn_count": 28
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 213,
+      "user_lines_removed": 21,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "baselines/v0.12-tracks/SHA256SUMS": 5,
+        "baselines/v0.12-tracks/midi_renders/manifest.json": 2,
+        "baselines/v0.12-tracks/midi_renders/v0.11-baseline/README.md": 20,
+        "scripts/materialise_midi.py": 117,
+        "src/ald_sc/inference.py": 11,
+        "tests/test_inference.py": 58
+      },
+      "user_removed_per_file": {
+        "baselines/v0.12-tracks/midi_renders/manifest.json": 2,
+        "scripts/materialise_midi.py": 19
+      }
+    }
+  ]
+}
