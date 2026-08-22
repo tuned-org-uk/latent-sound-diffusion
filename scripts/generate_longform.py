@@ -148,7 +148,9 @@ def main() -> None:
     clips = []
     for i, clip in enumerate(bank):
         fname = f"{i:03d}.wav"
-        soundfile.write(str(out_dir / fname), clip.squeeze(0).numpy(), args.sample_rate)
+        soundfile.write(
+            str(out_dir / fname), clip.squeeze(0).cpu().numpy(), args.sample_rate
+        )
         clips.append({"file": fname, "seed": args.seed_start + i})
 
     manifest = {

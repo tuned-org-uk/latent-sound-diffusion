@@ -575,7 +575,7 @@ class Bank:
         clip_entries = []
         for i, clip in enumerate(self.clips):
             fname = f"{i:02d}.wav"
-            wave = clip.squeeze(0).numpy()
+            wave = clip.squeeze(0).cpu().numpy()
             soundfile.write(str(bank_dir / fname), wave, self.model.sample_rate)
             clip_entries.append({"file": fname, "shape": list(clip.shape)})
 
