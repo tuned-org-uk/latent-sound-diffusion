@@ -332,3 +332,22 @@ class TestBankStore:
         m = _make_model()
         with pytest.raises(ValueError, match="clips"):
             Bank(model=m, clips=[], name="empty")
+
+
+class TestBankNameSanitization:
+    """Bank.store must not let `name` escape out_dir/banks (issue #60)."""
+
+    def test_traversal_name_is_sanitized(self, tmp_path) -> None:
+        m = _make_model()
+        bank = Bank(model=m, clips=[torch.zeros(1, 100)], name="../../evil")
+        out = bank.store(tmp_path)
+        assert tmp_path in out.parents or out.parent == tmp_path / "banks"
+        assert "evil" in str(out)
+        assert ".." not in str(out.relative_to(tmp_path))
+        assert (out / "00.wav").exists()
+
+    def test_safe_name_unchanged(self, tmp_path) -> None:
+        m = _make_model()
+        bank = Bank(model=m, clips=[torch.zeros(1, 100)], name="my-bank_1")
+        out = bank.store(tmp_path)
+        assert out == tmp_path / "banks" / "my-bank_1"

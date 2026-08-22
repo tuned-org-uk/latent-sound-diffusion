@@ -6,7 +6,8 @@ to produce a waveform.
 
 When a ``SpectralSchedule`` is provided, the sampler uses the
 Barontini-inspired heat-death stopping criterion: sampling terminates
-when ``Σ ν_k · ᾱ_k(t) < ε``, rather than at a fixed step count.
+when the normalized remaining dissipation
+``Σ ν_k · (1 − ᾱ_k(t)) / Σ ν_k < ε``, rather than at a fixed step count.
 
 This module must not add training logic (per AGENTS.md §11).
 """
@@ -120,7 +121,8 @@ def sample_euler(
     device : torch.device
     spectral_schedule : SpectralSchedule, optional
         If provided, sampling stops early when the heat-death criterion
-        remaining dissipation ``Σ ν_k · (1 − ᾱ_k(t)) < ε`` is met.
+        normalized remaining dissipation
+        ``Σ ν_k · (1 − ᾱ_k(t)) / Σ ν_k < ε`` is met.
     return_steps : bool
         If True, return (z, steps_used).
 

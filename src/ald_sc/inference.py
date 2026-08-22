@@ -64,6 +64,17 @@ def _resolve_seed(seed: int | None) -> int:
     return int(seed)
 
 
+def _sanitize_slug(name: str, fallback: str) -> str:
+    """Allowlist alphanumerics, '-', '_'; everything else collapses to '-'.
+
+    Prevents path traversal via user-supplied directory names.
+    """
+    return (
+        "".join(c if c.isalnum() or c in "-_" else "-" for c in name)
+        or fallback
+    )
+
+
 def _apply_temperature(z: Tensor, temperature: float) -> Tensor:
     if temperature == 1.0:
         return z
@@ -148,9 +159,7 @@ class LSDModel:
         """
         root_dir = Path(root_dir)
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-        safe_slug = (
-            "".join(c if c.isalnum() or c in "-_" else "-" for c in slug) or "model"
-        )
+        safe_slug = _sanitize_slug(slug, fallback="model")
         model_dir = root_dir / f"{ts}-{safe_slug}"
         model_dir.mkdir(parents=True, exist_ok=True)
 
@@ -569,7 +578,7 @@ class Bank:
         timestamp, and provenance. Returns the bank directory path.
         """
         out_dir = Path(out_dir)
-        bank_dir = out_dir / "banks" / self.name
+        bank_dir = out_dir / "banks" / _sanitize_slug(self.name, fallback="bank")
         bank_dir.mkdir(parents=True, exist_ok=True)
 
         clip_entries = []
