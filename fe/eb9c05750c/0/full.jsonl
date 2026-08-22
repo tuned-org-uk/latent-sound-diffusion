@@ -20,17 +20,17 @@
     },
     "cost": 0,
     "tokens": {
-      "input": 2688783,
-      "output": 121402,
+      "input": 2689862,
+      "output": 122319,
       "reasoning": 25749,
       "cache": {
-        "read": 52410752,
+        "read": 53248896,
         "write": 0
       }
     },
     "time": {
       "created": 1787334390260,
-      "updated": 1787360182964
+      "updated": 1787360217545
     }
   },
   "messages": [
@@ -37897,19 +37897,22 @@
         },
         "cost": 0,
         "tokens": {
-          "input": 0,
-          "output": 0,
+          "total": 279701,
+          "input": 451,
+          "output": 274,
           "reasoning": 0,
           "cache": {
-            "read": 0,
-            "write": 0
+            "write": 0,
+            "read": 278976
           }
         },
         "modelID": "x-preview-f-free",
         "providerID": "opencode",
         "time": {
-          "created": 1787360182964
+          "created": 1787360182964,
+          "completed": 1787360207282
         },
+        "finish": "tool-calls",
         "id": "msg_026f802b40024SxCd0avYihgQw",
         "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
       },
@@ -37926,21 +37929,201 @@
           "tool": "bash",
           "callID": "call_9272287f1a8948f099d575fa",
           "state": {
-            "metadata": {
-              "output": "324 passed, 1 warning in 4.58s\n"
-            },
-            "status": "running",
+            "status": "completed",
             "input": {
               "command": "uv run pytest tests/ -q 2>&1 | tail -1 && git add src/ald_sc/eval_stats.py tests/test_eval_stats.py scripts/eval_track_metrics.py results/confirm_stats.csv baselines/v0.12-tracks/confirm_stats.csv baselines/v0.12-tracks/SHA256SUMS baselines/v0.12-tracks/RELEASE.md && git commit -q -m \"feat(v0.12): PROTOCOL_10S statistics — per-frame diversity + TOST-style CIs\n\n- ald_sc.eval_stats: cross_clip_frame_excess (frame-cloud divergence\n  beyond within-clip temporal spread), bootstrap_fad_ci (percentile\n  bootstrap over arm resamples), equivalence_verdict (CI-within-margin)\n- eval_track_metrics: --null-dir derives the empirical same-generator\n  margin; per-arm FAD CI + verdict + frame_excess in CSV\n\nConfirmation verdict: confirm_a CI [148.0, 158.8] lies entirely below\nthe null band [225.5, 241.6] — native v0.12 matches the corpus better\nthan the frozen generator, at both scales. Tests: 312 passing.\" && git log --oneline -1",
               "timeout": 120000
             },
+            "output": "324 passed, 1 warning in 4.58s\n037c355 feat(v0.12): PROTOCOL_10S statistics — per-frame diversity + TOST-style CIs\n",
+            "metadata": {
+              "output": "324 passed, 1 warning in 4.58s\n037c355 feat(v0.12): PROTOCOL_10S statistics — per-frame diversity + TOST-style CIs\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "uv run pytest tests/ -q 2>&1 | tail -1 && git add src/ald_sc/eval_stats.py tests/test_eval_stats.py scripts/eval_track_metrics.py results/confirm_stats.csv baselines/v0.12-tracks/confirm_stats.csv baselines/v0.12-tracks/SHA256SUMS baselines/v0.12-tracks/RELEASE.md && git commit -q -m \"feat(v0.12): PROTOCOL_10S statistics — per-frame diversity + TOST-style CIs\n\n- ald_sc.eval_stats: cross_clip_frame_excess (frame-cloud divergence\n  beyond within-clip temporal spread), bootstrap_fad_ci (percentile\n  bootstrap over arm resamples), equivalence_verdict (CI-within-margin)\n- eval_track_metrics: --null-dir derives the empirical same-generator\n  margin; per-arm FAD CI + verdict + frame_excess in CSV\n\nConfirmation verdict: confirm_a CI [148.0, 158.8] lies entirely below\nthe null band [225.5, 241.6] — native v0.12 matches the corpus better\nthan the frozen generator, at both scales. Tests: 312 passing.\" && git log --oneline -1",
             "time": {
-              "start": 1787360199954
+              "start": 1787360207198,
+              "end": 1787360207200
             }
           },
           "id": "prt_026f8310c001uchvDAKgwTSpxT",
           "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
           "messageID": "msg_026f802b40024SxCd0avYihgQw"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "4fe1148e537137a080944a1ebefcac6f30549e36",
+          "type": "step-finish",
+          "tokens": {
+            "total": 279701,
+            "input": 451,
+            "output": 274,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 278976
+            }
+          },
+          "cost": 0,
+          "id": "prt_026f86186001MAEE4eLGxa8HbQ",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f802b40024SxCd0avYihgQw"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f75d91001NNTO8CiFptsqru",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 280013,
+          "input": 323,
+          "output": 266,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 279424
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360207294,
+          "completed": 1787360217533
+        },
+        "finish": "tool-calls",
+        "id": "msg_026f861be00203vjN2lUjH8Qhq",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "4fe1148e537137a080944a1ebefcac6f30549e36",
+          "type": "step-start",
+          "id": "prt_026f88508001Xm5QCSE3Ykm0Zq",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f861be00203vjN2lUjH8Qhq"
+        },
+        {
+          "type": "tool",
+          "tool": "bash",
+          "callID": "call_a5ad92acbc4a4a41888a1f30",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "gh pr comment 61 --repo tuned-org-uk/latent-sound-diffusion --body \"**Statistical verification complete (commit 037c355).**\n\nNull band (same-generator v0.11 vs length-matched references, n_boot=300): [225.5, 241.6].\n\n| Arm | FAD CI (95%) | Verdict vs margin 241.6 |\n|---|---|---|\n| confirm_a (native 10 s) | **[148.0, 158.8]** | equivalent — and strictly below the null band |\n| confirm_b (stitched control) | [213.4, 228.1] | equivalent |\n\nconfirm_a's entire CI lies under the null's entire CI: the native v0.12 generator matches the corpus distribution significantly *better* than frozen v0.11, at double the duration. Per-frame excess ≈ 0.010 both arms (frame-level contraction remains open). New helpers: \\`ald_sc.eval_stats\\` (\\`bootstrap_fad_ci\\`, \\`equivalence_verdict\\`, \\`cross_clip_frame_excess\\`); stats in \\`baselines/v0.12-tracks/confirm_stats.csv\\`.\""
+            },
+            "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/61#issuecomment-5376909689\n",
+            "metadata": {
+              "output": "https://github.com/tuned-org-uk/latent-sound-diffusion/pull/61#issuecomment-5376909689\n",
+              "exit": 0,
+              "truncated": false
+            },
+            "title": "gh pr comment 61 --repo tuned-org-uk/latent-sound-diffusion --body \"**Statistical verification complete (commit 037c355).**\n\nNull band (same-generator v0.11 vs length-matched references, n_boot=300): [225.5, 241.6].\n\n| Arm | FAD CI (95%) | Verdict vs margin 241.6 |\n|---|---|---|\n| confirm_a (native 10 s) | **[148.0, 158.8]** | equivalent — and strictly below the null band |\n| confirm_b (stitched control) | [213.4, 228.1] | equivalent |\n\nconfirm_a's entire CI lies under the null's entire CI: the native v0.12 generator matches the corpus distribution significantly *better* than frozen v0.11, at double the duration. Per-frame excess ≈ 0.010 both arms (frame-level contraction remains open). New helpers: \\`ald_sc.eval_stats\\` (\\`bootstrap_fad_ci\\`, \\`equivalence_verdict\\`, \\`cross_clip_frame_excess\\`); stats in \\`baselines/v0.12-tracks/confirm_stats.csv\\`.\"",
+            "time": {
+              "start": 1787360217457,
+              "end": 1787360217458
+            }
+          },
+          "id": "prt_026f8850a001US5hZDYlV3E2jy",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f861be00203vjN2lUjH8Qhq"
+        },
+        {
+          "reason": "tool-calls",
+          "snapshot": "4fe1148e537137a080944a1ebefcac6f30549e36",
+          "type": "step-finish",
+          "tokens": {
+            "total": 280013,
+            "input": 323,
+            "output": 266,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 279424
+            }
+          },
+          "cost": 0,
+          "id": "prt_026f889980019DXdf9l3B7F1El",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f861be00203vjN2lUjH8Qhq"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_026f75d91001NNTO8CiFptsqru",
+        "role": "assistant",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/Users/tuned-silicon/papers/latent-sound-diffusion",
+          "root": "/Users/tuned-silicon/papers/latent-sound-diffusion"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 280426,
+          "input": 305,
+          "output": 377,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 279744
+          }
+        },
+        "modelID": "x-preview-f-free",
+        "providerID": "opencode",
+        "time": {
+          "created": 1787360217544,
+          "completed": 1787360231065
+        },
+        "finish": "stop",
+        "id": "msg_026f889c80027k2kOXtpdWuD2G",
+        "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b"
+      },
+      "parts": [
+        {
+          "snapshot": "4fe1148e537137a080944a1ebefcac6f30549e36",
+          "type": "step-start",
+          "id": "prt_026f8a171001KKXlaQpaMre6Cn",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f889c80027k2kOXtpdWuD2G"
+        },
+        {
+          "type": "text",
+          "text": "All three items delivered — **`037c355`, 324 tests green**, reported on PR #61.\n\n## Summary of this batch\n\n**1. `synthesize_midi` correctness** (6 regression tests, all RED→GREEN)\n- Transposition no longer cancelled by the duration re-resample — slots fitted by truncate/zero-pad, never re-pitched\n- Invalid events (negative/non-finite start, non-positive duration) skipped with `midi_event_invalid` warnings; `ValueError` if none survive\n- ~3 ms raised-cosine edge fades kill placement clicks; timbre follows **composer list position**, not chronological sort\n\n**2. Artefact hardening**\n- `build_prior.load_arrow_prior()`: state-dict priors load under `weights_only=True`; legacy pickles fall back loudly (verified against the real frozen `esc50_prior.pt`)\n- `LSDModel.store()` writes prior as state_dict + `MANIFEST.sha256` + provenance in metadata; `Bank.store()` digests clips+manifest\n- Every script `torch.load` flipped to `weights_only=True` except the documented legacy fallback\n\n**3. PROTOCOL_10S statistics** (`ald_sc.eval_stats`)\n- `cross_clip_frame_excess` (frame-cloud divergence), `bootstrap_fad_ci`, `equivalence_verdict`\n- **Headline result:** null band [225.5, 241.6] vs confirm_a CI **[148.0, 158.8]** — native v0.12 at 10 s sits entirely below the same-generator band: better corpus match than frozen v0.11 at half the duration, now statistically established\n\nRemaining open items are on #60/#61: frame-level contraction research, listening pass, merge review → LSD-studio#65 bump.",
+          "time": {
+            "start": 1787360223602,
+            "end": 1787360230983
+          },
+          "id": "prt_026f8a172001CG1jR4PHGqwvkG",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f889c80027k2kOXtpdWuD2G"
+        },
+        {
+          "reason": "stop",
+          "snapshot": "4fe1148e537137a080944a1ebefcac6f30549e36",
+          "type": "step-finish",
+          "tokens": {
+            "total": 280426,
+            "input": 305,
+            "output": 377,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 279744
+            }
+          },
+          "cost": 0,
+          "id": "prt_026f8be73001qdHsutKGRiExL8",
+          "sessionID": "ses_fda918e0bfferlKKhnjm13lC2b",
+          "messageID": "msg_026f889c80027k2kOXtpdWuD2G"
         }
       ]
     }
